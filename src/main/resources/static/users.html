@@ -1,0 +1,621 @@
+<!doctype html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Eltro — użytkownicy</title>
+    <style>
+        :root {
+            --red: #d90000;
+            --deep: #a90000;
+            --ink: #24272b;
+            --muted: #687078;
+            --line: #e6e8eb;
+            --bg: #f4f5f7;
+        }
+        * { box-sizing: border-box; }
+        [hidden] { display: none !important; }
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--ink);
+            font: 15px/1.5 Arial, sans-serif;
+        }
+        header {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 24px;
+            padding: 16px max(24px, calc((100vw - 1280px)/2));
+            background: white;
+            border-bottom: 1px solid var(--line);
+            box-shadow: 0 4px 18px #19212b0b;
+        }
+        header img { width: 160px; height: auto; }
+        nav { display: flex; gap: 8px; flex-wrap: wrap; }
+        nav a {
+            padding: 11px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #484e55;
+            font-weight: 700;
+        }
+        nav a:hover { background: #fff1f1; }
+        nav a.active { background: var(--red); color: white; }
+        .account {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .muted { color: var(--muted); font-size: 13px; }
+        main { max-width: 1280px; margin: auto; padding: 36px 24px 80px; }
+        h1 { margin: 0; font-size: 29px; }
+        h2 { margin: 0 0 20px; font-size: 20px; }
+        .toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+        .card {
+            margin-bottom: 22px;
+            padding: 25px;
+            background: white;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            box-shadow: 0 7px 28px #2028330a;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px 22px;
+        }
+        label { display: block; font-size: 13px; font-weight: 700; }
+        input, select {
+            display: block;
+            width: 100%;
+            margin-top: 7px;
+            padding: 11px 12px;
+            border: 1px solid #cfd4da;
+            border-radius: 8px;
+            font: inherit;
+            background: white;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--red);
+            box-shadow: 0 0 0 3px #d900001b;
+        }
+        button {
+            border-radius: 8px;
+            padding: 10px 15px;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .primary { border: 1px solid var(--red); background: var(--red); color: white; }
+        .primary:hover { background: var(--deep); }
+        .secondary { border: 1px solid #e5b5b5; background: white; color: var(--deep); }
+        .secondary:hover { background: #fff1f1; }
+        button:disabled { opacity: .5; cursor: default; }
+        .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+        .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 14px; text-align: left; border-bottom: 1px solid var(--line); }
+        th { background: #f8f9fa; font-size: 12px; color: var(--muted); }
+        tbody tr:last-child td { border-bottom: 0; }
+        td button { margin: 3px; white-space: nowrap; }
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 12px; }
+        .enabled { background: #e9f6ed; color: #246b35; }
+        .disabled { background: #fff0ee; color: var(--deep); }
+        #message {
+            padding: 14px 16px;
+            margin-bottom: 22px;
+            border: 1px solid #bde3c7;
+            border-left: 4px solid #27833c;
+            border-radius: 8px;
+            background: #e9f6ed;
+        }
+        #message.error { background: #fff0ee; border-color: #edc3bf; border-left-color: var(--red); }
+        dialog {
+            width: min(480px, calc(100vw - 32px));
+            padding: 26px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            box-shadow: 0 20px 80px #0003;
+        }
+        dialog::backdrop { background: #17202c66; }
+        @media (max-width: 750px) {
+            header { padding: 16px; }
+            .account { margin-left: 0; }
+            main { padding: 24px 14px; }
+            .grid { grid-template-columns: 1fr; }
+            .toolbar { flex-direction: column; align-items: stretch; }
+            .card { padding: 18px; }
+        }
+    </style>
+</head>
+<body>
+<header>
+    <img src="/eltro-logo.png" alt="Eltro">
+    <nav>
+        <a href="/">Panel sklepu</a>
+        <a href="/users.html" class="active">Użytkownicy</a>
+    </nav>
+    <div class="account">
+        <span class="muted" id="current-user">Wczytywanie konta…</span>
+        <button class="secondary" id="logout" type="button">Wyloguj</button>
+    </div>
+</header>
+
+<main>
+    <p id="message" role="status" hidden></p>
+
+    <div id="admin-panel" hidden>
+        <div class="toolbar">
+            <h1>Użytkownicy</h1>
+            <button class="primary" id="show-create" type="button">+ Dodaj użytkownika</button>
+        </div>
+
+        <form id="create-form" class="card" hidden>
+            <h2>Nowe konto</h2>
+            <div class="grid">
+                <label>Login
+                    <input name="username" required minlength="3" maxlength="80"
+                           pattern="[a-zA-Z0-9._-]{3,80}" autocomplete="off">
+                </label>
+                <label>Rola
+                    <select name="role">
+                        <option value="SELLER">Sprzedawca</option>
+                        <option value="ADMIN">Administrator</option>
+                    </select>
+                </label>
+                <label>Hasło — minimum 12 znaków
+                    <input name="password" type="password" required
+                           minlength="12" autocomplete="new-password">
+                </label>
+                <label>Powtórz hasło
+                    <input name="passwordRepeat" type="password" required
+                           minlength="12" autocomplete="new-password">
+                </label>
+            </div>
+            <p class="muted">
+                Login może zawierać litery bez polskich znaków, cyfry, kropkę,
+                podkreślenie i myślnik.
+            </p>
+            <div class="actions">
+                <button class="primary" type="submit">Utwórz konto</button>
+                <button class="secondary" id="cancel-create" type="button">Anuluj</button>
+            </div>
+        </form>
+
+        <div class="card">
+            <div class="toolbar">
+                <h2 style="margin:0">Konta pracowników</h2>
+                <button class="secondary" id="refresh" type="button">Odśwież</button>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Login</th>
+                        <th>Rola</th>
+                        <th>Status</th>
+                        <th>Akcje</th>
+                    </tr>
+                    </thead>
+                    <tbody id="user-rows"></tbody>
+                </table>
+            </div>
+            <p class="muted">
+                Blokada konta i zmiana hasła kończą jego otwarte sesje
+                przy następnym żądaniu.
+            </p>
+        </div>
+    </div>
+</main>
+
+<dialog id="password-dialog">
+    <form id="password-form">
+        <h2 id="password-title">Zmień hasło</h2>
+        <label>Nowe hasło — minimum 12 znaków
+            <input name="password" type="password" minlength="12"
+                   required autocomplete="new-password">
+        </label>
+        <label style="margin-top:18px">Powtórz hasło
+            <input name="passwordRepeat" type="password" minlength="12"
+                   required autocomplete="new-password">
+        </label>
+        <p id="password-error" class="muted" role="alert" hidden></p>
+        <div class="actions">
+            <button class="primary" type="submit">Zapisz hasło</button>
+            <button class="secondary" id="cancel-password" type="button">Anuluj</button>
+        </div>
+    </form>
+</dialog>
+
+<script>
+    "use strict";
+
+    const $ = id => document.getElementById(id);
+
+    let currentUser = null;
+    let passwordUser = null;
+    let csrfPromise = null;
+    let busy = false;
+
+    function message(text, error = false) {
+        $("message").textContent = text;
+        $("message").className = error ? "error" : "";
+        $("message").hidden = false;
+    }
+
+    function checkSession(response) {
+        if (
+            response.status === 401 ||
+            (response.redirected && new URL(response.url).pathname === "/login")
+        ) {
+            window.location.assign("/login");
+            throw new Error("Sesja wygasła. Zaloguj się ponownie.");
+        }
+    }
+
+    async function getCsrf() {
+        if (!csrfPromise) {
+            csrfPromise = (async () => {
+                const response = await fetch("/api/csrf", {
+                    credentials: "same-origin",
+                    cache: "no-store",
+                    headers: {Accept: "application/json"}
+                });
+
+                checkSession(response);
+
+                if (!response.ok) {
+                    throw new Error("Nie udało się pobrać tokenu CSRF.");
+                }
+
+                const csrf = await response.json();
+
+                if (!csrf.headerName || !csrf.token) {
+                    throw new Error("Nieprawidłowy token CSRF.");
+                }
+
+                return csrf;
+            })().catch(error => {
+                csrfPromise = null;
+                throw error;
+            });
+        }
+
+        return csrfPromise;
+    }
+
+    async function api(path, options = {}) {
+        const method = (options.method || "GET").toUpperCase();
+        const headers = new Headers(options.headers);
+        headers.set("Accept", "application/json");
+
+        if (options.body != null) {
+            headers.set("Content-Type", "application/json");
+        }
+
+        if (!["GET", "HEAD", "OPTIONS"].includes(method)) {
+            const csrf = await getCsrf();
+            headers.set(csrf.headerName, csrf.token);
+        }
+
+        const response = await fetch(path, {
+            ...options,
+            method,
+            headers,
+            credentials: "same-origin",
+            cache: "no-store"
+        });
+
+        checkSession(response);
+
+        const text = await response.text();
+        let body = null;
+
+        if (text) {
+            try {
+                body = JSON.parse(text);
+            } catch {
+                throw new Error("Serwer zwrócił nieoczekiwaną odpowiedź.");
+            }
+        }
+
+        if (!response.ok) {
+            if (response.status === 403) {
+                csrfPromise = null;
+                throw new Error(
+                    "Brak uprawnień lub token CSRF wygasł. Odśwież stronę."
+                );
+            }
+
+            if (response.status === 409) {
+                throw new Error("Konto o takim loginie już istnieje.");
+            }
+
+            throw new Error(
+                body?.message || body?.error || `Błąd HTTP ${response.status}`
+            );
+        }
+
+        return body;
+    }
+
+    function validatePassword(password, repeat) {
+        if (password !== repeat) {
+            throw new Error("Wpisane hasła są różne.");
+        }
+
+        if (password.length < 12 || !password.trim()) {
+            throw new Error("Hasło musi zawierać minimum 12 znaków.");
+        }
+
+        if (new TextEncoder().encode(password).length > 72) {
+            throw new Error(
+                "Hasło jest za długie. Maksymalna długość to 72 bajty UTF-8."
+            );
+        }
+    }
+
+    function setBusy(value) {
+        busy = value;
+
+        document.querySelectorAll("button").forEach(button => {
+            button.disabled = value || button.dataset.locked === "true";
+        });
+    }
+
+    function addCell(row, value) {
+        const cell = document.createElement("td");
+        cell.textContent = value;
+        row.append(cell);
+        return cell;
+    }
+
+    function addButton(cell, label, action, locked = false) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "secondary";
+        button.textContent = label;
+        button.dataset.locked = String(locked);
+        button.disabled = busy || locked;
+        button.onclick = action;
+        cell.append(button);
+    }
+
+    async function loadUsers() {
+        const users = await api("/api/users");
+        const body = $("user-rows");
+        body.replaceChildren();
+
+        for (const user of users) {
+            const ownAccount = user.username === currentUser.username;
+            const row = document.createElement("tr");
+
+            addCell(row, user.username + (ownAccount ? " (Twoje konto)" : ""));
+            addCell(row, user.role === "ADMIN" ? "Administrator" : "Sprzedawca");
+
+            const statusCell = document.createElement("td");
+            const badge = document.createElement("span");
+            badge.className = "badge " + (user.enabled ? "enabled" : "disabled");
+            badge.textContent = user.enabled ? "Aktywne" : "Zablokowane";
+            statusCell.append(badge);
+            row.append(statusCell);
+
+            const actions = document.createElement("td");
+
+            addButton(actions, "Zmień hasło", () => openPasswordDialog(user));
+
+            addButton(
+                actions,
+                user.enabled ? "Zablokuj" : "Odblokuj",
+                () => changeEnabled(user),
+                ownAccount && user.enabled
+            );
+
+            row.append(actions);
+            body.append(row);
+        }
+    }
+
+    async function changeEnabled(user) {
+        if (busy) return;
+
+        const enabled = !user.enabled;
+        const action = enabled ? "odblokować" : "zablokować";
+
+        if (!confirm(`Czy chcesz ${action} konto „${user.username}”?`)) {
+            return;
+        }
+
+        setBusy(true);
+
+        try {
+            await api(`/api/users/${user.id}/enabled`, {
+                method: "PATCH",
+                body: JSON.stringify({enabled})
+            });
+
+            await loadUsers();
+
+            message(
+                enabled
+                    ? `Odblokowano konto ${user.username}.`
+                    : `Zablokowano konto ${user.username}.`
+            );
+        } catch (error) {
+            message(error.message, true);
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    $("show-create").onclick = () => {
+        $("create-form").reset();
+        $("create-form").hidden = false;
+        $("create-form").elements.username.focus();
+    };
+
+    $("cancel-create").onclick = () => {
+        $("create-form").reset();
+        $("create-form").hidden = true;
+    };
+
+    $("create-form").addEventListener("submit", async event => {
+        event.preventDefault();
+        if (busy) return;
+
+        const form = event.currentTarget;
+        const f = form.elements;
+
+        try {
+            validatePassword(f.password.value, f.passwordRepeat.value);
+        } catch (error) {
+            message(error.message, true);
+            return;
+        }
+
+        setBusy(true);
+
+        try {
+            const user = await api("/api/users", {
+                method: "POST",
+                body: JSON.stringify({
+                    username: f.username.value.trim(),
+                    password: f.password.value,
+                    role: f.role.value
+                })
+            });
+
+            form.reset();
+            form.hidden = true;
+            await loadUsers();
+            message(`Utworzono konto ${user.username}.`);
+        } catch (error) {
+            message(error.message, true);
+        } finally {
+            setBusy(false);
+        }
+    });
+
+    function openPasswordDialog(user) {
+        if (busy) return;
+
+        passwordUser = user;
+        $("password-form").reset();
+        $("password-error").hidden = true;
+        $("password-title").textContent = `Zmień hasło — ${user.username}`;
+        $("password-dialog").showModal();
+    }
+
+    $("cancel-password").onclick = () => {
+        $("password-dialog").close();
+    };
+
+    $("password-dialog").addEventListener("cancel", event => {
+        if (busy) event.preventDefault();
+    });
+
+    $("password-dialog").addEventListener("close", () => {
+        $("password-form").reset();
+        passwordUser = null;
+    });
+
+    $("password-form").addEventListener("submit", async event => {
+        event.preventDefault();
+        if (busy || !passwordUser) return;
+
+        const form = event.currentTarget;
+        const user = passwordUser;
+
+        try {
+            validatePassword(
+                form.elements.password.value,
+                form.elements.passwordRepeat.value
+            );
+        } catch (error) {
+            $("password-error").textContent = error.message;
+            $("password-error").hidden = false;
+            return;
+        }
+
+        setBusy(true);
+
+        try {
+            await api(`/api/users/${user.id}/password`, {
+                method: "PATCH",
+                body: JSON.stringify({
+                    password: form.elements.password.value
+                })
+            });
+
+            $("password-dialog").close();
+
+            if (user.username === currentUser.username) {
+                window.location.assign("/login");
+                return;
+            }
+
+            message(`Zmieniono hasło konta ${user.username}.`);
+        } catch (error) {
+            $("password-error").textContent = error.message;
+            $("password-error").hidden = false;
+        } finally {
+            setBusy(false);
+        }
+    });
+
+    $("refresh").onclick = async () => {
+        if (busy) return;
+        setBusy(true);
+
+        try {
+            await loadUsers();
+            message("Lista kont została odświeżona.");
+        } catch (error) {
+            message(error.message, true);
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    $("logout").onclick = async () => {
+        if (busy) return;
+        setBusy(true);
+
+        try {
+            await api("/logout", {method: "POST"});
+            window.location.assign("/login");
+        } catch (error) {
+            message(error.message, true);
+            setBusy(false);
+        }
+    };
+
+    async function initialize() {
+        currentUser = await api("/api/me");
+
+        if (!currentUser.roles.includes("ADMIN")) {
+            window.location.replace("/");
+            return;
+        }
+
+        $("current-user").textContent =
+            currentUser.username + " · Administrator";
+
+        await loadUsers();
+        $("admin-panel").hidden = false;
+    }
+
+    initialize().catch(error => message(error.message, true));
+</script>
+</body>
+</html>

@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Eltro — historia korekt dostaw</title>
+    <style>
+        :root {
+            --red: #d90000;
+            --deep: #a90000;
+            --ink: #24272b;
+            --muted: #687078;
+            --line: #e6e8eb;
+            --bg: #f4f5f7;
+        }
+
+        * { box-sizing: border-box; }
+        [hidden] { display: none !important; }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--ink);
+            font: 15px/1.5 Arial, sans-serif;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            padding: 18px max(24px, calc((100vw - 1100px)/2));
+            background: white;
+            border-bottom: 1px solid var(--line);
+        }
+
+        header img { width: 160px; }
+
+        header a {
+            color: var(--deep);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: auto;
+            padding: 30px 24px 70px;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 29px;
+            letter-spacing: -.03em;
+        }
+
+        h2 { margin: 0; font-size: 19px; }
+
+        .muted { color: var(--muted); }
+
+        .card {
+            margin-top: 22px;
+            padding: 24px;
+            background: white;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            box-shadow: 0 7px 28px #2028330a;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 18px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        input, select {
+            display: block;
+            width: 100%;
+            margin-top: 7px;
+            padding: 11px 12px;
+            border: 1px solid #cfd4da;
+            border-radius: 8px;
+            background: white;
+            color: var(--ink);
+            font: inherit;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--red);
+            box-shadow: 0 0 0 3px #d900001b;
+        }
+
+        button {
+            padding: 11px 16px;
+            border: 1px solid var(--red);
+            border-radius: 8px;
+            background: var(--red);
+            color: white;
+            font: 700 14px Arial, sans-serif;
+            cursor: pointer;
+        }
+
+        button:hover { background: var(--deep); }
+        button:disabled { opacity: .6; cursor: wait; }
+
+        #message {
+            padding: 13px 16px;
+            border: 1px solid #edc3bf;
+            border-left: 4px solid var(--red);
+            border-radius: 8px;
+            background: #fff0ee;
+        }
+
+        .correction-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .author {
+            padding: 6px 11px;
+            border-radius: 20px;
+            background: #fff1f1;
+            color: var(--deep);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px 14px;
+            text-align: left;
+            vertical-align: top;
+            border-bottom: 1px solid var(--line);
+        }
+
+        th {
+            background: #f8f9fa;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        td {
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        tbody tr:last-child td { border-bottom: 0; }
+
+        tr.changed td:last-child {
+            background: #eef8f0;
+            color: #246b34;
+            font-weight: 700;
+        }
+
+        @media (max-width: 650px) {
+            header { padding: 16px; }
+            main { padding: 24px 14px 60px; }
+            .card { padding: 17px; }
+        }
+    </style>
+</head>
+<body>
+<header>
+    <img src="/eltro-logo.png" alt="Eltro">
+    <a href="/">← Wróć do panelu</a>
+</header>
+
+<main>
+    <h1>Historia korekt dostaw</h1>
+    <p class="muted">
+        Poprzednie i nowe wartości zapisane podczas korekt.
+        Najnowsze zmiany znajdują się na początku.
+    </p>
+
+    <p id="message" role="alert" hidden></p>
+
+    <form id="history-form" class="card" hidden>
+        <label>
+            Wyszukaj dostawę
+            <input id="search" type="search"
+                   placeholder="Numer dostawy, nazwa produktu lub SKU">
+        </label>
+
+        <label>
+            Dostawa
+            <select id="delivery-select" required>
+                <option value="">Wybierz dostawę</option>
+            </select>
+        </label>
+
+        <button id="show-history" type="submit">Pokaż historię zmian</button>
+        <p id="delivery-info" class="muted"></p>
+    </form>
+
+    <div id="history-results" aria-live="polite"></div>
+</main>
+
+<script>
+    "use strict";
+
+    const $ = id => document.getElementById(id);
+
+    const state = {
+        deliveries: [],
+        requestNumber: 0
+    };
+
+    const money = value =>
+        value == null ? "—" : Number(value).toFixed(2) + " zł";
+
+    const percent = value =>
+        value == null ? "—" : Number(value).toFixed(2) + "%";
+
+    const remarks = value =>
+        value == null || value === "" ? "—" : String(value);
+
+    function showError(text) {
+        $("message").textContent = text;
+        $("message").hidden = false;
+    }
+
+    async function api(path) {
+        const response = await fetch(path, {
+            credentials: "same-origin",
+            cache: "no-store",
+            headers: {Accept: "application/json"}
+        });
+
+        if (
+            response.status === 401 ||
+            (response.redirected &&
+                new URL(response.url).pathname === "/login")
+        ) {
+            window.location.assign("/login");
+            throw new Error("Sesja wygasła. Zaloguj się ponownie.");
+        }
+
+        if (response.status === 403) {
+            throw new Error(
+                "Historia korekt jest dostępna dla administratora."
+            );
+        }
+
+        const body = await response.json().catch(() => null);
+
+        if (!response.ok) {
+            throw new Error(body?.error || `Błąd HTTP ${response.status}`);
+        }
+
+        return body;
+    }
+
+    function updateDeliveryInfo() {
+        const id = Number($("delivery-select").value);
+        const delivery = state.deliveries.find(item => item.id === id);
+
+        $("delivery-info").textContent = delivery
+            ? `Dostawa #${delivery.id} · ${delivery.productName} · ` +
+            `Obecna ilość w tej dostawie: ${delivery.quantity} szt. · ` +
+            `Przyjął: ${delivery.createdByUsername || "nie zapisano autora"}`
+            : "";
+    }
+
+    function renderOptions(preferredId = $("delivery-select").value) {
+        const query = $("search").value.trim().toLocaleLowerCase("pl");
+        const select = $("delivery-select");
+
+        select.replaceChildren(new Option("Wybierz dostawę", ""));
+
+        for (const delivery of state.deliveries) {
+            const label =
+                `#${delivery.id} — ${delivery.sku} — ${delivery.productName}`;
+
+            if (
+                query &&
+                !label.toLocaleLowerCase("pl").includes(query)
+            ) {
+                continue;
+            }
+
+            select.add(new Option(label, String(delivery.id)));
+        }
+
+        select.value = String(preferredId ?? "");
+
+        if (!select.value && select.options.length === 2) {
+            select.selectedIndex = 1;
+        }
+
+        updateDeliveryInfo();
+    }
+
+    function appendCell(row, value, tag = "td") {
+        const cell = document.createElement(tag);
+        cell.textContent = String(value);
+        row.append(cell);
+    }
+
+    function renderCorrections(delivery, corrections) {
+        const results = $("history-results");
+        results.replaceChildren();
+
+        const summary = document.createElement("div");
+        summary.className = "card";
+
+        const heading = document.createElement("h2");
+        heading.textContent =
+            `Dostawa #${delivery.id} — ${delivery.productName}`;
+
+        const count = document.createElement("p");
+        count.className = "muted";
+        count.textContent = corrections.length
+            ? `Liczba zapisanych korekt: ${corrections.length}.`
+            : "Ta dostawa nie ma zapisanych korekt.";
+
+        summary.append(heading, count);
+        results.append(summary);
+
+        for (const correction of corrections) {
+            const card = document.createElement("div");
+            card.className = "card";
+
+            const titleRow = document.createElement("div");
+            titleRow.className = "correction-heading";
+
+            const title = document.createElement("h2");
+            title.textContent = `Korekta #${correction.id}`;
+
+            const author = document.createElement("span");
+            author.className = "author";
+            author.textContent =
+                "Pracownik: " +
+                (correction.correctedByUsername ||
+                    "nie zapisano autora — starszy wpis");
+
+            titleRow.append(title, author);
+
+            const wrap = document.createElement("div");
+            wrap.className = "table-wrap";
+
+            const table = document.createElement("table");
+            const head = document.createElement("thead");
+            const headRow = document.createElement("tr");
+
+            for (const text of ["Pole", "Przed zmianą", "Po zmianie"]) {
+                appendCell(headRow, text, "th");
+            }
+
+            head.append(headRow);
+
+            const body = document.createElement("tbody");
+
+            const fields = [
+                [
+                    "Liczba sztuk",
+                    correction.previousQuantity,
+                    correction.newQuantity,
+                    value => String(value)
+                ],
+                [
+                    "Cena zakupu netto za sztukę",
+                    correction.previousPurchasePriceNet,
+                    correction.newPurchasePriceNet,
+                    money
+                ],
+                [
+                    "Narzut",
+                    correction.previousMarkupPercent,
+                    correction.newMarkupPercent,
+                    percent
+                ],
+                [
+                    "Cena sprzedaży netto za sztukę",
+                    correction.previousSalePriceNet,
+                    correction.newSalePriceNet,
+                    money
+                ],
+                [
+                    "Uwagi",
+                    correction.previousRemarks,
+                    correction.newRemarks,
+                    remarks
+                ]
+            ];
+
+            for (const [label, previous, current, format] of fields) {
+                const row = document.createElement("tr");
+
+                if (previous !== current) {
+                    row.className = "changed";
+                }
+
+                appendCell(row, label);
+                appendCell(row, format(previous));
+                appendCell(row, format(current));
+
+                body.append(row);
+            }
+
+            table.append(head, body);
+            wrap.append(table);
+            card.append(titleRow, wrap);
+            results.append(card);
+        }
+    }
+
+    async function loadHistory() {
+        const id = Number($("delivery-select").value);
+        const delivery = state.deliveries.find(item => item.id === id);
+
+        if (!delivery) {
+            showError("Wybierz dostawę z listy.");
+            return;
+        }
+
+        const requestNumber = ++state.requestNumber;
+        const button = $("show-history");
+
+        button.disabled = true;
+        $("message").hidden = true;
+        $("history-results").replaceChildren();
+
+        try {
+            const corrections = await api(
+                `/api/admin/deliveries/${id}/corrections`
+            );
+
+            if (requestNumber !== state.requestNumber) return;
+
+            renderCorrections(delivery, corrections);
+
+            const url = new URL(window.location.href);
+            url.searchParams.set("id", String(id));
+            window.history.replaceState(null, "", url);
+        } catch (error) {
+            if (requestNumber === state.requestNumber) {
+                showError(error.message);
+            }
+        } finally {
+            if (requestNumber === state.requestNumber) {
+                button.disabled = false;
+            }
+        }
+    }
+
+    $("search").addEventListener("input", () => renderOptions());
+    $("delivery-select").addEventListener("change", updateDeliveryInfo);
+
+    $("history-form").addEventListener("submit", event => {
+        event.preventDefault();
+        loadHistory();
+    });
+
+    async function initialize() {
+        const user = await api("/api/me");
+
+        if (!user.roles.includes("ADMIN")) {
+            showError("Ten ekran jest dostępny dla administratora.");
+            return;
+        }
+
+        state.deliveries = await api("/api/deliveries");
+
+        const requestedId = new URL(window.location.href)
+            .searchParams.get("id");
+
+        renderOptions(requestedId);
+        $("history-form").hidden = false;
+
+        if (!state.deliveries.length) {
+            $("show-history").disabled = true;
+            $("delivery-info").textContent =
+                "Nie ma jeszcze żadnych dostaw.";
+            return;
+        }
+
+        if (requestedId && $("delivery-select").value) {
+            await loadHistory();
+        }
+    }
+
+    initialize().catch(error => showError(error.message));
+</script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+# Maven — wyniki budowania
+/target/
+
+# IntelliJ — ustawienia lokalne
+/.idea/
+*.iml
+
+# Lokalne konfiguracje i sekrety
+.env
+.env.*
+!.env.example
+/src/main/resources/application-local.properties
+/src/main/resources/application-local.yml
+/src/main/resources/application-local.yaml
+
+# Logi
+*.log
+/logs/
+
+# Kopie bazy — migracje SQL pozostają w repozytorium
+/backups/
+/EltroBackups/
+*.sql.partial
+*.vhdx
+
+# Windows
+Thumbs.db
+Desktop.ini
+# Lokalne haslo MySQL
+/db_password.txt
