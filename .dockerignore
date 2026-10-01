@@ -1,0 +1,10 @@
+*
+!Dockerfile
+!pom.xml
+!mvnw
+!.mvn/
+!.mvn/**
+!src/
+!src/**
+
+src/main/resources/application-local.*
