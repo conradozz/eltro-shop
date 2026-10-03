@@ -41,13 +41,21 @@
         .muted{color:var(--muted)}
         .low{color:#b14300;font-weight:bold}
         .notice{background:#f8f9fa;padding:12px;border-radius:8px;margin-top:12px}
-        .results{max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:8px;margin-top:8px}
+        .results{max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:8px;margin-top:8px;background:white}
         .results button{display:block;width:100%;text-align:left;background:white;color:var(--ink);border:0;border-bottom:1px solid var(--line);border-radius:0}
+        .results button:hover{background:#fff3f3;filter:none}
+        .results button span{display:block;font-size:12px;color:var(--muted);margin-top:4px}
+        .results button span.unavailable{color:#b14300}
         .badge{display:inline-block;padding:4px 8px;border-radius:6px;background:#edf0f7;white-space:nowrap}
         .RECEIVED{background:#e7f6ec;color:#277943}
         .TO_ORDER{background:#fff0db;color:#956000}
         .PARTIALLY_RECEIVED{background:#eee8ff;color:#6b43ad}
-        .sale-line{display:grid;grid-template-columns:2fr .6fr 1fr 1fr auto;gap:10px;align-items:end;padding:14px;margin:12px 0;background:#fafbfc;border:1px solid var(--line);border-radius:10px}
+        .sale-line{display:grid;grid-template-columns:2fr .7fr 1fr 1fr auto;gap:10px;align-items:start;padding:14px;margin:12px 0;background:#fafbfc;border:1px solid var(--line);border-radius:10px}
+        .sale-product-picker{position:relative;min-width:0}
+        .sale-product-picker .results{position:absolute;left:0;right:0;top:100%;z-index:10;box-shadow:0 8px 24px #20283322}
+        .line-stock{display:block;font-size:12px;font-weight:normal;color:var(--muted);margin-top:7px}
+        .line-stock.low{color:#b14300;font-weight:bold}
+        .line-remove{margin-top:26px}
         #message{position:sticky;top:90px;z-index:21;background:#e9f6ed;border-left:4px solid #27833c;padding:13px;border-radius:8px}
         #message.error{background:#fff0ee;border-color:var(--red)}
         .stats-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
@@ -63,6 +71,7 @@
             main{padding:24px 14px}
             .grid,.filters,.stats-cards,.sale-line{grid-template-columns:1fr}
             .card{padding:18px}
+            .line-remove{margin-top:0}
             #message{top:0}
         }
         @media print{
@@ -271,7 +280,6 @@
 </main>
 
 <div id="print-sheet"></div>
-<datalist id="sale-product-options"></datalist>
 
 <script>
     "use strict";
@@ -436,12 +444,10 @@
         renderCustomers();
         renderSales();
         renderDeliveries();
-        $("sale-product-options").innerHTML=products.map(p=>
-            '<option value="'+esc(productName(p))+'"></option>'
-        ).join("");
+        for(const line of $("sale-lines").children)updateLineStock(line);
+        salePreview();
     }
 
-    // Formularze produktów i klientów.
     function field(name,label,type="text",extra=""){return {name,label,type,extra};}
 
     function editor(target,title,fields,values,onSave){
@@ -591,7 +597,7 @@
     $("new-customer").onclick=()=>editCustomer();
     $("customer-search").oninput=renderCustomers;
 
-    // Dostawy i wybór produktu.
+    // Wybór produktu w dostawie i zamówieniu.
     function picker(form,onSelected){
         const label=document.createElement("label");
         label.className="full";
@@ -697,43 +703,180 @@
     }
     $("refresh-deliveries").onclick=safe(refresh);
 
-    // Sprzedaż i korekty.
+    // Sprzedaż — wyszukiwarka pokazująca stan magazynowy.
     function lineProduct(line){
-        return state.products.find(p=>productName(p)===line.querySelector(".line-product").value);
+        const id=Number(line.dataset.productId);
+        return id?state.products.find(p=>p.id===id):null;
+    }
+    function updateLineStock(line){
+        const product=lineProduct(line);
+        const stock=line.querySelector(".line-stock");
+        if(!stock)return;
+        stock.className="line-stock";
+        if(!product){
+            stock.textContent="Wybierz produkt";
+            return;
+        }
+        const requested=Number(line.querySelector(".line-quantity").value||0);
+        if(product.quantity===0){
+            stock.textContent="Brak na stanie";
+            stock.classList.add("low");
+        }else{
+            stock.textContent="Dostępne: "+product.quantity+" szt.";
+            if(requested>product.quantity){
+                stock.textContent+=" · ilość przekracza stan";
+                stock.classList.add("low");
+            }
+        }
     }
     function addLine(item=null){
         const line=document.createElement("div");
         line.className="sale-line";
-        line.innerHTML='<label>Produkt<input class="line-product" list="sale-product-options" required placeholder="Wyszukaj produkt"></label><label>Sztuki<input class="line-quantity" type="number" min="1" step="1" value="1" required></label><label>Cena netto<input class="line-price" type="number" min="0" step="0.01" placeholder="Z cennika"></label><label>Rabat %<input class="line-discount" type="number" min="0" max="100" step="0.01" placeholder="Klienta"></label><button type="button" class="secondary">Usuń</button>';
+        line.innerHTML=
+            '<div class="sale-product-picker">'+
+            '<label>Produkt<input class="line-product" type="search" autocomplete="off" required placeholder="Nazwa, SKU, producent lub model"></label>'+
+            '<div class="results line-results" hidden></div>'+
+            '</div>'+
+            '<label>Sztuki<input class="line-quantity" type="number" min="1" step="1" value="1" required><span class="line-stock">Wybierz produkt</span></label>'+
+            '<label>Cena netto<input class="line-price" type="number" min="0" step="0.01" placeholder="Z cennika"></label>'+
+            '<label>Rabat %<input class="line-discount" type="number" min="0" max="100" step="0.01" placeholder="Klienta"></label>'+
+            '<button type="button" class="secondary line-remove">Usuń</button>';
+
+        const input=line.querySelector(".line-product");
+        const results=line.querySelector(".line-results");
+
+        function selectProduct(product){
+            line.dataset.productId=product.id;
+            input.value=productName(product);
+            results.hidden=true;
+            line.querySelector(".line-price").placeholder=money(product.salePriceNet);
+            updateLineStock(line);
+            salePreview();
+        }
+
+        function searchProducts(){
+            results.replaceChildren();
+            const query=input.value.trim().toLocaleLowerCase("pl");
+            if(!query){
+                results.hidden=true;
+                return;
+            }
+            const matches=state.products.filter(product=>
+                [product.name,product.sku,product.manufacturer,product.model,product.category]
+                    .join(" ").toLocaleLowerCase("pl").includes(query)
+            ).slice(0,40);
+
+            for(const product of matches){
+                const button=document.createElement("button");
+                button.type="button";
+                const title=document.createElement("strong");
+                title.textContent=productName(product);
+                const details=document.createElement("span");
+                details.textContent=
+                    (product.quantity===0?"Brak na stanie":"Stan: "+product.quantity+" szt.")+
+                    " · "+money(product.salePriceNet)+" netto"+
+                    (product.manufacturer?" · "+product.manufacturer:"");
+                if(product.quantity===0)details.className="unavailable";
+                button.append(title,details);
+                button.onclick=()=>selectProduct(product);
+                results.append(button);
+            }
+
+            if(!matches.length){
+                const text=document.createElement("p");
+                text.className="muted";
+                text.style.padding="10px";
+                text.textContent="Nie znaleziono produktu.";
+                results.append(text);
+            }
+            results.hidden=false;
+        }
+
+        input.oninput=()=>{
+            delete line.dataset.productId;
+            line.querySelector(".line-price").placeholder="Z cennika";
+            updateLineStock(line);
+            searchProducts();
+        };
+
+        input.onfocus=()=>{
+            if(!line.dataset.productId)searchProducts();
+        };
+
+        input.onkeydown=event=>{
+            if(event.key==="Escape"){
+                results.hidden=true;
+            }else if(event.key==="ArrowDown"){
+                const first=results.querySelector("button");
+                if(first&&!results.hidden){
+                    event.preventDefault();
+                    first.focus();
+                }
+            }
+        };
+
+        results.onkeydown=event=>{
+            const buttons=[...results.querySelectorAll("button")];
+            const index=buttons.indexOf(document.activeElement);
+            if(event.key==="ArrowDown"&&index<buttons.length-1){
+                event.preventDefault();
+                buttons[index+1].focus();
+            }else if(event.key==="ArrowUp"){
+                event.preventDefault();
+                if(index>0)buttons[index-1].focus();else input.focus();
+            }else if(event.key==="Escape"){
+                results.hidden=true;
+                input.focus();
+            }
+        };
+
+        const pickerBox=line.querySelector(".sale-product-picker");
+        pickerBox.addEventListener("focusout",event=>{
+            if(!pickerBox.contains(event.relatedTarget))results.hidden=true;
+        });
+
         if(item){
-            const p=state.products.find(p=>p.id===item.productId);
-            line.querySelector(".line-product").value=p?productName(p):"";
+            const product=state.products.find(p=>p.id===item.productId);
+            if(product){
+                line.dataset.productId=product.id;
+                input.value=productName(product);
+            }
             line.querySelector(".line-quantity").value=item.quantity;
             line.querySelector(".line-price").value=item.unitSalePriceNet;
             line.querySelector(".line-discount").value=item.discountPercent;
         }
-        line.querySelector("button").onclick=()=>{line.remove();salePreview();};
-        line.oninput=salePreview;
+
+        line.querySelector(".line-remove").onclick=()=>{
+            line.remove();
+            salePreview();
+        };
+        line.addEventListener("input",()=>{
+            updateLineStock(line);
+            salePreview();
+        });
         $("sale-lines").append(line);
+        updateLineStock(line);
         salePreview();
     }
     function salePreview(){
         const customer=state.customers.find(c=>c.id===Number($("sale-customer").value));
         let net=0,gross=0;
         for(const line of $("sale-lines").children){
-            const p=lineProduct(line);
-            if(!p)continue;
-            const price=num(line.querySelector(".line-price").value)??Number(p.salePriceNet);
+            const product=lineProduct(line);
+            if(!product)continue;
+            const price=num(line.querySelector(".line-price").value)??Number(product.salePriceNet);
             const discount=num(line.querySelector(".line-discount").value)??Number(customer?.discountPercent??0);
             const quantity=Number(line.querySelector(".line-quantity").value);
             const amount=Math.round(price*quantity*(1-discount/100)*100)/100;
             net+=amount;
-            gross+=Math.round(amount*(1+Number(p.vatRate)/100)*100)/100;
+            gross+=Math.round(amount*(1+Number(product.vatRate)/100)*100)/100;
         }
-        $("sale-preview").textContent="Podgląd: "+money(net)+" netto / "+money(gross)+" brutto";
+        $("sale-preview").textContent="Podgląd koszyka: "+money(net)+" netto / "+money(gross)+" brutto";
     }
     async function openSale(id=null){
+        if($("save-sale").disabled)return;
         if(id)requireAdmin();
+        await refresh();
         const sale=id?await api("/api/sales/"+id):null;
         state.saleId=id;
         $("sale-title").textContent=id?"Korekta sprzedaży #"+id:"Nowa sprzedaż";
@@ -748,36 +891,103 @@
         $("sale-form").scrollIntoView({behavior:"smooth",block:"start"});
     }
     $("new-sale").onclick=safe(()=>openSale());
-    $("add-line").onclick=()=>addLine();
-    $("cancel-sale").onclick=()=>{$("sale-form").hidden=true;state.saleId=null;};
+    $("add-line").onclick=()=>{
+        if(!$("save-sale").disabled)addLine();
+    };
+    $("cancel-sale").onclick=()=>{
+        if($("save-sale").disabled)return;
+        $("sale-form").hidden=true;
+        state.saleId=null;
+    };
     $("sale-customer").onchange=salePreview;
 
-    $("sale-form").onsubmit=safe(async e=>{
-        e.preventDefault();
-        if(state.saleId)requireAdmin();
+    $("sale-form").onsubmit=safe(async event=>{
+        event.preventDefault();
+        if($("save-sale").disabled)return;
+
+        const saleId=state.saleId;
+        if(saleId)requireAdmin();
+
         const items=[...$("sale-lines").children].map(line=>({
             productId:lineProduct(line)?.id,
             quantity:Number(line.querySelector(".line-quantity").value),
             unitSalePriceNet:num(line.querySelector(".line-price").value),
             discountPercent:num(line.querySelector(".line-discount").value)
         }));
-        if(!items.length||items.some(i=>!i.productId||!Number.isInteger(i.quantity)||i.quantity<1)){
-            throw new Error("Wybierz produkt z podpowiedzi i dodatnią liczbę sztuk w każdej pozycji.");
+
+        if(!items.length||items.some(item=>
+            !item.productId||!Number.isInteger(item.quantity)||item.quantity<1
+        )){
+            throw new Error("Wybierz produkt z wyników wyszukiwania i dodatnią liczbę sztuk w każdej pozycji.");
         }
-        $("save-sale").disabled=true;
+
+        let request={
+            customerId:num($("sale-customer").value),
+            remarks:optional($("sale-remarks").value),
+            items
+        };
+
+        $("sale-form").querySelectorAll(".line-results").forEach(result=>{
+            result.hidden=true;
+        });
+
+        const controls=[...$("sale-form").querySelectorAll("input,select,textarea,button")];
+        const previousDisabled=controls.map(control=>control.disabled);
+        controls.forEach(control=>{control.disabled=true;});
+        $("new-sale").disabled=true;
+
         try{
-            const result=await write(state.saleId?"/api/sales/"+state.saleId:"/api/sales",
-                state.saleId?"PUT":"POST",{
-                    customerId:num($("sale-customer").value),
-                    remarks:optional($("sale-remarks").value),
-                    items
-                });
+            if(!saleId){
+                const availability=await write("/api/sales?preview=true","POST",request);
+
+                if(!availability.canSellAnything){
+                    message("Żaden produkt z koszyka nie jest dostępny. Sprzedaż nie została zapisana.",true);
+                    return;
+                }
+
+                if(availability.hasShortages){
+                    const shortages=availability.lines
+                        .filter(line=>line.missingQuantity>0)
+                        .map(line=>
+                            line.productName+" ("+line.sku+")"+
+                            "\nŻądano: "+line.requestedQuantity+" szt."+
+                            "\nDostępne dla tej pozycji: "+line.availableQuantity+" szt."+
+                            "\nBrakuje: "+line.missingQuantity+" szt."
+                        ).join("\n\n");
+
+                    const accepted=confirm(
+                        "Braki w koszyku:\n\n"+shortages+
+                        "\n\nSprzedać wyłącznie dostępne sztuki?"+
+                        "\nOK = sprzedaj dostępne sztuki."+
+                        "\nAnuluj = wróć do koszyka bez zapisywania sprzedaży."
+                    );
+
+                    if(!accepted){
+                        message("Nie zapisano sprzedaży. Możesz zmienić koszyk.");
+                        return;
+                    }
+                }
+
+                request=availability.availableRequest;
+            }
+
+            const result=await write(
+                saleId?"/api/sales/"+saleId:"/api/sales",
+                saleId?"PUT":"POST",
+                request
+            );
+
             $("sale-form").hidden=true;
             state.saleId=null;
             await refresh();
             message("Zapisano sprzedaż #"+result.id+".");
             await showSale(result.id);
-        }finally{$("save-sale").disabled=false;}
+        }finally{
+            controls.forEach((control,index)=>{
+                control.disabled=previousDisabled[index];
+            });
+            $("new-sale").disabled=false;
+        }
     });
 
     async function showSale(id){
@@ -791,10 +1001,10 @@
             "Data: "+dateTime(sale.soldAt)+
             "\nPracownik: "+(sale.createdByUsername||"Nieprzypisana")+
             "\nKlient: "+customerName(state.customers.find(c=>c.id===sale.customerId))+"\n\n"+
-            sale.items.map(i=>
-                i.quantity+" × "+i.productName+" ("+i.sku+")"+
-                "\nCena: "+money(i.unitSalePriceNet)+", rabat: "+i.discountPercent+"%"+
-                "\nNetto: "+money(i.lineTotalNet)+", brutto: "+money(i.lineTotalGross)
+            sale.items.map(item=>
+                item.quantity+" × "+item.productName+" ("+item.sku+")"+
+                "\nCena: "+money(item.unitSalePriceNet)+", rabat: "+item.discountPercent+"%"+
+                "\nNetto: "+money(item.lineTotalNet)+", brutto: "+money(item.lineTotalGross)
             ).join("\n\n")+
             "\n\nRAZEM NETTO: "+money(sale.totalNet)+
             "\nRAZEM BRUTTO: "+money(sale.totalGross)+
@@ -802,17 +1012,17 @@
         box.scrollIntoView({behavior:"smooth",block:"start"});
     }
     function renderSales(){
-        const rows=state.sales.map(s=>{
-            const actions=[action("Szczegóły",()=>showSale(s.id))];
-            if(admin())actions.push(action("Edytuj",()=>openSale(s.id)));
-            return [s.id,dateTime(s.soldAt),
-                customerName(state.customers.find(c=>c.id===s.customerId)),
-                s.createdByUsername,s.remarks,actions];
+        const rows=state.sales.map(sale=>{
+            const actions=[action("Szczegóły",()=>showSale(sale.id))];
+            if(admin())actions.push(action("Edytuj",()=>openSale(sale.id)));
+            return [sale.id,dateTime(sale.soldAt),
+                customerName(state.customers.find(c=>c.id===sale.customerId)),
+                sale.createdByUsername,sale.remarks,actions];
         });
         table($("sale-table"),["ID","Data","Klient","Pracownik","Uwagi","Akcje"],rows);
     }
 
-    // Zamówienia towaru.
+    // Zamówienia.
     async function loadOrders(){
         const [products,orders]=await Promise.all([
             api("/api/products"),api("/api/purchase-orders")
@@ -825,7 +1035,7 @@
             ...orders.map(o=>manufacturer(o.manufacturer))
         ])].sort((a,b)=>a.localeCompare(b,"pl"));
         select.innerHTML='<option value="">Wszyscy producenci</option>'+
-            values.map(v=>'<option value="'+esc(v)+'">'+esc(v)+'</option>').join("");
+            values.map(value=>'<option value="'+esc(value)+'">'+esc(value)+'</option>').join("");
         if(values.includes(previous))select.value=previous;
         renderOrders();
         renderProducts();
@@ -836,52 +1046,55 @@
     }
     function filteredOrders(){
         const producer=$("order-manufacturer").value,status=$("order-status").value;
-        const q=$("order-search").value.toLocaleLowerCase("pl");
-        return state.orders.filter(o=>
-            (!producer||manufacturer(o.manufacturer)===producer)&&
-            (status==="ALL"||(status==="ACTIVE"?active(o):o.status===status))&&
-            [o.productName,o.sku,o.manufacturer,o.remarks].join(" ").toLocaleLowerCase("pl").includes(q)
+        const query=$("order-search").value.toLocaleLowerCase("pl");
+        return state.orders.filter(order=>
+            (!producer||manufacturer(order.manufacturer)===producer)&&
+            (status==="ALL"||(status==="ACTIVE"?active(order):order.status===status))&&
+            [order.productName,order.sku,order.manufacturer,order.remarks]
+                .join(" ").toLocaleLowerCase("pl").includes(query)
         ).sort(orderSort);
     }
     function renderOrders(){
         const producer=$("order-manufacturer").value;
-        const q=$("recommendation-search").value.toLocaleLowerCase("pl");
-        const recommended=state.products.filter(p=>
-            p.quantity<=p.minimumQuantity&&
-            (!producer||manufacturer(p.manufacturer)===producer)&&
-            [p.name,p.sku,p.manufacturer].join(" ").toLocaleLowerCase("pl").includes(q)
+        const query=$("recommendation-search").value.toLocaleLowerCase("pl");
+        const recommended=state.products.filter(product=>
+            product.quantity<=product.minimumQuantity&&
+            (!producer||manufacturer(product.manufacturer)===producer)&&
+            [product.name,product.sku,product.manufacturer]
+                .join(" ").toLocaleLowerCase("pl").includes(query)
         ).sort(orderSort);
         $("recommendation-summary").textContent="Produktów wymagających uzupełnienia: "+recommended.length;
         table($("recommendation-table"),
             ["Producent","Produkt / SKU","Stan","Minimum","W zamówieniach","Akcje"],
-            recommended.map(p=>[
-                manufacturer(p.manufacturer),productName(p),p.quantity,p.minimumQuantity,pending(p.id),
-                [action(pending(p.id)>0?"Zamów dodatkowo":"Zamów",()=>openOrder(null,p))]
+            recommended.map(product=>[
+                manufacturer(product.manufacturer),productName(product),
+                product.quantity,product.minimumQuantity,pending(product.id),
+                [action(pending(product.id)>0?"Zamów dodatkowo":"Zamów",()=>openOrder(null,product))]
             ]));
         const orders=filteredOrders();
         $("order-summary").textContent="Pozycji: "+orders.length+" · Do przyjęcia: "+
-            orders.filter(active).reduce((sum,o)=>sum+o.quantity-o.receivedQuantity,0)+" szt.";
+            orders.filter(active).reduce((sum,order)=>sum+order.quantity-order.receivedQuantity,0)+" szt.";
         $("print-orders").disabled=!orders.length;
         table($("order-table"),
             ["Producent","Produkt / SKU","Zamówiono / przyjęto","Stan","Status","Autor / data","Uwagi","Akcje"],
-            orders.map(o=>{
+            orders.map(order=>{
                 const badge=document.createElement("span");
-                badge.className="badge "+o.status;
-                badge.textContent=statuses[o.status]||o.status;
-                const actions=[action("Historia",()=>orderHistory(o))];
-                if(o.status==="TO_ORDER"){
+                badge.className="badge "+order.status;
+                badge.textContent=statuses[order.status]||order.status;
+                const actions=[action("Historia",()=>orderHistory(order))];
+                if(order.status==="TO_ORDER"){
                     actions.unshift(
-                        action("Edytuj",()=>openOrder(o)),
-                        action("Zamówiono",()=>orderStatus(o,"ordered"))
+                        action("Edytuj",()=>openOrder(order)),
+                        action("Zamówiono",()=>orderStatus(order,"ordered"))
                     );
                 }
-                if(["TO_ORDER","ORDERED"].includes(o.status)&&o.receivedQuantity===0){
-                    actions.push(action("Anuluj",()=>orderStatus(o,"cancel")));
+                if(["TO_ORDER","ORDERED"].includes(order.status)&&order.receivedQuantity===0){
+                    actions.push(action("Anuluj",()=>orderStatus(order,"cancel")));
                 }
                 return [
-                    manufacturer(o.manufacturer),o.productName+" / "+o.sku+" · #"+o.id,
-                    o.quantity+" / "+o.receivedQuantity,o.currentStock,badge,
-                    o.createdByUsername+" · "+dateTime(o.createdAt),o.remarks,actions
+                    manufacturer(order.manufacturer),order.productName+" / "+order.sku+" · #"+order.id,
+                    order.quantity+" / "+order.receivedQuantity,order.currentStock,badge,
+                    order.createdByUsername+" · "+dateTime(order.createdAt),order.remarks,actions
                 ];
             }));
     }
@@ -917,19 +1130,19 @@
         }
         form.elements.quantity.focus();
     }
-    async function orderStatus(o,operation){
+    async function orderStatus(order,operation){
         if(!confirm(operation==="ordered"?
             "Czy zamówienie zostało przekazane producentowi?":"Anulować to zamówienie?"))return;
-        await write("/api/purchase-orders/"+o.id+"/"+operation,"PATCH");
+        await write("/api/purchase-orders/"+order.id+"/"+operation,"PATCH");
         $("order-editor").hidden=true;
         await loadOrders();
         message("Status zamówienia zapisany.");
     }
-    async function orderHistory(o){
-        const events=await api("/api/purchase-orders/"+o.id+"/history");
+    async function orderHistory(order){
+        const events=await api("/api/purchase-orders/"+order.id+"/history");
         const box=$("order-history");
         box.hidden=false;
-        box.innerHTML='<div class="toolbar"><h2>Historia #'+o.id+' — '+esc(o.productName)+'</h2><button class="secondary">Zamknij</button></div><div data-table></div>';
+        box.innerHTML='<div class="toolbar"><h2>Historia #'+order.id+' — '+esc(order.productName)+'</h2><button class="secondary">Zamknij</button></div><div data-table></div>';
         box.querySelector("button").onclick=()=>{box.hidden=true;};
         const names={
             CREATED:"Utworzono",UPDATED:"Zmieniono dane",ORDERED:"Zamówiono",
@@ -938,11 +1151,11 @@
         };
         table(box.querySelector("[data-table]"),
             ["Data","Operacja","Ilość zamówiona","Status","Pracownik","Uwagi"],
-            events.map(e=>[
-                dateTime(e.createdAt),names[e.eventType]||e.eventType,
-                (e.previousQuantity??"—")+" → "+e.newQuantity,
-                (statuses[e.previousStatus]||"—")+" → "+(statuses[e.newStatus]||e.newStatus),
-                e.createdByUsername,e.remarks
+            events.map(event=>[
+                dateTime(event.createdAt),names[event.eventType]||event.eventType,
+                (event.previousQuantity??"—")+" → "+event.newQuantity,
+                (statuses[event.previousStatus]||"—")+" → "+(statuses[event.newStatus]||event.newStatus),
+                event.createdByUsername,event.remarks
             ]));
         box.scrollIntoView({behavior:"smooth",block:"start"});
     }
@@ -989,7 +1202,7 @@
             if(admin()){
                 const users=await api("/api/reports/sales/users");
                 $("report-user").innerHTML='<option value="">Cały sklep</option>'+
-                    users.map(u=>'<option value="'+u.id+'">'+esc(u.username)+'</option>').join("");
+                    users.map(user=>'<option value="'+user.id+'">'+esc(user.username)+'</option>').join("");
             }
             state.usersLoaded=true;
         }
@@ -1009,12 +1222,12 @@
                 total.saleCount+" transakcji · "+money(total.totalNet)+" netto";
         }
     }
-    function totalText(t){
-        return t.saleCount+" transakcji · "+t.quantity+" szt. · "+
-            money(t.totalNet)+" netto · "+money(t.totalGross)+" brutto";
+    function totalText(total){
+        return total.saleCount+" transakcji · "+total.quantity+" szt. · "+
+            money(total.totalNet)+" netto · "+money(total.totalGross)+" brutto";
     }
-    function totalRow(label,t){
-        return [label,t.saleCount,t.quantity,money(t.totalNet),money(t.totalGross)];
+    function totalRow(label,total){
+        return [label,total.saleCount,total.quantity,money(total.totalNet),money(total.totalGross)];
     }
     async function runReport(){
         const from=$("report-from").value,to=$("report-to").value;
@@ -1031,20 +1244,20 @@
         $("report-title").textContent=scope+" · "+data.from+" — "+data.to;
         $("report-total").textContent=totalText(data.totals);
         table($("report-period-table"),["Okres","Transakcje","Sztuki","Netto","Brutto"],
-            data.periods.map(p=>totalRow(p.period,p.totals)));
+            data.periods.map(period=>totalRow(period.period,period.totals)));
         $("report-employees-card").hidden=!admin();
         table($("report-employee-table"),["Pracownik","Transakcje","Sztuki","Netto","Brutto"],
-            data.employees.map(e=>totalRow(e.username||"Nieprzypisana (starsze dane)",e.totals)));
+            data.employees.map(employee=>totalRow(employee.username||"Nieprzypisana (starsze dane)",employee.totals)));
         table($("report-sale-table"),
             ["ID","Data","Pracownik","Sztuki","Netto","Brutto","Uwagi","Akcje"],
-            data.sales.map(s=>[
-                s.id,dateTime(s.soldAt),s.username||"Nieprzypisana",s.quantity,
-                money(s.totalNet),money(s.totalGross),s.remarks,
-                [action("Szczegóły",()=>showSale(s.id))]
+            data.sales.map(sale=>[
+                sale.id,dateTime(sale.soldAt),sale.username||"Nieprzypisana",sale.quantity,
+                money(sale.totalNet),money(sale.totalGross),sale.remarks,
+                [action("Szczegóły",()=>showSale(sale.id))]
             ]));
     }
-    $("report-form").onsubmit=safe(async e=>{
-        e.preventDefault();
+    $("report-form").onsubmit=safe(async event=>{
+        event.preventDefault();
         await runReport();
     });
     for(const id of ["report-from","report-to","report-group"]){
@@ -1056,14 +1269,14 @@
         await runReport();
     });
     $("refresh-stats").onclick=safe(loadStats);
-    document.querySelectorAll("[data-period]").forEach(b=>{
-        b.onclick=safe(async()=>{
-            choosePeriod(b.dataset.period);
+    document.querySelectorAll("[data-period]").forEach(button=>{
+        button.onclick=safe(async()=>{
+            choosePeriod(button.dataset.period);
             await runReport();
         });
     });
 
-    // Wydruki i zapis do PDF przez okno drukowania przeglądarki.
+    // Wydruki.
     function printDocument(title,description,sections){
         const sheet=$("print-sheet");
         sheet.innerHTML='<img src="/eltro-logo.png" alt="Eltro"><h1>'+esc(title)+
@@ -1090,9 +1303,9 @@
                 {
                     title:"Lista zamówień",
                     headers:["ID","Producent","Produkt / SKU","Zamówiono","Przyjęto","Status","Uwagi"],
-                    rows:orders.map(o=>[
-                        o.id,manufacturer(o.manufacturer),o.productName+" / "+o.sku,
-                        o.quantity,o.receivedQuantity,statuses[o.status],o.remarks
+                    rows:orders.map(order=>[
+                        order.id,manufacturer(order.manufacturer),order.productName+" / "+order.sku,
+                        order.quantity,order.receivedQuantity,statuses[order.status],order.remarks
                     ])
                 }
             ]);
@@ -1103,19 +1316,19 @@
         const sections=[{
             title:"Podsumowanie okresów",
             headers:["Okres","Transakcje","Sztuki","Netto","Brutto"],
-            rows:data.periods.map(p=>totalRow(p.period,p.totals))
+            rows:data.periods.map(period=>totalRow(period.period,period.totals))
         }];
         if(admin())sections.push({
             title:"Pracownicy",
             headers:["Pracownik","Transakcje","Sztuki","Netto","Brutto"],
-            rows:data.employees.map(e=>totalRow(e.username||"Nieprzypisana",e.totals))
+            rows:data.employees.map(employee=>totalRow(employee.username||"Nieprzypisana",employee.totals))
         });
         sections.push({
             title:"Historia sprzedaży",
             headers:["ID","Data","Pracownik","Sztuki","Netto","Brutto","Uwagi"],
-            rows:data.sales.map(s=>[
-                s.id,dateTime(s.soldAt),s.username||"Nieprzypisana",s.quantity,
-                money(s.totalNet),money(s.totalGross),s.remarks
+            rows:data.sales.map(sale=>[
+                sale.id,dateTime(sale.soldAt),sale.username||"Nieprzypisana",sale.quantity,
+                money(sale.totalNet),money(sale.totalGross),sale.remarks
             ])
         });
         printDocument("Raport sprzedaży",
@@ -1135,7 +1348,7 @@
             show(view);
         }
     }
-    initialize().catch(e=>message(e.message,true));
+    initialize().catch(error=>message(error.message,true));
 </script>
 </body>
 </html>
