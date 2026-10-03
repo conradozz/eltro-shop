@@ -2,334 +2,78 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Eltro — panel sklepu</title>
     <style>
-        :root {
-            --red: #d90000;
-            --deep: #a90000;
-            --ink: #24272b;
-            --muted: #687078;
-            --line: #e6e8eb;
-            --bg: #f4f5f7;
+        :root{--red:#d90000;--deep:#a90000;--ink:#24272b;--muted:#687078;--line:#e6e8eb;--bg:#f4f5f7}
+        *{box-sizing:border-box}
+        [hidden]{display:none!important}
+        body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Arial,sans-serif}
+        header{position:sticky;top:0;z-index:20;display:flex;align-items:center;flex-wrap:wrap;gap:18px;padding:13px max(24px,calc((100vw - 1280px)/2));background:white;border-bottom:1px solid var(--line)}
+        header img{width:150px;height:auto}
+        nav{display:flex;gap:5px;flex-wrap:wrap}
+        nav button{border:0;background:transparent;color:#484e55}
+        nav button.active{background:var(--red);color:white}
+        .account{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+        .account span{font-size:13px;color:var(--muted)}
+        a{color:var(--deep)}
+        main{max-width:1280px;margin:auto;padding:32px 24px 80px}
+        h1{font-size:29px;margin:0}
+        h2{font-size:20px;margin:0 0 18px}
+        .toolbar{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:22px}
+        .card{padding:24px;margin-bottom:22px;background:white;border:1px solid var(--line);border-radius:14px;box-shadow:0 7px 28px #2028330a}
+        .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+        .full{grid-column:1/-1}
+        label{display:block;font-size:13px;font-weight:bold}
+        input,select,textarea{display:block;width:100%;margin-top:7px;padding:11px 12px;border:1px solid #cfd4da;border-radius:8px;font:inherit;color:var(--ink);background:white}
+        input:focus,select:focus,textarea:focus{outline:2px solid #d9000033;border-color:var(--red)}
+        textarea{min-height:80px}
+        button{padding:10px 14px;border:1px solid var(--red);border-radius:8px;background:var(--red);color:white;font:600 14px Arial,sans-serif;cursor:pointer}
+        button:hover{filter:brightness(.94)}
+        button.secondary{background:white;color:var(--deep);border-color:#e5b5b5}
+        button:disabled{opacity:.55;cursor:wait}
+        .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+        .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:10px}
+        table{width:100%;border-collapse:collapse}
+        th,td{padding:12px;text-align:left;border-bottom:1px solid var(--line);font-size:13px}
+        th{background:#f8f9fa;color:var(--muted);font-size:11px;text-transform:uppercase;white-space:nowrap}
+        td button{margin:3px;white-space:nowrap}
+        .muted{color:var(--muted)}
+        .low{color:#b14300;font-weight:bold}
+        .notice{background:#f8f9fa;padding:12px;border-radius:8px;margin-top:12px}
+        .results{max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:8px;margin-top:8px}
+        .results button{display:block;width:100%;text-align:left;background:white;color:var(--ink);border:0;border-bottom:1px solid var(--line);border-radius:0}
+        .badge{display:inline-block;padding:4px 8px;border-radius:6px;background:#edf0f7;white-space:nowrap}
+        .RECEIVED{background:#e7f6ec;color:#277943}
+        .TO_ORDER{background:#fff0db;color:#956000}
+        .PARTIALLY_RECEIVED{background:#eee8ff;color:#6b43ad}
+        .sale-line{display:grid;grid-template-columns:2fr .6fr 1fr 1fr auto;gap:10px;align-items:end;padding:14px;margin:12px 0;background:#fafbfc;border:1px solid var(--line);border-radius:10px}
+        #message{position:sticky;top:90px;z-index:21;background:#e9f6ed;border-left:4px solid #27833c;padding:13px;border-radius:8px}
+        #message.error{background:#fff0ee;border-color:var(--red)}
+        .stats-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+        .metric{border-top:4px solid var(--red)}
+        .metric strong{display:block;font-size:28px;margin:12px 0 4px}
+        .metric h2{color:var(--muted);font-size:14px}
+        .filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px}
+        #print-sheet{display:none}
+        pre{white-space:pre-wrap;font:inherit;line-height:1.7}
+        @media(max-width:800px){
+            header{position:static;padding:15px}
+            .account{margin-left:0}
+            main{padding:24px 14px}
+            .grid,.filters,.stats-cards,.sale-line{grid-template-columns:1fr}
+            .card{padding:18px}
+            #message{top:0}
         }
-        * { box-sizing: border-box; }
-        [hidden] { display: none !important; }
-        body {
-            margin: 0;
-            background: var(--bg);
-            color: var(--ink);
-            font: 15px/1.5 Arial, sans-serif;
-        }
-        header {
-            position: sticky;
-            top: 0;
-            z-index: 20;
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 24px;
-            padding: 13px max(24px, calc((100vw - 1280px)/2));
-            background: #fff;
-            border-bottom: 1px solid var(--line);
-            box-shadow: 0 4px 18px #19212b0b;
-        }
-        header img { width: 160px; height: auto; object-fit: contain; }
-        nav { display: flex; flex-wrap: wrap; gap: 6px; }
-        nav button {
-            border: 0;
-            border-radius: 8px;
-            background: transparent;
-            padding: 11px 16px;
-            font: 600 14px Arial, sans-serif;
-            color: #484e55;
-            cursor: pointer;
-        }
-        nav button:hover { background: #fff1f1; color: var(--deep); }
-        nav button.active {
-            background: var(--red);
-            color: white;
-            box-shadow: 0 4px 12px #d9000028;
-        }
-        .account {
-            margin-left: auto;
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        #current-user { color: var(--muted); font-size: 13px; }
-        #users-link {
-            color: var(--deep);
-            font-size: 13px;
-            font-weight: 700;
-            text-decoration: none;
-            padding: 9px 12px;
-            border-radius: 8px;
-        }
-        #users-link:hover { background: #fff1f1; }
-        main { max-width: 1280px; margin: 0 auto; padding: 36px 24px 90px; }
-        h1 { margin: 0; font-size: 29px; letter-spacing: -.03em; }
-        h2 { margin: 0 0 19px; font-size: 20px; letter-spacing: -.02em; }
-        section > h1, .toolbar { margin-bottom: 22px; }
-        .toolbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-        }
-        .card {
-            margin-bottom: 22px;
-            padding: 25px;
-            background: white;
-            border: 1px solid var(--line);
-            border-radius: 14px;
-            box-shadow: 0 7px 28px #2028330a;
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 18px 22px;
-        }
-        .full { grid-column: 1 / -1; }
-        label {
-            display: block;
-            font-size: 13px;
-            font-weight: 700;
-            color: #444b52;
-        }
-        input, select, textarea {
-            display: block;
-            width: 100%;
-            margin-top: 7px;
-            padding: 11px 12px;
-            border: 1px solid #cfd4da;
-            border-radius: 8px;
-            background: #fff;
-            color: var(--ink);
-            font: inherit;
-            outline: none;
-        }
-        input:focus, select:focus, textarea:focus {
-            border-color: var(--red);
-            box-shadow: 0 0 0 3px #d900001b;
-        }
-        textarea { min-height: 82px; resize: vertical; }
-        button { font: inherit; }
-        button:disabled { opacity: .6; cursor: wait; }
-        button.primary, button.secondary {
-            border-radius: 8px;
-            padding: 10px 15px;
-            cursor: pointer;
-            font-weight: 700;
-        }
-        button.primary {
-            border: 1px solid var(--red);
-            background: var(--red);
-            color: white;
-        }
-        button.primary:hover { background: var(--deep); }
-        button.secondary {
-            border: 1px solid #e5b5b5;
-            background: white;
-            color: var(--deep);
-        }
-        button.secondary:hover { background: #fff1f1; }
-        .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
-        .table-wrap {
-            overflow-x: auto;
-            border: 1px solid var(--line);
-            border-radius: 10px;
-        }
-        table { width: 100%; border-collapse: collapse; }
-        th {
-            background: #f8f9fa;
-            color: var(--muted);
-            text-transform: uppercase;
-            font-size: 11px;
-            letter-spacing: .07em;
-            white-space: nowrap;
-        }
-        th, td {
-            padding: 13px 14px;
-            text-align: left;
-            border-bottom: 1px solid var(--line);
-        }
-        tbody tr:last-child td { border-bottom: 0; }
-        tbody tr:hover { background: #fffafa; }
-        td { font-size: 13px; }
-        td button { margin: 2px; white-space: nowrap; }
-        .muted { color: var(--muted); font-size: 13px; }
-        .low { color: #b14300; font-weight: 800; }
-        #message {
-            position: sticky;
-            top: 90px;
-            z-index: 15;
-            margin: 0 0 20px;
-            padding: 13px 16px;
-            background: #e9f6ed;
-            border: 1px solid #bde3c7;
-            border-left: 4px solid #27833c;
-            border-radius: 8px;
-            box-shadow: 0 5px 14px #20283312;
-        }
-        #message.error {
-            background: #fff0ee;
-            border-color: #edc3bf;
-            border-left-color: var(--red);
-        }
-        .sale-line {
-            display: grid;
-            grid-template-columns: 2fr 100px 140px 120px auto;
-            gap: 12px;
-            align-items: end;
-            margin: 12px 0;
-            padding: 15px;
-            background: #fafbfc;
-            border: 1px solid var(--line);
-            border-radius: 10px;
-        }
-        .sale-line button { height: 42px; }
-        #sale-details { white-space: pre-wrap; line-height: 1.7; }
-        .product-results {
-            max-height: 250px;
-            overflow-y: auto;
-            margin-top: 5px;
-            border: 1px solid var(--line);
-            border-radius: 8px;
-            box-shadow: 0 8px 20px #20283312;
-        }
-        .product-results button {
-            display: block;
-            width: 100%;
-            padding: 11px 13px;
-            text-align: left;
-            border: 0;
-            border-bottom: 1px solid var(--line);
-            background: white;
-            cursor: pointer;
-        }
-        .product-results button:hover { background: #fff1f1; }
-        .product-results p { padding: 11px; margin: 0; }
-        #delivery-stock, #edit-delivery-stock, #delivery-preview, #sale-preview {
-            padding: 12px 15px;
-            border-radius: 8px;
-            background: #f8f9fa;
-            color: #4a5159;
-        }
-        #orders-view .form-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 18px;
-        }
-        #orders-view .order-filters {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 18px;
-        }
-        #orders-view .description { margin: 6px 0 18px; color: var(--muted); }
-        #orders-view .recommendations { border-top: 4px solid var(--red); }
-        #orders-view label { display: block; font-weight: 600; margin-bottom: 7px; }
-        #orders-view button {
-            border: 1px solid var(--red);
-            border-radius: 8px;
-            padding: 10px 15px;
-            background: var(--red);
-            color: white;
-            font: inherit;
-            font-weight: 700;
-            cursor: pointer;
-        }
-        #orders-view button:hover { background: var(--deep); }
-        #orders-view button.secondary {
-            background: white;
-            color: var(--deep);
-            border-color: #e5b5b5;
-        }
-        #orders-view button.secondary:hover { background: #fff1f1; }
-        #orders-view button.danger {
-            background: #fff0f0;
-            color: #b80000;
-            border-color: #f3c5c5;
-        }
-        #orders-view button:disabled { opacity: .55; cursor: wait; }
-        #orders-view .actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin: 0;
-        }
-        #orders-view .form-actions { margin-top: 20px; }
-        #orders-view .notice {
-            background: #f6f7fa;
-            border-left: 3px solid var(--red);
-            border-radius: 5px;
-            padding: 12px 15px;
-        }
-        #orders-view .badge {
-            display: inline-block;
-            padding: 4px 9px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: bold;
-            white-space: nowrap;
-        }
-        #orders-view .TO_ORDER { background: #fff0db; color: #956000; }
-        #orders-view .ORDERED { background: #eaf0ff; color: #2957a6; }
-        #orders-view .PARTIALLY_RECEIVED { background: #eee8ff; color: #6b43ad; }
-        #orders-view .RECEIVED { background: #e7f6ec; color: #277943; }
-        #orders-view .CANCELLED { background: #eceef2; color: #737b8c; }
-        #orders-view .results {
-            border: 1px solid var(--line);
-            border-radius: 8px;
-            margin-top: 8px;
-            max-height: 280px;
-            overflow-y: auto;
-        }
-        #orders-view button.result {
-            display: block;
-            width: 100%;
-            border-radius: 0;
-            text-align: left;
-            background: white;
-            color: var(--ink);
-            font-weight: normal;
-            border: 0;
-            border-bottom: 1px solid var(--line);
-        }
-        #orders-view button.result:hover { background: #fff2f2; }
-        #orders-view .summary {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin: 18px 0;
-            color: var(--muted);
-        }
-        #orders-view .empty { text-align: center; padding: 28px; color: var(--muted); }
-        #po-print-sheet { display: none; }
-        @media (max-width: 750px) {
-            header { position: static; display: block; padding: 14px 18px; }
-            nav { margin-top: 12px; }
-            .account { margin-top: 12px; }
-            main { padding: 24px 14px 70px; }
-            .card { padding: 18px; }
-            .grid, .sale-line { grid-template-columns: 1fr; }
-            .toolbar { align-items: stretch; flex-direction: column; }
-            #message { top: 0; }
-            #orders-view .form-grid,
-            #orders-view .order-filters { grid-template-columns: 1fr; }
-        }
-        @media print {
-            body.orders-printing { background: white; }
-            body.orders-printing > header,
-            body.orders-printing > main { display: none !important; }
-            body.orders-printing #po-print-sheet { display: block; padding: 15px; }
-            #po-print-sheet .logo { width: 175px; }
-            #po-print-sheet th, #po-print-sheet td { font-size: 11px; padding: 8px; }
-            #po-print-sheet tr { break-inside: avoid; }
+        @media print{
+            body.printing{background:white}
+            body.printing>header,body.printing>main{display:none!important}
+            body.printing>#print-sheet{display:block;padding:15px}
+            #print-sheet .table-wrap{overflow:visible}
+            #print-sheet img{width:170px}
+            #print-sheet th,#print-sheet td{font-size:10px;padding:7px}
+            #print-sheet tr{break-inside:avoid}
+            #print-sheet h1{font-size:23px}
         }
     </style>
 </head>
@@ -342,2072 +86,1056 @@
         <button data-view="deliveries">Dostawy</button>
         <button data-view="sales">Sprzedaż</button>
         <button data-view="orders">Zamówienia</button>
+        <button data-view="stats">Statystyki</button>
     </nav>
     <div class="account">
         <span id="current-user">Wczytywanie konta…</span>
         <a id="users-link" href="/users.html" hidden>Użytkownicy</a>
-        <button class="secondary" id="logout" type="button">Wyloguj</button>
+        <button id="logout" class="secondary">Wyloguj</button>
     </div>
 </header>
 
 <main>
-    <p id="message" role="status" hidden></p>
+    <p id="message" hidden role="status"></p>
 
     <section id="products-view">
         <div class="toolbar">
             <h1>Produkty</h1>
-            <button class="primary" id="show-product-form" hidden>+ Dodaj produkt</button>
+            <button id="new-product" hidden>+ Dodaj produkt</button>
         </div>
-
-        <form id="product-form" class="card" hidden>
-            <h2>Nowy produkt</h2>
-            <div class="grid">
-                <label>SKU <input name="sku" required></label>
-                <label>Nazwa <input name="name" required></label>
-                <label>Kod producenta <input name="manufacturerPartNumber"></label>
-                <label>EAN <input name="ean"></label>
-                <label>Producent <input name="manufacturer"></label>
-                <label>Model <input name="model"></label>
-                <label>Kategoria <input name="category"></label>
-                <label>Cena zakupu netto
-                    <input name="purchasePriceNet" type="number" min="0" step="0.01" required>
-                </label>
-                <label>Cena sprzedaży netto — puste = domyślny narzut
-                    <input name="salePriceNet" type="number" min="0" step="0.01">
-                </label>
-                <label>VAT (%)
-                    <input name="vatRate" type="number" min="0" max="100"
-                           step="0.01" value="23" required>
-                </label>
-                <label>Stan minimalny
-                    <input name="minimumQuantity" type="number" min="0"
-                           step="1" value="0" required>
-                </label>
-                <label class="full">Uwagi <textarea name="remarks"></textarea></label>
-            </div>
-            <div class="actions">
-                <button class="primary" type="submit">Zapisz produkt</button>
-                <button class="secondary" type="button" id="cancel-product">Anuluj</button>
-            </div>
-        </form>
-
-        <form id="edit-product-form" class="card" hidden>
-            <h2>Edytuj produkt</h2>
-            <div class="grid">
-                <label>SKU <input name="sku" required></label>
-                <label>Nazwa <input name="name" required></label>
-                <label>Kod producenta <input name="manufacturerPartNumber"></label>
-                <label>EAN <input name="ean"></label>
-                <label>Producent <input name="manufacturer"></label>
-                <label>Model <input name="model"></label>
-                <label>Kategoria <input name="category"></label>
-                <label>VAT (%)
-                    <input name="vatRate" type="number" min="0" max="100"
-                           step="0.01" required>
-                </label>
-                <label>Stan minimalny
-                    <input name="minimumQuantity" type="number" min="0" step="1" required>
-                </label>
-                <label class="full">Uwagi <textarea name="remarks"></textarea></label>
-            </div>
-            <div class="actions">
-                <button class="primary" type="submit">Zapisz zmiany</button>
-                <button class="secondary" type="button" id="cancel-product-edit">Anuluj</button>
-            </div>
-        </form>
-
+        <div id="product-editor" hidden></div>
         <div class="card">
-            <label>Szukaj produktu
-                <input id="product-search" type="search"
-                       placeholder="Nazwa, SKU, producent, model...">
+            <label>Wyszukaj produkt
+                <input id="product-search" placeholder="Nazwa, SKU, producent, model, kategoria">
             </label>
-            <div class="table-wrap">
-                <table>
-                    <thead><tr>
-                        <th>Produkt</th><th>Producent</th><th>Stan</th>
-                        <th>Minimum</th><th>Cena netto</th><th>Akcja</th>
-                    </tr></thead>
-                    <tbody id="product-rows"></tbody>
-                </table>
-            </div>
+            <div id="product-table" style="margin-top:18px"></div>
         </div>
     </section>
 
     <section id="customers-view" hidden>
         <div class="toolbar">
             <h1>Klienci</h1>
-            <button class="primary" id="show-customer-form">+ Dodaj klienta</button>
+            <button id="new-customer">+ Dodaj klienta</button>
         </div>
-
-        <form id="customer-form" class="card" hidden>
-            <h2 id="customer-form-title">Nowy klient</h2>
-            <div class="grid">
-                <label>Typ klienta
-                    <select name="customerType" id="customer-type">
-                        <option value="PERSON">Osoba prywatna</option>
-                        <option value="COMPANY">Firma</option>
-                    </select>
-                </label>
-                <label class="company-field">Nazwa firmy <input name="companyName"></label>
-                <label>Imię / osoba kontaktowa <input name="firstName"></label>
-                <label>Nazwisko <input name="lastName"></label>
-                <label class="company-field">NIP <input name="nip"></label>
-                <label class="company-field">REGON <input name="regon"></label>
-                <label>Ulica i numer <input name="street"></label>
-                <label>Kod pocztowy <input name="postalCode"></label>
-                <label>Miasto <input name="city"></label>
-                <label>Telefon <input name="phone"></label>
-                <label>E-mail <input name="email" type="email"></label>
-                <label>Rabat (%)
-                    <input name="discountPercent" type="number" min="0"
-                           max="100" step="0.01" value="0">
-                </label>
-                <label class="full">Uwagi <textarea name="remarks"></textarea></label>
-            </div>
-            <div class="actions">
-                <button class="primary" type="submit" id="save-customer">Zapisz klienta</button>
-                <button class="secondary" type="button" id="cancel-customer">Anuluj</button>
-            </div>
-        </form>
-
+        <div id="customer-editor" hidden></div>
         <div class="card">
-            <label>Szukaj klienta
-                <input id="customer-search" type="search"
-                       placeholder="Firma, nazwisko, NIP, miasto...">
+            <label>Wyszukaj klienta
+                <input id="customer-search" placeholder="Nazwa, nazwisko, NIP, miasto">
             </label>
-            <div class="table-wrap">
-                <table>
-                    <thead><tr>
-                        <th>Klient</th><th>Kontakt</th><th>Miasto</th>
-                        <th>NIP</th><th>Rabat</th><th>Akcja</th>
-                    </tr></thead>
-                    <tbody id="customer-rows"></tbody>
-                </table>
-            </div>
+            <div id="customer-table" style="margin-top:18px"></div>
         </div>
     </section>
 
     <section id="deliveries-view" hidden>
-        <h1>Przyjęcie towaru</h1>
-
-        <form id="delivery-form" class="card">
-            <div class="grid">
-                <div class="full">
-                    <label for="delivery-search">Produkt (nazwa, SKU lub producent)</label>
-                    <input id="delivery-search" type="search"
-                           placeholder="Wpisz fragment nazwy lub SKU" autocomplete="off">
-                    <input name="productId" type="hidden">
-                    <div id="delivery-results" class="product-results" hidden></div>
-                </div>
-                <p class="full" id="delivery-stock">
-                    Wybierz produkt, aby zobaczyć aktualny stan.
-                </p>
-                <label>Liczba sztuk
-                    <input name="quantity" type="number" min="1" step="1" required>
-                </label>
-                <label>Cena zakupu netto za sztukę
-                    <input name="purchasePriceNet" type="number" min="0" step="0.01" required>
-                </label>
-                <label>Narzut dla tej dostawy (%)
-                    <input name="markupPercent" type="number" min="0" max="1000"
-                           step="0.01" required>
-                </label>
-                <p class="full" id="delivery-preview"></p>
-                <label>Uwagi do dostawy <input name="remarks"></label>
-            </div>
-            <div class="actions">
-                <button class="primary" type="submit">Przyjmij dostawę</button>
-            </div>
-        </form>
-
+        <div class="toolbar">
+            <h1>Dostawy</h1>
+            <button class="secondary" id="refresh-deliveries">Odśwież</button>
+        </div>
+        <div id="delivery-editor"></div>
+        <div id="delivery-correction" hidden></div>
         <div class="card">
             <h2>Historia dostaw</h2>
-            <div class="table-wrap">
-                <table>
-                    <thead><tr>
-                        <th>Numer</th><th>Produkt</th><th>Sztuki</th>
-                        <th>Cena zakupu netto</th><th>Narzut</th>
-                        <th>Cena sprzedaży netto</th><th>Data</th>
-                        <th>Pracownik</th><th>Akcja</th>
-                    </tr></thead>
-                    <tbody id="delivery-rows"></tbody>
-                </table>
-            </div>
+            <div id="delivery-table"></div>
         </div>
-
-        <form id="edit-delivery-form" class="card" hidden>
-            <h2 id="edit-delivery-title">Korekta dostawy</h2>
-            <p id="edit-delivery-stock" class="muted"></p>
-            <div class="grid">
-                <label>Liczba sztuk w tej dostawie
-                    <input name="quantity" type="number" min="1" step="1" required>
-                </label>
-                <label>Cena zakupu netto za sztukę
-                    <input name="purchasePriceNet" type="number" min="0" step="0.01">
-                </label>
-                <label>Narzut (%)
-                    <input name="markupPercent" type="number" min="0" max="1000" step="0.01">
-                </label>
-                <label>Uwagi <input name="remarks"></label>
-            </div>
-            <p class="muted">
-                W starej dostawie bez cen możesz zostawić oba pola ceny i narzutu puste.
-                Zmiana ceny historycznej nie zmienia obecnej ceny produktu.
-            </p>
-            <div class="actions">
-                <button class="primary" type="submit">Zapisz korektę</button>
-                <button class="secondary" type="button" id="cancel-delivery-edit">Anuluj</button>
-            </div>
-        </form>
     </section>
 
     <section id="sales-view" hidden>
         <div class="toolbar">
             <h1>Sprzedaż</h1>
-            <button class="primary" id="show-sale-form">+ Nowa sprzedaż</button>
+            <button id="new-sale">+ Nowa sprzedaż</button>
         </div>
-
         <form id="sale-form" class="card" hidden>
-            <h2 id="sale-form-title">Nowa sprzedaż</h2>
+            <h2 id="sale-title">Nowa sprzedaż</h2>
             <div class="grid">
-                <label>Klient
-                    <select name="customerId" id="sale-customer">
-                        <option value="">Bez przypisanego klienta</option>
-                    </select>
-                </label>
-                <label>Uwagi <input name="remarks"></label>
+                <label>Klient<select id="sale-customer"></select></label>
+                <label>Uwagi<textarea id="sale-remarks"></textarea></label>
             </div>
-            <h2 style="margin-top:25px">Pozycje</h2>
             <div id="sale-lines"></div>
-            <button class="secondary" type="button" id="add-sale-line">+ Dodaj pozycję</button>
-            <p id="sale-preview"></p>
+            <button type="button" id="add-line" class="secondary">+ Dodaj pozycję</button>
+            <p id="sale-preview" class="notice"></p>
             <div class="actions">
-                <button class="primary" type="submit" id="save-sale">Zapisz sprzedaż</button>
-                <button class="secondary" type="button" id="cancel-sale">Anuluj</button>
+                <button type="submit" id="save-sale">Zapisz sprzedaż</button>
+                <button type="button" class="secondary" id="cancel-sale">Anuluj</button>
             </div>
         </form>
-
+        <div id="sale-details" class="card" hidden></div>
         <div class="card">
             <h2>Ostatnie sprzedaże</h2>
-            <div class="table-wrap">
-                <table>
-                    <thead><tr>
-                        <th>Numer</th><th>Data</th><th>Klient</th>
-                        <th>Pracownik</th><th>Uwagi</th><th>Akcja</th>
-                    </tr></thead>
-                    <tbody id="sale-rows"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <div id="sale-details-card" class="card" hidden>
-            <h2>Szczegóły sprzedaży</h2>
-            <div id="sale-details"></div>
+            <div id="sale-table"></div>
         </div>
     </section>
 
     <section id="orders-view" hidden>
         <div class="toolbar">
-            <div>
-                <h1>Zamówienia towaru</h1>
-                <div class="muted">Uzupełnianie magazynu i historia zamówień.</div>
-            </div>
+            <h1>Zamówienia</h1>
             <div class="actions">
-                <button id="po-new-order" type="button">+ Dodaj do zamówienia</button>
-                <button id="po-refresh" class="secondary" type="button">Odśwież</button>
+                <button id="new-order">+ Dodaj do zamówienia</button>
+                <button id="refresh-orders" class="secondary">Odśwież</button>
             </div>
         </div>
-
-        <section id="po-form-card" class="card" hidden>
-            <h2 id="po-form-title">Dodaj produkt do zamówienia</h2>
-            <p class="description">Wybierz produkt i wpisz liczbę zamawianych sztuk.</p>
-            <form id="po-order-form">
-                <input id="po-product-id" type="hidden">
-                <div class="form-grid">
-                    <div>
-                        <label for="po-product-search">Wybierz produkt</label>
-                        <input id="po-product-search" type="search"
-                               placeholder="Nazwa, SKU, producent lub model"
-                               autocomplete="off">
-                        <div id="po-product-results" class="results" hidden></div>
-                    </div>
-                    <div>
-                        <label for="po-quantity">Liczba sztuk do zamówienia</label>
-                        <input id="po-quantity" type="number" min="1"
-                               max="2147483647" step="1" required>
-                    </div>
-                    <div id="po-product-info" class="notice full" hidden></div>
-                    <div class="full">
-                        <label for="po-remarks">Uwagi</label>
-                        <textarea id="po-remarks" maxlength="2000"
-                                  placeholder="Termin dostawy, wersja zestawu, uzgodnienia"></textarea>
-                    </div>
-                </div>
-                <div class="actions form-actions">
-                    <button id="po-save-order" type="submit">Zapisz</button>
-                    <button id="po-close-form" type="button" class="secondary">
-                        Anuluj edycję
-                    </button>
-                </div>
-            </form>
-        </section>
-
-        <section class="card">
-            <label for="po-filter-manufacturer">Producent — propozycje i zapisane zamówienia</label>
-            <select id="po-filter-manufacturer">
-                <option value="">Wszyscy producenci</option>
-            </select>
-            <p class="description">
-                Filtr obejmuje obie listy poniżej. Wybierz producenta,
-                aby przygotować zamówienie podczas jednej rozmowy.
-            </p>
-        </section>
-
-        <section class="card recommendations">
-            <h2>Produkty wymagające uzupełnienia</h2>
-            <p class="description">
-                Stan równy minimum lub niższy. Produkty pozostają widoczne także
-                wtedy, gdy są już w aktywnych zamówieniach.
-            </p>
-            <label for="po-recommendation-search">Szukaj produktu do uzupełnienia</label>
-            <input id="po-recommendation-search" type="search"
-                   placeholder="Nazwa, SKU lub producent">
-            <div class="summary">
-                <span id="po-recommendation-summary">Wczytywanie produktów…</span>
-            </div>
-            <div class="table-wrap">
-                <table>
-                    <thead><tr>
-                        <th>Producent</th>
-                        <th>Produkt / SKU</th>
-                        <th>Stan</th>
-                        <th>Minimum</th>
-                        <th>W aktywnych zamówieniach, do przyjęcia</th>
-                        <th>Akcja</th>
-                    </tr></thead>
-                    <tbody id="po-recommendation-body"></tbody>
-                </table>
-            </div>
-        </section>
-
-        <section class="card">
-            <h2>Zapisane zamówienia</h2>
-            <p class="description">
-                Lista zakupów do przekazania producentom i historia zamówień.
-            </p>
-            <div class="order-filters">
-                <div>
-                    <label for="po-filter-text">Wyszukaj zapisane zamówienie</label>
-                    <input id="po-filter-text" type="search"
-                           placeholder="Nazwa produktu, SKU, producent, uwagi">
-                </div>
-                <div>
-                    <label for="po-filter-status">Status</label>
-                    <select id="po-filter-status">
+        <div id="order-editor" hidden></div>
+        <div class="card">
+            <div class="grid">
+                <label>Producent<select id="order-manufacturer"></select></label>
+                <label>Status
+                    <select id="order-status">
                         <option value="ACTIVE">Aktywne zamówienia</option>
+                        <option value="ALL">Wszystkie</option>
                         <option value="TO_ORDER">Do zamówienia</option>
                         <option value="ORDERED">Zamówiono</option>
                         <option value="PARTIALLY_RECEIVED">Częściowo przyjęto</option>
                         <option value="RECEIVED">Przyjęto na stan</option>
                         <option value="CANCELLED">Anulowano</option>
-                        <option value="ALL">Cała historia</option>
                     </select>
-                </div>
+                </label>
             </div>
-            <div class="summary">
-                <span id="po-list-summary"></span>
-                <button id="po-print-list" type="button" class="secondary">
-                    Drukuj listę / zapisz PDF
-                </button>
-            </div>
-            <div class="table-wrap">
-                <table>
-                    <thead><tr>
-                        <th>Producent</th>
-                        <th>Produkt / SKU</th>
-                        <th>Zamówiono / przyjęto</th>
-                        <th>Stan sklepu</th>
-                        <th>Status</th>
-                        <th>Autor / data</th>
-                        <th>Uwagi</th>
-                        <th>Akcje</th>
-                    </tr></thead>
-                    <tbody id="po-orders-body"></tbody>
-                </table>
-            </div>
-        </section>
-
-        <section id="po-history-card" class="card" hidden>
+        </div>
+        <div class="card" style="border-top:4px solid var(--red)">
+            <h2>Proponowane do zamówienia</h2>
+            <p class="muted">Produkty ze stanem równym lub niższym od minimalnego.</p>
+            <label>Wyszukaj w proponowanych<input id="recommendation-search"></label>
+            <p id="recommendation-summary" class="muted"></p>
+            <div id="recommendation-table"></div>
+        </div>
+        <div class="card">
             <div class="toolbar">
-                <h2 id="po-history-title">Historia zmian</h2>
-                <button id="po-close-history" type="button" class="secondary">Zamknij</button>
+                <h2>Lista zamówień</h2>
+                <button id="print-orders" class="secondary">Drukuj listę</button>
             </div>
-            <div class="table-wrap">
-                <table>
-                    <thead><tr>
-                        <th>Data</th>
-                        <th>Operacja</th>
-                        <th>Sztuki przed → po</th>
-                        <th>Status przed → po</th>
-                        <th>Użytkownik</th>
-                        <th>Uwagi po zmianie</th>
-                    </tr></thead>
-                    <tbody id="po-history-body"></tbody>
-                </table>
+            <label>Wyszukaj zamówienie<input id="order-search"></label>
+            <p id="order-summary" class="muted"></p>
+            <div id="order-table"></div>
+        </div>
+        <div id="order-history" class="card" hidden></div>
+    </section>
+
+    <section id="stats-view" hidden>
+        <div class="toolbar">
+            <h1>Statystyki sprzedaży</h1>
+            <button id="refresh-stats" class="secondary">Odśwież</button>
+        </div>
+        <p id="stats-scope" class="muted"></p>
+        <div class="stats-cards">
+            <div class="card metric">
+                <h2>DZISIAJ</h2>
+                <strong id="stats-today-gross">—</strong>
+                <div id="stats-today-details" class="muted"></div>
             </div>
-        </section>
+            <div class="card metric">
+                <h2>W TYM MIESIĄCU</h2>
+                <strong id="stats-month-gross">—</strong>
+                <div id="stats-month-details" class="muted"></div>
+            </div>
+        </div>
+        <form id="report-form" class="card">
+            <h2>Raport sprzedaży</h2>
+            <div class="filters">
+                <label>Od<input id="report-from" type="date" required></label>
+                <label>Do<input id="report-to" type="date" required></label>
+                <label>Grupowanie
+                    <select id="report-group">
+                        <option value="DAY">Dni</option>
+                        <option value="MONTH">Miesiące</option>
+                        <option value="YEAR">Lata</option>
+                    </select>
+                </label>
+                <label id="report-user-label" hidden>Pracownik
+                    <select id="report-user"><option value="">Cały sklep</option></select>
+                </label>
+            </div>
+            <div class="actions">
+                <button type="submit">Pokaż raport</button>
+                <button type="button" class="secondary" data-period="today">Dzisiaj</button>
+                <button type="button" class="secondary" data-period="month">Ten miesiąc</button>
+                <button type="button" class="secondary" data-period="year">Ten rok</button>
+                <button type="button" class="secondary" id="print-report" disabled>Drukuj / zapisz PDF</button>
+            </div>
+            <p class="muted">Kwoty brutto po rabatach. Aktualny stan po korektach, według daty sprzedaży i pierwotnego autora.</p>
+        </form>
+        <div id="report-results" hidden>
+            <div class="card">
+                <h2 id="report-title">Podsumowanie</h2>
+                <p id="report-total" class="notice"></p>
+                <div id="report-period-table"></div>
+            </div>
+            <div id="report-employees-card" class="card" hidden>
+                <h2>Wyniki pracowników</h2>
+                <div id="report-employee-table"></div>
+            </div>
+            <div class="card">
+                <h2>Sprzedaże z wybranego okresu</h2>
+                <div id="report-sale-table"></div>
+            </div>
+        </div>
     </section>
 </main>
 
-<section id="po-print-sheet"></section>
+<div id="print-sheet"></div>
+<datalist id="sale-product-options"></datalist>
 
 <script>
     "use strict";
 
-    const $ = id => document.getElementById(id);
-
-    const state = {
-        user: null,
-        products: [],
-        customers: [],
-        sales: [],
-        deliveries: [],
-        defaultMarkup: 0,
-        editingProductId: null,
-        editingCustomerId: null,
-        editingDeliveryId: null,
-        editingSaleId: null
+    const $=id=>document.getElementById(id);
+    const state={
+        user:null,products:[],customers:[],sales:[],deliveries:[],orders:[],
+        markup:0,saleId:null,report:null,sequence:0,usersLoaded:false
     };
+    const admin=()=>state.user?.roles.includes("ADMIN")===true;
+    const esc=value=>String(value??"")
+        .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+    const money=value=>Number(value??0).toLocaleString("pl-PL",{style:"currency",currency:"PLN"});
+    const optional=value=>String(value??"").trim()||null;
+    const num=value=>String(value??"").trim()===""?null:Number(String(value).replace(",","."));
+    const dateTime=value=>value?new Date(value).toLocaleString("pl-PL",{timeZone:"Europe/Warsaw"}):"—";
+    const customerName=c=>c?(c.customerType==="COMPANY"?c.companyName:[c.firstName,c.lastName].filter(Boolean).join(" ")):"Bez przypisanego klienta";
+    const productName=p=>p.sku+" — "+p.name;
+    const manufacturer=value=>value?.trim()||"Bez producenta";
+    const statuses={
+        TO_ORDER:"Do zamówienia",ORDERED:"Zamówiono",
+        PARTIALLY_RECEIVED:"Częściowo przyjęto",RECEIVED:"Przyjęto na stan",CANCELLED:"Anulowano"
+    };
+    const active=o=>["TO_ORDER","ORDERED","PARTIALLY_RECEIVED"].includes(o.status);
+    const pending=id=>state.orders.filter(o=>o.productId===id&&active(o))
+        .reduce((sum,o)=>sum+o.quantity-o.receivedQuantity,0);
 
-    const isAdmin = () => state.user?.roles.includes("ADMIN") === true;
-    const money = value => Number(value ?? 0).toFixed(2) + " zł";
-    const optional = value => String(value ?? "").trim() || null;
-    const optionalNumber = value =>
-        String(value ?? "").trim() === "" ? null : Number(value);
+    let csrfPromise;
 
-    let csrfPromise = null;
-
-    function checkSession(response) {
-        if (
-            response.status === 401 ||
-            (response.redirected && new URL(response.url).pathname === "/login")
-        ) {
-            window.location.assign("/login");
+    function message(text,error=false){
+        $("message").textContent=text;
+        $("message").className=error?"error":"";
+        $("message").hidden=false;
+    }
+    function session(r){
+        if(r.status===401||(r.redirected&&new URL(r.url).pathname==="/login")){
+            location.assign("/login");
             throw new Error("Sesja wygasła. Zaloguj się ponownie.");
         }
     }
-
-    async function getCsrf() {
-        if (!csrfPromise) {
-            csrfPromise = (async () => {
-                const response = await fetch("/api/csrf", {
-                    credentials: "same-origin",
-                    cache: "no-store",
-                    headers: {Accept: "application/json"}
-                });
-
-                checkSession(response);
-
-                if (!response.ok) {
-                    throw new Error("Nie udało się pobrać tokenu CSRF.");
-                }
-
-                const csrf = await response.json();
-
-                if (!csrf.headerName || !csrf.token) {
-                    throw new Error("Nieprawidłowy token CSRF.");
-                }
-
-                return csrf;
-            })().catch(error => {
-                csrfPromise = null;
-                throw error;
-            });
-        }
-
+    async function csrf(){
+        if(!csrfPromise)csrfPromise=fetch("/api/csrf",{credentials:"same-origin",cache:"no-store"})
+            .then(async r=>{
+                session(r);
+                if(!r.ok)throw new Error("Nie udało się pobrać tokenu CSRF.");
+                const token=await r.json();
+                if(!token.headerName||!token.token)throw new Error("Nieprawidłowy token CSRF.");
+                return token;
+            }).catch(e=>{csrfPromise=null;throw e;});
         return csrfPromise;
     }
-
-    async function api(path, options = {}) {
-        const method = (options.method || "GET").toUpperCase();
-        const headers = new Headers(options.headers);
-        headers.set("Accept", "application/json");
-
-        if (options.body != null) {
-            headers.set("Content-Type", "application/json");
+    async function api(path,options={}){
+        const method=(options.method||"GET").toUpperCase(),headers=new Headers(options.headers);
+        headers.set("Accept","application/json");
+        if(options.body!=null)headers.set("Content-Type","application/json");
+        if(!["GET","HEAD","OPTIONS"].includes(method)){
+            const token=await csrf();
+            headers.set(token.headerName,token.token);
         }
-
-        if (!["GET", "HEAD", "OPTIONS"].includes(method)) {
-            const csrf = await getCsrf();
-            headers.set(csrf.headerName, csrf.token);
-        }
-
-        const response = await fetch(path, {
-            ...options,
-            method,
-            headers,
-            credentials: "same-origin"
-        });
-
-        checkSession(response);
-
-        const body = await response.json().catch(() => null);
-
-        if (!response.ok) {
-            if (response.status === 403) {
-                csrfPromise = null;
-                throw new Error(
-                    "Brak uprawnień lub token CSRF wygasł. " +
-                    "Odśwież stronę i spróbuj ponownie."
-                );
+        const r=await fetch(path,{...options,method,headers,credentials:"same-origin",cache:"no-store"});
+        session(r);
+        const body=await r.json().catch(()=>null);
+        if(!r.ok){
+            if(r.status===403){
+                csrfPromise=null;
+                throw new Error("Brak uprawnień lub token CSRF wygasł. Odśwież stronę.");
             }
-
-            throw new Error(body?.error || `Błąd HTTP ${response.status}`);
+            throw new Error(body?.error||body?.message||"Błąd HTTP "+r.status);
         }
-
         return body;
     }
+    const write=(path,method,data)=>api(path,{
+        method,...(data===undefined?{}:{body:JSON.stringify(data)})
+    });
+    function safe(handler){
+        return async event=>{
+            try{await handler(event);}catch(e){message(e.message,true);}
+        };
+    }
+    function requireAdmin(){
+        if(!admin())throw new Error("Ta operacja wymaga administratora.");
+    }
+    function action(label,run){return {label,run};}
 
-    $("logout").onclick = async () => {
-        const button = $("logout");
-        button.disabled = true;
-
-        try {
-            const csrf = await getCsrf();
-            const response = await fetch("/logout", {
-                method: "POST",
-                credentials: "same-origin",
-                headers: {[csrf.headerName]: csrf.token}
-            });
-
-            if (!response.ok) {
-                if (response.status === 403) csrfPromise = null;
-                throw new Error(
-                    "Nie udało się wylogować. Odśwież stronę i spróbuj ponownie."
-                );
+    function table(target,headers,rows){
+        const wrap=document.createElement("div");
+        wrap.className="table-wrap";
+        const t=document.createElement("table"),head=document.createElement("thead");
+        const tr=document.createElement("tr"),body=document.createElement("tbody");
+        for(const h of headers){
+            const th=document.createElement("th");
+            th.textContent=h;
+            tr.append(th);
+        }
+        head.append(tr);
+        for(const values of rows){
+            const row=document.createElement("tr");
+            for(const value of values){
+                const td=document.createElement("td");
+                if(Array.isArray(value)){
+                    for(const a of value){
+                        const b=document.createElement("button");
+                        b.className="secondary";
+                        b.type="button";
+                        b.textContent=a.label;
+                        b.onclick=safe(async()=>{
+                            b.disabled=true;
+                            try{await a.run();}finally{b.disabled=false;}
+                        });
+                        td.append(b);
+                    }
+                    if(!value.length)td.textContent="—";
+                }else if(value instanceof Node){
+                    td.append(value);
+                }else{
+                    td.textContent=String(value??"—");
+                }
+                row.append(td);
             }
-
-            window.location.assign("/login");
-        } catch (error) {
-            message(error.message, true);
-            button.disabled = false;
+            body.append(row);
         }
-    };
-
-    function message(text, error = false) {
-        const element = $("message");
-        element.textContent = text;
-        element.className = error ? "error" : "";
-        element.hidden = false;
-    }
-
-    function requireAdmin() {
-        if (isAdmin()) return true;
-        message("Ta operacja jest dostępna dla administratora.", true);
-        return false;
-    }
-
-    function customerName(customer) {
-        if (!customer) return "Bez przypisanego klienta";
-        if (customer.customerType === "COMPANY") return customer.companyName;
-        return [customer.firstName, customer.lastName].filter(Boolean).join(" ");
-    }
-
-    function addCell(row, value) {
-        const cell = document.createElement("td");
-        cell.textContent = String(value ?? "");
-        row.append(cell);
-        return cell;
-    }
-
-    function actionCell(row, actions) {
-        const cell = document.createElement("td");
-
-        for (const [label, action] of actions) {
-            const button = document.createElement("button");
-            button.type = "button";
-            button.className = "secondary";
-            button.textContent = label;
-            button.onclick = action;
-            cell.append(button);
+        if(!rows.length){
+            const row=document.createElement("tr"),td=document.createElement("td");
+            td.colSpan=headers.length;
+            td.textContent="Brak danych dla wybranych warunków.";
+            row.append(td);
+            body.append(row);
         }
-
-        if (!actions.length) cell.textContent = "—";
-        row.append(cell);
+        t.append(head,body);
+        wrap.append(t);
+        target.replaceChildren(wrap);
     }
 
-    function showView(name, reloadOrders = true) {
-        for (const view of ["products", "customers", "deliveries", "sales", "orders"]) {
-            $(`${view}-view`).hidden = view !== name;
+    function show(view,load=true){
+        for(const name of ["products","customers","deliveries","sales","orders","stats"]){
+            $(name+"-view").hidden=name!==view;
         }
-
-        document.querySelectorAll("nav button").forEach(button => {
-            button.classList.toggle("active", button.dataset.view === name);
+        document.querySelectorAll("nav button").forEach(b=>{
+            b.classList.toggle("active",b.dataset.view===view);
         });
-
-        if (name === "orders" && reloadOrders) {
-            purchaseOrdersPanel.refresh().catch(error => message(error.message, true));
-        }
+        if(view==="orders"&&load)loadOrders().catch(e=>message(e.message,true));
+        if(view==="stats")loadStats().catch(e=>message(e.message,true));
     }
-
-    function openOrderForProduct(product) {
-        showView("orders", false);
-        purchaseOrdersPanel.open(product.id).catch(error => message(error.message, true));
-    }
-
-    document.querySelectorAll("nav button").forEach(button => {
-        button.onclick = () => showView(button.dataset.view);
+    document.querySelectorAll("nav button").forEach(b=>{
+        b.onclick=()=>show(b.dataset.view);
+    });
+    $("logout").onclick=safe(async()=>{
+        await api("/logout",{method:"POST"});
+        location.assign("/login?logout");
     });
 
-    function renderProducts(products = state.products) {
-        const body = $("product-rows");
-        body.replaceChildren();
-
-        for (const product of products) {
-            const row = document.createElement("tr");
-            addCell(row, `${product.name} (${product.sku})`);
-            addCell(row, product.manufacturer || "—");
-
-            const stockCell = addCell(row, product.quantity);
-            if (product.quantity <= product.minimumQuantity) {
-                stockCell.className = "low";
-            }
-
-            addCell(row, product.minimumQuantity);
-            addCell(row, money(product.salePriceNet));
-
-            const actions = isAdmin() ? [
-                ["Edytuj", () => editProduct(product)],
-                ["Zmień ceny", () => editPrices(product)]
-            ] : [];
-
-            if (product.quantity <= product.minimumQuantity) {
-                actions.push(["Zamów", () => openOrderForProduct(product)]);
-            }
-
-            actionCell(row, actions);
-            body.append(row);
-        }
-    }
-
-    function renderCustomers(customers = state.customers) {
-        const body = $("customer-rows");
-        body.replaceChildren();
-
-        for (const customer of customers) {
-            const row = document.createElement("tr");
-
-            addCell(row, customerName(customer));
-            addCell(
-                row,
-                [customer.firstName, customer.lastName].filter(Boolean).join(" ") || "—"
-            );
-            addCell(row, customer.city || "—");
-            addCell(row, customer.nip || "—");
-            addCell(row, `${customer.discountPercent}%`);
-
-            actionCell(row, [
-                ["Edytuj", () => editCustomer(customer)],
-                ["Zmień rabat", () => editDiscount(customer)]
-            ]);
-
-            body.append(row);
-        }
-    }
-
-    function renderSales() {
-        const body = $("sale-rows");
-        body.replaceChildren();
-
-        for (const sale of state.sales) {
-            const row = document.createElement("tr");
-            const customer = state.customers.find(c => c.id === sale.customerId);
-
-            addCell(row, `#${sale.id}`);
-            addCell(row, new Date(sale.soldAt).toLocaleString("pl-PL"));
-            addCell(row, customerName(customer));
-            addCell(row, sale.createdByUsername || "—");
-            addCell(row, sale.remarks || "—");
-
-            const actions = [["Szczegóły", () => showSale(sale.id)]];
-            if (isAdmin()) {
-                actions.push(["Edytuj", () => editSale(sale.id)]);
-            }
-
-            actionCell(row, actions);
-            body.append(row);
-        }
-    }
-
-    function openDeliveryHistory(delivery) {
-        if (!requireAdmin()) return;
-        window.location.assign(
-            `/delivery-history.html?id=${encodeURIComponent(delivery.id)}`
-        );
-    }
-
-    function renderDeliveries() {
-        const body = $("delivery-rows");
-        body.replaceChildren();
-
-        for (const delivery of state.deliveries) {
-            const row = document.createElement("tr");
-
-            addCell(row, `#${delivery.id}`);
-            addCell(row, `${delivery.productName} (${delivery.sku})`);
-            addCell(row, delivery.quantity);
-            addCell(
-                row,
-                delivery.purchasePriceNet == null
-                    ? "—" : money(delivery.purchasePriceNet)
-            );
-            addCell(
-                row,
-                delivery.markupPercent == null
-                    ? "—" : `${delivery.markupPercent}%`
-            );
-            addCell(
-                row,
-                delivery.salePriceNet == null
-                    ? "—" : money(delivery.salePriceNet)
-            );
-            addCell(row, delivery.createdAt?.replace("T", " ") || "—");
-            addCell(row, delivery.createdByUsername || "—");
-
-            actionCell(row, isAdmin() ? [
-                ["Edytuj", () => editDelivery(delivery)],
-                ["Historia zmian", () => openDeliveryHistory(delivery)]
-            ] : []);
-
-            body.append(row);
-        }
-    }
-
-    function fillSelect(select, items, firstLabel, labelFunction) {
-        select.replaceChildren();
-
-        if (firstLabel !== null) {
-            select.add(new Option(firstLabel, ""));
-        }
-
-        for (const item of items) {
-            select.add(new Option(labelFunction(item), item.id));
-        }
-    }
-
-    function refreshSelects() {
-        const previousCustomer = $("sale-customer").value;
-        fillSelect(
-            $("sale-customer"),
-            state.customers,
-            "Bez przypisanego klienta",
-            customerName
-        );
-        $("sale-customer").value = previousCustomer;
-
-        document.querySelectorAll(".line-product").forEach(select => {
-            const previous = select.value;
-            fillSelect(
-                select,
-                state.products,
-                "Wybierz produkt",
-                p => `${p.sku} — ${p.name} (stan ${p.quantity})`
-            );
-            select.value = previous;
-        });
-    }
-
-    async function refreshAll() {
-        const [products, customers, sales, settings, deliveries] = await Promise.all([
-            api("/api/products"),
-            api("/api/customers"),
-            api("/api/sales"),
-            api("/api/shop-settings"),
-            api("/api/deliveries")
+    async function refresh(){
+        const [products,customers,sales,deliveries,settings]=await Promise.all([
+            api("/api/products"),api("/api/customers"),api("/api/sales"),
+            api("/api/deliveries"),api("/api/shop-settings")
         ]);
-
-        state.products = products;
-        state.customers = customers;
-        state.sales = sales;
-        state.deliveries = deliveries;
-        state.defaultMarkup = Number(settings.defaultMarkupPercent);
-
+        Object.assign(state,{
+            products,customers,sales,deliveries,markup:Number(settings.defaultMarkupPercent)
+        });
         renderProducts();
         renderCustomers();
         renderSales();
         renderDeliveries();
-        refreshSelects();
-        updateDeliveryPreview();
-        updateSalePreview();
+        $("sale-product-options").innerHTML=products.map(p=>
+            '<option value="'+esc(productName(p))+'"></option>'
+        ).join("");
     }
 
-    function editProduct(product) {
-        if (!requireAdmin()) return;
-        const form = $("edit-product-form");
-        state.editingProductId = product.id;
+    // Formularze produktów i klientów.
+    function field(name,label,type="text",extra=""){return {name,label,type,extra};}
 
-        for (const field of [
-            "sku", "name", "manufacturerPartNumber", "ean", "manufacturer",
-            "model", "category", "vatRate", "minimumQuantity", "remarks"
-        ]) {
-            form.elements[field].value = product[field] ?? "";
-        }
-
-        form.hidden = false;
-        form.scrollIntoView({behavior: "smooth", block: "start"});
-    }
-
-    $("show-product-form").onclick = () => {
-        if (!requireAdmin()) return;
-        $("product-form").hidden = false;
-    };
-
-    $("cancel-product").onclick = () => {
-        $("product-form").hidden = true;
-    };
-
-    $("cancel-product-edit").onclick = () => {
-        $("edit-product-form").hidden = true;
-    };
-
-    $("product-form").addEventListener("submit", async event => {
-        event.preventDefault();
-        if (!requireAdmin()) return;
-
-        const form = event.currentTarget;
-        const f = form.elements;
-
-        const product = {
-            sku: f.sku.value.trim(),
-            name: f.name.value.trim(),
-            manufacturerPartNumber: optional(f.manufacturerPartNumber.value),
-            ean: optional(f.ean.value),
-            manufacturer: optional(f.manufacturer.value),
-            model: optional(f.model.value),
-            category: optional(f.category.value),
-            purchasePriceNet: Number(f.purchasePriceNet.value),
-            salePriceNet: optionalNumber(f.salePriceNet.value),
-            vatRate: Number(f.vatRate.value),
-            minimumQuantity: Number(f.minimumQuantity.value),
-            remarks: optional(f.remarks.value)
-        };
-
-        try {
-            const result = await api("/api/products", {
-                method: "POST",
-                body: JSON.stringify(product)
-            });
-
-            form.reset();
-            form.hidden = true;
-            await refreshAll();
-            message(`Dodano produkt ${result.sku}.`);
-        } catch (error) {
-            message(error.message, true);
-        }
-    });
-
-    $("edit-product-form").addEventListener("submit", async event => {
-        event.preventDefault();
-        if (!requireAdmin()) return;
-
-        const f = event.currentTarget.elements;
-
-        const details = {
-            sku: f.sku.value.trim(),
-            name: f.name.value.trim(),
-            manufacturerPartNumber: optional(f.manufacturerPartNumber.value),
-            ean: optional(f.ean.value),
-            manufacturer: optional(f.manufacturer.value),
-            model: optional(f.model.value),
-            category: optional(f.category.value),
-            vatRate: Number(f.vatRate.value),
-            minimumQuantity: Number(f.minimumQuantity.value),
-            remarks: optional(f.remarks.value)
-        };
-
-        try {
-            await api(`/api/products/${state.editingProductId}/details`, {
-                method: "PATCH",
-                body: JSON.stringify(details)
-            });
-
-            $("edit-product-form").hidden = true;
-            await refreshAll();
-            message("Dane produktu zostały zmienione.");
-        } catch (error) {
-            message(error.message, true);
-        }
-    });
-
-    async function editPrices(product) {
-        if (!requireAdmin()) return;
-
-        const purchase = prompt("Nowa cena zakupu netto", product.purchasePriceNet);
-        if (purchase === null) return;
-
-        const sale = prompt("Nowa cena sprzedaży netto", product.salePriceNet);
-        if (sale === null) return;
-
-        try {
-            await api(`/api/products/${product.id}/prices`, {
-                method: "PATCH",
-                body: JSON.stringify({
-                    purchasePriceNet: Number(purchase.replace(",", ".")),
-                    salePriceNet: Number(sale.replace(",", "."))
-                })
-            });
-
-            await refreshAll();
-            message("Ceny zostały zmienione.");
-        } catch (error) {
-            message(error.message, true);
-        }
-    }
-
-    function updateCustomerFields() {
-        const isCompany = $("customer-type").value === "COMPANY";
-        const form = $("customer-form");
-
-        document.querySelectorAll(".company-field").forEach(field => {
-            field.hidden = !isCompany;
-        });
-
-        form.elements.companyName.required = isCompany;
-        form.elements.firstName.required = !isCompany;
-        form.elements.lastName.required = !isCompany;
-
-        if (!isCompany) {
-            form.elements.companyName.value = "";
-            form.elements.nip.value = "";
-            form.elements.regon.value = "";
-        }
-    }
-
-    function resetCustomerForm() {
-        $("customer-form").reset();
-        state.editingCustomerId = null;
-        $("customer-form-title").textContent = "Nowy klient";
-        $("save-customer").textContent = "Zapisz klienta";
-        updateCustomerFields();
-    }
-
-    function editCustomer(customer) {
-        const form = $("customer-form");
-        state.editingCustomerId = customer.id;
-
-        for (const field of [
-            "customerType", "companyName", "firstName", "lastName", "nip",
-            "regon", "street", "postalCode", "city", "phone", "email",
-            "discountPercent", "remarks"
-        ]) {
-            form.elements[field].value = customer[field] ?? "";
-        }
-
-        updateCustomerFields();
-        $("customer-form-title").textContent = `Edytuj klienta #${customer.id}`;
-        $("save-customer").textContent = "Zapisz zmiany";
-        form.hidden = false;
-        form.scrollIntoView({behavior: "smooth", block: "start"});
-    }
-
-    $("customer-type").addEventListener("change", updateCustomerFields);
-    updateCustomerFields();
-
-    $("show-customer-form").onclick = () => {
-        resetCustomerForm();
-        $("customer-form").hidden = false;
-    };
-
-    $("cancel-customer").onclick = () => {
-        $("customer-form").hidden = true;
-        resetCustomerForm();
-    };
-
-    $("customer-form").addEventListener("submit", async event => {
-        event.preventDefault();
-
-        const form = event.currentTarget;
-        const f = form.elements;
-
-        const customer = {
-            customerType: f.customerType.value,
-            companyName: optional(f.companyName.value),
-            firstName: optional(f.firstName.value),
-            lastName: optional(f.lastName.value),
-            nip: optional(f.nip.value),
-            regon: optional(f.regon.value),
-            street: optional(f.street.value),
-            postalCode: optional(f.postalCode.value),
-            city: optional(f.city.value),
-            phone: optional(f.phone.value),
-            email: optional(f.email.value),
-            discountPercent: Number(f.discountPercent.value),
-            remarks: optional(f.remarks.value)
-        };
-
-        try {
-            const editing = state.editingCustomerId !== null;
-            const result = await api(
-                editing ? `/api/customers/${state.editingCustomerId}` : "/api/customers",
-                {
-                    method: editing ? "PUT" : "POST",
-                    body: JSON.stringify(customer)
+    function editor(target,title,fields,values,onSave){
+        const box=$(target);
+        box.hidden=false;
+        const controls=fields.map(f=>{
+            const value=esc(values[f.name]??"");
+            let control;
+            if(f.type==="textarea"){
+                control='<textarea name="'+f.name+'" '+f.extra+'>'+value+'</textarea>';
+            }else if(f.type==="customerType"){
+                control='<select name="customerType"><option value="PERSON">Osoba prywatna</option><option value="COMPANY">Firma</option></select>';
+            }else{
+                control='<input name="'+f.name+'" type="'+f.type+'" value="'+value+'" '+f.extra+'>';
+            }
+            return '<label class="'+(f.type==="textarea"?"full":"")+'" data-field="'+f.name+'">'+esc(f.label)+control+'</label>';
+        }).join("");
+        box.innerHTML='<form class="card"><h2>'+esc(title)+'</h2><div class="grid">'+controls+'</div><div class="actions"><button type="submit">Zapisz</button><button type="button" class="secondary" data-cancel>Anuluj</button></div></form>';
+        const form=box.querySelector("form");
+        if(form.elements.customerType)form.elements.customerType.value=values.customerType||"PERSON";
+        form.querySelector("[data-cancel]").onclick=()=>{box.hidden=true;};
+        form.onsubmit=safe(async e=>{
+            e.preventDefault();
+            const b=form.querySelector('[type="submit"]');
+            b.disabled=true;
+            try{
+                const data={};
+                for(const f of fields){
+                    const value=form.elements[f.name].value;
+                    data[f.name]=f.type==="number"?num(value):optional(value);
                 }
-            );
+                await onSave(data,form);
+                box.hidden=true;
+                await refresh();
+                if(target==="delivery-editor")newDelivery();
+                message("Zapisano zmiany.");
+            }finally{b.disabled=false;}
+        });
+        box.scrollIntoView({behavior:"smooth",block:"start"});
+        return form;
+    }
 
-            resetCustomerForm();
-            form.hidden = true;
-            await refreshAll();
-            message(editing
-                ? `Zmieniono klienta #${result.id}.`
-                : `Dodano klienta #${result.id}.`
-            );
-        } catch (error) {
-            message(error.message, true);
-        }
-    });
+    const productFields=[
+        field("sku","SKU","text","required"),
+        field("name","Nazwa","text","required"),
+        field("manufacturerPartNumber","Kod producenta"),
+        field("ean","EAN"),
+        field("manufacturer","Producent"),
+        field("model","Model"),
+        field("category","Kategoria"),
+        field("vatRate","VAT (%)","number",'min="0" max="100" step="0.01" required'),
+        field("minimumQuantity","Stan minimalny","number",'min="0" step="1" required'),
+        field("remarks","Uwagi","textarea")
+    ];
 
-    async function editDiscount(customer) {
-        const value = prompt(
-            `Nowy rabat dla ${customerName(customer)} (%)`,
-            customer.discountPercent
-        );
-
-        if (value === null) return;
-
-        try {
-            await api(`/api/customers/${customer.id}/discount`, {
-                method: "PATCH",
-                body: JSON.stringify({
-                    discountPercent: Number(value.replace(",", "."))
-                })
+    function editProduct(p=null){
+        requireAdmin();
+        const fields=p?productFields:[
+            ...productFields,
+            field("purchasePriceNet","Cena zakupu netto","number",'min="0" step="0.01" required'),
+            field("salePriceNet","Cena sprzedaży netto — puste = domyślny narzut","number",'min="0" step="0.01"')
+        ];
+        editor("product-editor",p?"Edytuj produkt #"+p.id:"Nowy produkt",fields,
+            p||{vatRate:23,minimumQuantity:0},data=>{
+                requireAdmin();
+                return write(p?"/api/products/"+p.id+"/details":"/api/products",p?"PATCH":"POST",data);
             });
-
-            await refreshAll();
-            message("Rabat został zmieniony.");
-        } catch (error) {
-            message(error.message, true);
-        }
     }
-
-    function filterDeliveryProducts() {
-        const form = $("delivery-form");
-        form.elements.productId.value = "";
-
-        const results = $("delivery-results");
-        results.replaceChildren();
-
-        const query = $("delivery-search").value.trim().toLocaleLowerCase("pl");
-
-        if (!query) {
-            results.hidden = true;
-            updateDeliveryPreview();
-            return;
-        }
-
-        const matches = state.products.filter(p =>
-            [p.sku, p.name, p.manufacturer, p.model].some(value =>
-                String(value ?? "").toLocaleLowerCase("pl").includes(query)
-            )
-        );
-
-        for (const product of matches.slice(0, 30)) {
-            const button = document.createElement("button");
-            button.type = "button";
-            button.textContent =
-                `${product.sku} — ${product.name} (stan ${product.quantity})`;
-
-            button.onclick = () => {
-                form.elements.productId.value = product.id;
-                $("delivery-search").value = `${product.sku} — ${product.name}`;
-                form.elements.purchasePriceNet.value = product.purchasePriceNet;
-                form.elements.markupPercent.value = state.defaultMarkup;
-                results.hidden = true;
-                updateDeliveryPreview();
-            };
-
-            results.append(button);
-        }
-
-        if (!matches.length) {
-            const info = document.createElement("p");
-            info.textContent = "Nie znaleziono produktu.";
-            results.append(info);
-        }
-
-        results.hidden = false;
-        updateDeliveryPreview();
+    function editPrices(p){
+        requireAdmin();
+        editor("product-editor","Ceny: "+p.name,[
+            field("purchasePriceNet","Cena zakupu netto","number",'min="0" step="0.01" required'),
+            field("salePriceNet","Cena sprzedaży netto","number",'min="0" step="0.01" required')
+        ],p,data=>write("/api/products/"+p.id+"/prices","PATCH",data));
     }
-
-    function updateDeliveryPreview() {
-        const form = $("delivery-form");
-        const product = state.products.find(
-            p => p.id === Number(form.elements.productId.value)
-        );
-
-        $("delivery-stock").textContent = product
-            ? `Obecny stan: ${product.quantity} szt. · Dotychczasowa cena zakupu: ${money(product.purchasePriceNet)} netto · Cena sprzedaży: ${money(product.salePriceNet)} netto`
-            : "Wybierz produkt, aby zobaczyć aktualny stan.";
-
-        if (!product) {
-            $("delivery-preview").textContent = "";
-            return;
-        }
-
-        const price = Number(form.elements.purchasePriceNet.value);
-        const markup = Number(form.elements.markupPercent.value);
-        const quantity = Number(form.elements.quantity.value) || 0;
-
-        $("delivery-preview").textContent =
-            `Nowa cena sprzedaży netto: ${money(price * (1 + markup / 100))} za sztukę. ` +
-            `Stan po dostawie: ${product.quantity + quantity} szt.`;
+    function renderProducts(){
+        const q=$("product-search").value.toLocaleLowerCase("pl");
+        table($("product-table"),["Produkt / SKU","Producent","Stan","Minimum","Cena netto","Akcje"],
+            state.products.filter(p=>[p.name,p.sku,p.manufacturer,p.model,p.category]
+                .join(" ").toLocaleLowerCase("pl").includes(q)).map(p=>{
+                const stock=document.createElement("span");
+                stock.textContent=p.quantity;
+                if(p.quantity<=p.minimumQuantity)stock.className="low";
+                const actions=admin()?[
+                    action("Edytuj",()=>editProduct(p)),
+                    action("Zmień ceny",()=>editPrices(p))
+                ]:[];
+                if(p.quantity<=p.minimumQuantity)actions.push(action("Zamów",()=>openOrder(null,p)));
+                return [productName(p),p.manufacturer||"—",stock,p.minimumQuantity,money(p.salePriceNet),actions];
+            }));
     }
+    $("new-product").onclick=safe(()=>editProduct());
+    $("product-search").oninput=renderProducts;
 
-    $("delivery-search").addEventListener("input", filterDeliveryProducts);
-    $("delivery-form").addEventListener("input", updateDeliveryPreview);
-
-    $("delivery-form").addEventListener("submit", async event => {
-        event.preventDefault();
-
-        const form = event.currentTarget;
-        const f = form.elements;
-
-        if (!f.productId.value) {
-            message("Wybierz produkt.", true);
-            return;
+    const customerFields=[
+        field("customerType","Typ klienta","customerType"),
+        field("firstName","Imię / osoba kontaktowa"),
+        field("lastName","Nazwisko / osoba kontaktowa"),
+        field("companyName","Nazwa firmy"),
+        field("nip","NIP"),
+        field("regon","REGON"),
+        field("street","Ulica i numer"),
+        field("postalCode","Kod pocztowy"),
+        field("city","Miasto"),
+        field("phone","Telefon"),
+        field("email","E-mail","email"),
+        field("discountPercent","Rabat (%)","number",'min="0" max="100" step="0.01" required'),
+        field("remarks","Uwagi","textarea")
+    ];
+    function editCustomer(c=null){
+        if(c)requireAdmin();
+        const form=editor("customer-editor",c?"Edytuj klienta #"+c.id:"Nowy klient",
+            customerFields,c||{customerType:"PERSON",discountPercent:0},
+            data=>write(c?"/api/customers/"+c.id:"/api/customers",c?"PUT":"POST",data));
+        function update(){
+            const company=form.elements.customerType.value==="COMPANY";
+            for(const name of ["companyName","nip","regon"]){
+                form.querySelector('[data-field="'+name+'"]').hidden=!company;
+                if(!company)form.elements[name].value="";
+            }
+            form.elements.companyName.required=company;
+            form.elements.firstName.required=!company;
+            form.elements.lastName.required=!company;
         }
-
-        try {
-            const result = await api(`/api/products/${f.productId.value}/deliveries`, {
-                method: "POST",
-                body: JSON.stringify({
-                    quantity: Number(f.quantity.value),
-                    purchasePriceNet: Number(f.purchasePriceNet.value),
-                    markupPercent: Number(f.markupPercent.value),
-                    remarks: optional(f.remarks.value)
-                })
-            });
-
-            form.reset();
-            form.elements.productId.value = "";
-            $("delivery-search").value = "";
-            $("delivery-results").hidden = true;
-            await refreshAll();
-            message(`Przyjęto dostawę. Stan ${result.sku}: ${result.quantity} szt.`);
-        } catch (error) {
-            message(error.message, true);
-        }
-    });
-
-    function editDelivery(delivery) {
-        if (!requireAdmin()) return;
-
-        const form = $("edit-delivery-form");
-        state.editingDeliveryId = delivery.id;
-
-        form.elements.quantity.value = delivery.quantity;
-        form.elements.purchasePriceNet.value = delivery.purchasePriceNet ?? "";
-        form.elements.markupPercent.value = delivery.markupPercent ?? "";
-        form.elements.remarks.value = delivery.remarks ?? "";
-
-        $("edit-delivery-title").textContent =
-            `Korekta dostawy #${delivery.id} — ${delivery.productName}`;
-
-        const product = state.products.find(p => p.id === delivery.productId);
-        $("edit-delivery-stock").textContent =
-            `Aktualny stan produktu: ${product?.quantity ?? "—"} szt.`;
-
-        form.hidden = false;
-        form.scrollIntoView({behavior: "smooth", block: "start"});
+        form.elements.customerType.onchange=update;
+        update();
     }
-
-    $("cancel-delivery-edit").onclick = () => {
-        $("edit-delivery-form").hidden = true;
-    };
-
-    $("edit-delivery-form").addEventListener("submit", async event => {
-        event.preventDefault();
-        if (!requireAdmin()) return;
-
-        const form = event.currentTarget;
-        const f = form.elements;
-        const purchase = optionalNumber(f.purchasePriceNet.value);
-        const markup = optionalNumber(f.markupPercent.value);
-
-        if ((purchase === null) !== (markup === null)) {
-            message(
-                "Podaj cenę zakupu i narzut razem albo oba pola zostaw puste.",
-                true
-            );
-            return;
-        }
-
-        try {
-            await api(`/api/deliveries/${state.editingDeliveryId}`, {
-                method: "PUT",
-                body: JSON.stringify({
-                    quantity: Number(f.quantity.value),
-                    purchasePriceNet: purchase,
-                    markupPercent: markup,
-                    remarks: optional(f.remarks.value)
-                })
-            });
-
-            form.hidden = true;
-            await refreshAll();
-            message(`Zapisano korektę dostawy #${state.editingDeliveryId}.`);
-        } catch (error) {
-            message(error.message, true);
-        }
-    });
-
-    function resetSaleForm() {
-        $("sale-form").reset();
-        $("sale-lines").replaceChildren();
-        state.editingSaleId = null;
-        $("sale-form-title").textContent = "Nowa sprzedaż";
-        $("save-sale").textContent = "Zapisz sprzedaż";
-        updateSalePreview();
+    function editDiscount(c){
+        requireAdmin();
+        editor("customer-editor","Rabat: "+customerName(c),[
+            field("discountPercent","Rabat (%)","number",'min="0" max="100" step="0.01" required')
+        ],c,data=>write("/api/customers/"+c.id+"/discount","PATCH",data));
     }
-
-    $("show-sale-form").onclick = () => {
-        resetSaleForm();
-        $("sale-form").hidden = false;
-        addSaleLine();
-        $("sale-form").scrollIntoView({behavior: "smooth", block: "start"});
-    };
-
-    $("cancel-sale").onclick = () => {
-        $("sale-form").hidden = true;
-        resetSaleForm();
-    };
-
-    async function editSale(id) {
-        if (!requireAdmin()) return;
-
-        try {
-            const sale = await api(`/api/sales/${id}`);
-            resetSaleForm();
-
-            state.editingSaleId = id;
-            $("sale-form-title").textContent = `Edytuj sprzedaż #${id}`;
-            $("save-sale").textContent = "Zapisz korektę";
-            $("sale-customer").value = sale.customerId ?? "";
-            $("sale-form").elements.remarks.value = sale.remarks ?? "";
-
-            sale.items.forEach(item => addSaleLine(item));
-            $("sale-form").hidden = false;
-            updateSalePreview();
-            $("sale-form").scrollIntoView({behavior: "smooth", block: "start"});
-        } catch (error) {
-            message(error.message, true);
-        }
+    function renderCustomers(){
+        const q=$("customer-search").value.toLocaleLowerCase("pl");
+        const rows=state.customers.filter(c=>[customerName(c),c.firstName,c.lastName,c.nip,c.city]
+            .join(" ").toLocaleLowerCase("pl").includes(q)).map(c=>{
+            const actions=admin()?[
+                action("Edytuj",()=>editCustomer(c)),
+                action("Zmień rabat",()=>editDiscount(c))
+            ]:[];
+            return [customerName(c),[c.firstName,c.lastName].filter(Boolean).join(" "),
+                c.city,c.nip,c.discountPercent+"%",actions];
+        });
+        table($("customer-table"),["Klient","Kontakt","Miasto","NIP","Rabat","Akcje"],rows);
     }
+    $("new-customer").onclick=()=>editCustomer();
+    $("customer-search").oninput=renderCustomers;
 
-    function addSaleLine(existing = null) {
-        const line = document.createElement("div");
-        line.className = "sale-line";
-
-        line.innerHTML = `
-        <label>Produkt
-            <select class="line-product" required></select>
-        </label>
-        <label>Sztuki
-            <input class="line-quantity" type="number"
-                   min="1" step="1" value="1" required>
-        </label>
-        <label>Cena netto
-            <input class="line-price" type="number"
-                   min="0" step="0.01" placeholder="Z cennika">
-        </label>
-        <label>Rabat %
-            <input class="line-discount" type="number"
-                   min="0" max="100" step="0.01" placeholder="Klienta">
-        </label>
-        <button class="secondary remove-line" type="button">Usuń</button>
-    `;
-
-        fillSelect(
-            line.querySelector(".line-product"),
-            state.products,
-            "Wybierz produkt",
-            p => `${p.sku} — ${p.name} (stan ${p.quantity})`
-        );
-
-        if (existing) {
-            line.querySelector(".line-product").value = existing.productId;
-            line.querySelector(".line-quantity").value = existing.quantity;
-            line.querySelector(".line-price").value = existing.unitSalePriceNet;
-            line.querySelector(".line-discount").value = existing.discountPercent;
+    // Dostawy i wybór produktu.
+    function picker(form,onSelected){
+        const label=document.createElement("label");
+        label.className="full";
+        label.innerHTML='Wyszukaj produkt<input type="search" placeholder="Nazwa, SKU, producent lub model" autocomplete="off"><input type="hidden" name="productId"><div class="results" hidden></div>';
+        form.querySelector(".grid").prepend(label);
+        const input=label.querySelector('[type="search"]');
+        const id=label.querySelector('[type="hidden"]');
+        const results=label.querySelector(".results");
+        function select(p){
+            id.value=p.id;
+            input.value=productName(p);
+            results.hidden=true;
+            onSelected(p);
         }
-
-        line.querySelector(".remove-line").onclick = () => {
-            line.remove();
-            updateSalePreview();
+        input.oninput=()=>{
+            id.value="";
+            onSelected(null);
+            results.replaceChildren();
+            const q=input.value.trim().toLocaleLowerCase("pl");
+            results.hidden=!q;
+            if(!q)return;
+            const matches=state.products.filter(p=>[p.name,p.sku,p.manufacturer,p.model]
+                .join(" ").toLocaleLowerCase("pl").includes(q)).slice(0,40);
+            for(const p of matches){
+                const b=document.createElement("button");
+                b.type="button";
+                b.textContent=productName(p)+" · stan "+p.quantity+" szt.";
+                b.onclick=()=>select(p);
+                results.append(b);
+            }
+            if(!matches.length)results.textContent="Nie znaleziono produktu.";
         };
+        return {select,input,id};
+    }
+    const deliveryFields=[
+        field("quantity","Liczba sztuk","number",'min="1" step="1" required'),
+        field("purchasePriceNet","Cena zakupu netto / szt.","number",'min="0" step="0.01" required'),
+        field("markupPercent","Narzut (%)","number",'min="0" max="1000" step="0.01" required'),
+        field("remarks","Uwagi","textarea")
+    ];
+    function newDelivery(){
+        const form=editor("delivery-editor","Przyjęcie towaru",deliveryFields,
+            {quantity:1,markupPercent:state.markup},async(data,f)=>{
+                const id=Number(f.elements.productId.value);
+                if(!id)throw new Error("Wybierz produkt z wyników wyszukiwania.");
+                await write("/api/products/"+id+"/deliveries","POST",data);
+            });
+        const preview=document.createElement("p");
+        preview.className="notice";
+        form.querySelector(".grid").after(preview);
+        let product=null;
+        function update(){
+            preview.textContent=product?
+                "Obecny stan: "+product.quantity+" szt. · Cena sprzedaży po dostawie: "+
+                money(Number(form.elements.purchasePriceNet.value)*(1+Number(form.elements.markupPercent.value)/100))+
+                " netto · Stan po dostawie: "+(product.quantity+Number(form.elements.quantity.value||0))+" szt.":
+                "Wybierz produkt, aby zobaczyć obecny stan.";
+        }
+        picker(form,p=>{
+            product=p;
+            if(p){
+                form.elements.purchasePriceNet.value=p.purchasePriceNet;
+                form.elements.markupPercent.value=state.markup;
+            }
+            update();
+        });
+        form.addEventListener("input",update);
+        form.querySelector("[data-cancel]").onclick=newDelivery;
+        update();
+    }
+    function editDelivery(d){
+        requireAdmin();
+        const fields=deliveryFields.map(f=>["purchasePriceNet","markupPercent"].includes(f.name)?
+            {...f,extra:f.extra.replace("required","")}:f);
+        const form=editor("delivery-correction","Korekta dostawy #"+d.id+" — "+d.productName,
+            fields,d,async data=>{
+                requireAdmin();
+                if((data.purchasePriceNet===null)!==(data.markupPercent===null)){
+                    throw new Error("Podaj cenę i narzut razem albo pozostaw oba puste.");
+                }
+                await write("/api/deliveries/"+d.id,"PUT",data);
+            });
+        const p=state.products.find(p=>p.id===d.productId);
+        const notice=document.createElement("p");
+        notice.className="notice";
+        notice.textContent="Obecny stan produktu: "+(p?.quantity??"—")+" szt.";
+        form.querySelector("h2").after(notice);
+    }
+    function renderDeliveries(){
+        table($("delivery-table"),
+            ["ID","Produkt","Sztuki","Zakup netto","Narzut","Sprzedaż netto","Data","Pracownik","Akcje"],
+            state.deliveries.map(d=>[
+                d.id,d.productName+" ("+d.sku+")",d.quantity,
+                d.purchasePriceNet==null?"—":money(d.purchasePriceNet),
+                d.markupPercent==null?"—":d.markupPercent+"%",
+                d.salePriceNet==null?"—":money(d.salePriceNet),
+                dateTime(d.createdAt),d.createdByUsername,
+                admin()?[
+                    action("Edytuj",()=>editDelivery(d)),
+                    action("Historia zmian",()=>location.assign("/delivery-history.html?id="+d.id))
+                ]:[]
+            ]));
+    }
+    $("refresh-deliveries").onclick=safe(refresh);
 
-        line.addEventListener("input", updateSalePreview);
-        line.addEventListener("change", updateSalePreview);
+    // Sprzedaż i korekty.
+    function lineProduct(line){
+        return state.products.find(p=>productName(p)===line.querySelector(".line-product").value);
+    }
+    function addLine(item=null){
+        const line=document.createElement("div");
+        line.className="sale-line";
+        line.innerHTML='<label>Produkt<input class="line-product" list="sale-product-options" required placeholder="Wyszukaj produkt"></label><label>Sztuki<input class="line-quantity" type="number" min="1" step="1" value="1" required></label><label>Cena netto<input class="line-price" type="number" min="0" step="0.01" placeholder="Z cennika"></label><label>Rabat %<input class="line-discount" type="number" min="0" max="100" step="0.01" placeholder="Klienta"></label><button type="button" class="secondary">Usuń</button>';
+        if(item){
+            const p=state.products.find(p=>p.id===item.productId);
+            line.querySelector(".line-product").value=p?productName(p):"";
+            line.querySelector(".line-quantity").value=item.quantity;
+            line.querySelector(".line-price").value=item.unitSalePriceNet;
+            line.querySelector(".line-discount").value=item.discountPercent;
+        }
+        line.querySelector("button").onclick=()=>{line.remove();salePreview();};
+        line.oninput=salePreview;
         $("sale-lines").append(line);
-        updateSalePreview();
+        salePreview();
     }
-
-    $("add-sale-line").onclick = () => addSaleLine();
-    $("sale-customer").addEventListener("change", updateSalePreview);
-
-    function updateSalePreview() {
-        const customer = state.customers.find(
-            c => c.id === Number($("sale-customer").value)
-        );
-
-        let totalNet = 0;
-        let totalGross = 0;
-
-        document.querySelectorAll(".sale-line").forEach(line => {
-            const product = state.products.find(
-                p => p.id === Number(line.querySelector(".line-product").value)
-            );
-
-            if (!product) return;
-
-            const quantity = Number(line.querySelector(".line-quantity").value) || 0;
-            const price = optionalNumber(line.querySelector(".line-price").value)
-                ?? Number(product.salePriceNet);
-            const discount = optionalNumber(line.querySelector(".line-discount").value)
-                ?? Number(customer?.discountPercent ?? 0);
-
-            const net = Math.round(
-                quantity * price * (1 - discount / 100) * 100
-            ) / 100;
-
-            const gross = Math.round(
-                net * (1 + Number(product.vatRate) / 100) * 100
-            ) / 100;
-
-            totalNet += net;
-            totalGross += gross;
-        });
-
-        $("sale-preview").textContent =
-            `Podgląd: ${money(totalNet)} netto / ${money(totalGross)} brutto`;
-    }
-
-    $("sale-form").addEventListener("submit", async event => {
-        event.preventDefault();
-
-        if (state.editingSaleId !== null && !requireAdmin()) return;
-
-        const form = event.currentTarget;
-        const lines = [...document.querySelectorAll(".sale-line")];
-
-        if (!lines.length) {
-            message("Dodaj przynajmniej jedną pozycję.", true);
-            return;
+    function salePreview(){
+        const customer=state.customers.find(c=>c.id===Number($("sale-customer").value));
+        let net=0,gross=0;
+        for(const line of $("sale-lines").children){
+            const p=lineProduct(line);
+            if(!p)continue;
+            const price=num(line.querySelector(".line-price").value)??Number(p.salePriceNet);
+            const discount=num(line.querySelector(".line-discount").value)??Number(customer?.discountPercent??0);
+            const quantity=Number(line.querySelector(".line-quantity").value);
+            const amount=Math.round(price*quantity*(1-discount/100)*100)/100;
+            net+=amount;
+            gross+=Math.round(amount*(1+Number(p.vatRate)/100)*100)/100;
         }
+        $("sale-preview").textContent="Podgląd: "+money(net)+" netto / "+money(gross)+" brutto";
+    }
+    async function openSale(id=null){
+        if(id)requireAdmin();
+        const sale=id?await api("/api/sales/"+id):null;
+        state.saleId=id;
+        $("sale-title").textContent=id?"Korekta sprzedaży #"+id:"Nowa sprzedaż";
+        $("save-sale").textContent=id?"Zapisz korektę":"Zapisz sprzedaż";
+        $("sale-customer").innerHTML='<option value="">Bez przypisanego klienta</option>'+
+            state.customers.map(c=>'<option value="'+c.id+'">'+esc(customerName(c))+'</option>').join("");
+        $("sale-customer").value=sale?.customerId??"";
+        $("sale-remarks").value=sale?.remarks??"";
+        $("sale-lines").replaceChildren();
+        if(sale)sale.items.forEach(addLine);else addLine();
+        $("sale-form").hidden=false;
+        $("sale-form").scrollIntoView({behavior:"smooth",block:"start"});
+    }
+    $("new-sale").onclick=safe(()=>openSale());
+    $("add-line").onclick=()=>addLine();
+    $("cancel-sale").onclick=()=>{$("sale-form").hidden=true;state.saleId=null;};
+    $("sale-customer").onchange=salePreview;
 
-        const items = lines.map(line => ({
-            productId: Number(line.querySelector(".line-product").value),
-            quantity: Number(line.querySelector(".line-quantity").value),
-            unitSalePriceNet: optionalNumber(line.querySelector(".line-price").value),
-            discountPercent: optionalNumber(line.querySelector(".line-discount").value)
+    $("sale-form").onsubmit=safe(async e=>{
+        e.preventDefault();
+        if(state.saleId)requireAdmin();
+        const items=[...$("sale-lines").children].map(line=>({
+            productId:lineProduct(line)?.id,
+            quantity:Number(line.querySelector(".line-quantity").value),
+            unitSalePriceNet:num(line.querySelector(".line-price").value),
+            discountPercent:num(line.querySelector(".line-discount").value)
         }));
-
-        if (items.some(item => !item.productId || item.quantity < 1)) {
-            message("Wybierz produkt i liczbę sztuk w każdej pozycji.", true);
-            return;
+        if(!items.length||items.some(i=>!i.productId||!Number.isInteger(i.quantity)||i.quantity<1)){
+            throw new Error("Wybierz produkt z podpowiedzi i dodatnią liczbę sztuk w każdej pozycji.");
         }
-
-        const sale = {
-            customerId: optionalNumber(form.elements.customerId.value),
-            remarks: optional(form.elements.remarks.value),
-            items
-        };
-
-        try {
-            const editing = state.editingSaleId !== null;
-            const id = state.editingSaleId;
-
-            const result = await api(
-                editing ? `/api/sales/${id}` : "/api/sales",
-                {
-                    method: editing ? "PUT" : "POST",
-                    body: JSON.stringify(sale)
-                }
-            );
-
-            resetSaleForm();
-            form.hidden = true;
-            await refreshAll();
-
-            message(editing
-                ? `Zapisano korektę sprzedaży #${id}.`
-                : `Zapisano sprzedaż #${result.id}.`
-            );
-
+        $("save-sale").disabled=true;
+        try{
+            const result=await write(state.saleId?"/api/sales/"+state.saleId:"/api/sales",
+                state.saleId?"PUT":"POST",{
+                    customerId:num($("sale-customer").value),
+                    remarks:optional($("sale-remarks").value),
+                    items
+                });
+            $("sale-form").hidden=true;
+            state.saleId=null;
+            await refresh();
+            message("Zapisano sprzedaż #"+result.id+".");
             await showSale(result.id);
-        } catch (error) {
-            message(error.message, true);
-        }
+        }finally{$("save-sale").disabled=false;}
     });
 
-    async function showSale(id) {
-        try {
-            const sale = await api(`/api/sales/${id}`);
-            const customer = state.customers.find(c => c.id === sale.customerId);
-
-            const lines = sale.items.map(item =>
-                `${item.quantity} × ${item.productName} (${item.sku})\n` +
-                `  Cena: ${money(item.unitSalePriceNet)}, rabat: ${item.discountPercent}%\n` +
-                `  Netto: ${money(item.lineTotalNet)}, brutto: ${money(item.lineTotalGross)}`
-            );
-
-            $("sale-details").textContent =
-                `Sprzedaż #${sale.id}\n` +
-                `Data: ${new Date(sale.soldAt).toLocaleString("pl-PL")}\n` +
-                `Pracownik: ${sale.createdByUsername || "Nie zapisano autora (starszy wpis)"}\n` +
-                `Klient: ${customerName(customer)}\n\n` +
-                lines.join("\n\n") +
-                `\n\nRAZEM NETTO: ${money(sale.totalNet)}` +
-                `\nRAZEM BRUTTO: ${money(sale.totalGross)}`;
-
-            $("sale-details-card").hidden = false;
-        } catch (error) {
-            message(error.message, true);
-        }
+    async function showSale(id){
+        const sale=await api("/api/sales/"+id);
+        show("sales");
+        const box=$("sale-details");
+        box.hidden=false;
+        box.innerHTML='<div class="toolbar"><h2>Sprzedaż #'+sale.id+'</h2><button class="secondary" data-close>Zamknij</button></div><pre></pre>';
+        box.querySelector("[data-close]").onclick=()=>{box.hidden=true;};
+        box.querySelector("pre").textContent=
+            "Data: "+dateTime(sale.soldAt)+
+            "\nPracownik: "+(sale.createdByUsername||"Nieprzypisana")+
+            "\nKlient: "+customerName(state.customers.find(c=>c.id===sale.customerId))+"\n\n"+
+            sale.items.map(i=>
+                i.quantity+" × "+i.productName+" ("+i.sku+")"+
+                "\nCena: "+money(i.unitSalePriceNet)+", rabat: "+i.discountPercent+"%"+
+                "\nNetto: "+money(i.lineTotalNet)+", brutto: "+money(i.lineTotalGross)
+            ).join("\n\n")+
+            "\n\nRAZEM NETTO: "+money(sale.totalNet)+
+            "\nRAZEM BRUTTO: "+money(sale.totalGross)+
+            "\nUwagi: "+(sale.remarks||"—");
+        box.scrollIntoView({behavior:"smooth",block:"start"});
+    }
+    function renderSales(){
+        const rows=state.sales.map(s=>{
+            const actions=[action("Szczegóły",()=>showSale(s.id))];
+            if(admin())actions.push(action("Edytuj",()=>openSale(s.id)));
+            return [s.id,dateTime(s.soldAt),
+                customerName(state.customers.find(c=>c.id===s.customerId)),
+                s.createdByUsername,s.remarks,actions];
+        });
+        table($("sale-table"),["ID","Data","Klient","Pracownik","Uwagi","Akcje"],rows);
     }
 
-    function debounce(action) {
-        let timer;
-        return event => {
-            const text = event.target.value.trim();
-            clearTimeout(timer);
-            timer = setTimeout(() => action(text), 300);
-        };
+    // Zamówienia towaru.
+    async function loadOrders(){
+        const [products,orders]=await Promise.all([
+            api("/api/products"),api("/api/purchase-orders")
+        ]);
+        state.products=products;
+        state.orders=orders;
+        const select=$("order-manufacturer"),previous=select.value;
+        const values=[...new Set([
+            ...products.map(p=>manufacturer(p.manufacturer)),
+            ...orders.map(o=>manufacturer(o.manufacturer))
+        ])].sort((a,b)=>a.localeCompare(b,"pl"));
+        select.innerHTML='<option value="">Wszyscy producenci</option>'+
+            values.map(v=>'<option value="'+esc(v)+'">'+esc(v)+'</option>').join("");
+        if(values.includes(previous))select.value=previous;
+        renderOrders();
+        renderProducts();
     }
-
-    $("product-search").addEventListener("input", debounce(async text => {
-        try {
-            renderProducts(text
-                ? await api(`/api/products?q=${encodeURIComponent(text)}`)
-                : state.products
-            );
-        } catch (error) {
-            message(error.message, true);
-        }
-    }));
-
-    $("customer-search").addEventListener("input", debounce(async text => {
-        try {
-            renderCustomers(text
-                ? await api(`/api/customers?q=${encodeURIComponent(text)}`)
-                : state.customers
-            );
-        } catch (error) {
-            message(error.message, true);
-        }
-    }));
-
-    async function initialize() {
-        state.user = await api("/api/me");
-
-        $("current-user").textContent =
-            state.user.username + " · " +
-            (isAdmin() ? "Administrator" : "Sprzedawca");
-
-        $("show-product-form").hidden = !isAdmin();
-        $("users-link").hidden = !isAdmin();
-
-        await refreshAll();
-
-        const requestedView = new URL(window.location.href)
-            .searchParams.get("view");
-
-        if (["products", "customers", "deliveries", "sales", "orders"].includes(requestedView)) {
-            showView(requestedView);
-        }
+    function orderSort(a,b){
+        return manufacturer(a.manufacturer).localeCompare(manufacturer(b.manufacturer),"pl")||
+            (a.productName||a.name).localeCompare(b.productName||b.name,"pl");
     }
-
-    const purchaseOrdersPanel = (() => {
-        const $ = id => document.getElementById("po-" + id);
-
-        const state = {
-            products: [],
-            orders: [],
-            editingId: null,
-            historyId: null
-        };
-
-        const statuses = {
-            TO_ORDER: "Do zamówienia",
-            ORDERED: "Zamówiono",
-            PARTIALLY_RECEIVED: "Częściowo przyjęto",
-            RECEIVED: "Przyjęto na stan",
-            CANCELLED: "Anulowano"
-        };
-
-        const events = {
-            CREATED: "Utworzono",
-            UPDATED: "Zmieniono dane",
-            ORDERED: "Oznaczono jako zamówione",
-            CANCELLED: "Anulowano"
-        };
-
-        const statusName = value => statuses[value] || value || "—";
-        const manufacturer = value => value?.trim() || "Bez producenta";
-        const date = value => value
-            ? new Date(value).toLocaleString("pl-PL")
-            : "—";
-
-        function cell(row, value, className = "") {
-            const td = document.createElement("td");
-            td.textContent = value == null || value === "" ? "—" : value;
-            td.className = className;
-            row.appendChild(td);
-            return td;
-        }
-
-        function button(parent, label, handler, className = "secondary") {
-            const element = document.createElement("button");
-            element.type = "button";
-            element.className = className;
-            element.textContent = label;
-
-            element.onclick = async () => {
-                element.disabled = true;
-                try {
-                    await handler();
-                } catch (error) {
-                    message(error.message, true);
-                } finally {
-                    element.disabled = false;
-                }
-            };
-
-            parent.appendChild(element);
-        }
-
-        function empty(body, columns, text) {
-            const row = document.createElement("tr");
-            cell(row, text, "empty").colSpan = columns;
-            body.appendChild(row);
-        }
-
-        function active(order) {
-            return ["TO_ORDER", "ORDERED", "PARTIALLY_RECEIVED"]
-                .includes(order.status);
-        }
-
-        function pending(productId, excludedOrderId = null) {
-            return state.orders
-                .filter(order =>
-                    order.productId === productId
-                    && order.id !== excludedOrderId
-                    && active(order)
-                )
-                .reduce(
-                    (sum, order) => sum + order.quantity - order.receivedQuantity,
-                    0
-                );
-        }
-
-        function productSort(a, b) {
-            return manufacturer(a.manufacturer).localeCompare(
-                manufacturer(b.manufacturer), "pl"
-            ) || a.name.localeCompare(b.name, "pl");
-        }
-
-        function renderRecommendations() {
-            const query = $("recommendation-search").value
-                .trim().toLocaleLowerCase("pl");
-            const selectedManufacturer = $("filter-manufacturer").value;
-
-            const products = state.products
-                .filter(product =>
-                        product.quantity <= product.minimumQuantity
-                        && (
-                            !selectedManufacturer
-                            || manufacturer(product.manufacturer) === selectedManufacturer
-                        )
-                        && [
-                            product.name,
-                            product.sku,
-                            product.manufacturer
-                        ].join(" ").toLocaleLowerCase("pl").includes(query)
-                )
-                .sort(productSort);
-
-            const body = $("recommendation-body");
-            body.replaceChildren();
-
-            $("recommendation-summary").textContent =
-                "Produktów wymagających uzupełnienia: " + products.length;
-
-            if (!products.length) {
-                empty(body, 6, "Brak produktów spełniających te warunki.");
-                return;
-            }
-
-            for (const product of products) {
-                const row = document.createElement("tr");
-                const alreadyOrdered = pending(product.id);
-
-                cell(row, manufacturer(product.manufacturer));
-                cell(row, product.name + " / " + product.sku);
-                cell(row, product.quantity + " szt.", "low");
-                cell(row, product.minimumQuantity + " szt.");
-                cell(row, alreadyOrdered + " szt.");
-
-                const actions = cell(row, "");
-                actions.textContent = "";
-
-                button(
-                    actions,
-                    alreadyOrdered > 0 ? "Zamów dodatkowo" : "Zamów",
-                    () => openForm(null, product),
-                    alreadyOrdered > 0 ? "secondary" : ""
-                );
-
-                body.appendChild(row);
-            }
-        }
-
-        function filteredOrders() {
-            const query = $("filter-text").value.trim().toLocaleLowerCase("pl");
-            const selectedManufacturer = $("filter-manufacturer").value;
-            const selectedStatus = $("filter-status").value;
-
-            return state.orders.filter(order => {
-                const matchesStatus =
-                    selectedStatus === "ALL"
-                    || (selectedStatus === "ACTIVE" && active(order))
-                    || selectedStatus === order.status;
-
-                return matchesStatus
-                    && (
-                        !selectedManufacturer
-                        || manufacturer(order.manufacturer) === selectedManufacturer
-                    )
-                    && [
-                        order.productName,
-                        order.sku,
-                        order.manufacturer,
-                        order.remarks
-                    ].join(" ").toLocaleLowerCase("pl").includes(query);
-            }).sort((a, b) =>
-                manufacturer(a.manufacturer).localeCompare(
-                    manufacturer(b.manufacturer), "pl"
-                )
-                || a.productName.localeCompare(b.productName, "pl")
-                || b.id - a.id
-            );
-        }
-
-        function refreshManufacturers() {
-            const select = $("filter-manufacturer");
-            const previous = select.value;
-
-            const values = [...new Set([
-                ...state.products.map(product => manufacturer(product.manufacturer)),
-                ...state.orders.map(order => manufacturer(order.manufacturer))
-            ])].sort((a, b) => a.localeCompare(b, "pl"));
-
-            select.replaceChildren(new Option("Wszyscy producenci", ""));
-            values.forEach(value => select.add(new Option(value, value)));
-
-            if (values.includes(previous)) select.value = previous;
-        }
-
-        function renderOrders() {
-            const orders = filteredOrders();
-            const body = $("orders-body");
-            body.replaceChildren();
-
-            $("list-summary").textContent =
-                "Pozycji: " + orders.length
-                + " • Do przyjęcia w aktywnych zamówieniach: "
-                + orders.filter(active).reduce(
-                    (sum, order) => sum + order.quantity - order.receivedQuantity,
-                    0
-                ) + " szt.";
-
-            $("print-list").disabled = orders.length === 0;
-
-            if (!orders.length) {
-                empty(body, 8, "Brak zapisanych zamówień dla wybranych filtrów.");
-                return;
-            }
-
-            for (const order of orders) {
-                const row = document.createElement("tr");
-
-                cell(row, manufacturer(order.manufacturer));
-                cell(row,
-                    order.productName + " / " + order.sku + " • #" + order.id
-                );
-                cell(row, order.quantity + " / " + order.receivedQuantity + " szt.");
-                cell(row, order.currentStock + " szt.");
-
-                const statusCell = cell(row, "");
-                statusCell.textContent = "";
-
-                const badge = document.createElement("span");
-                badge.className = "badge " + order.status;
-                badge.textContent = statusName(order.status);
-                statusCell.appendChild(badge);
-
-                cell(row, order.createdByUsername + " • " + date(order.createdAt));
-                cell(row, order.remarks);
-
-                const actionsCell = cell(row, "");
-                actionsCell.textContent = "";
-                const actions = document.createElement("div");
-                actions.className = "actions";
-                actionsCell.appendChild(actions);
-
-                if (order.status === "TO_ORDER") {
-                    button(actions, "Edytuj", () => openForm(order));
-                    button(actions, "Zamówiono", () => changeStatus(order, "ordered"));
-                }
-
-                if (["TO_ORDER", "ORDERED"].includes(order.status)) {
-                    button(
-                        actions, "Anuluj",
-                        () => changeStatus(order, "cancel"), "danger"
+    function filteredOrders(){
+        const producer=$("order-manufacturer").value,status=$("order-status").value;
+        const q=$("order-search").value.toLocaleLowerCase("pl");
+        return state.orders.filter(o=>
+            (!producer||manufacturer(o.manufacturer)===producer)&&
+            (status==="ALL"||(status==="ACTIVE"?active(o):o.status===status))&&
+            [o.productName,o.sku,o.manufacturer,o.remarks].join(" ").toLocaleLowerCase("pl").includes(q)
+        ).sort(orderSort);
+    }
+    function renderOrders(){
+        const producer=$("order-manufacturer").value;
+        const q=$("recommendation-search").value.toLocaleLowerCase("pl");
+        const recommended=state.products.filter(p=>
+            p.quantity<=p.minimumQuantity&&
+            (!producer||manufacturer(p.manufacturer)===producer)&&
+            [p.name,p.sku,p.manufacturer].join(" ").toLocaleLowerCase("pl").includes(q)
+        ).sort(orderSort);
+        $("recommendation-summary").textContent="Produktów wymagających uzupełnienia: "+recommended.length;
+        table($("recommendation-table"),
+            ["Producent","Produkt / SKU","Stan","Minimum","W zamówieniach","Akcje"],
+            recommended.map(p=>[
+                manufacturer(p.manufacturer),productName(p),p.quantity,p.minimumQuantity,pending(p.id),
+                [action(pending(p.id)>0?"Zamów dodatkowo":"Zamów",()=>openOrder(null,p))]
+            ]));
+        const orders=filteredOrders();
+        $("order-summary").textContent="Pozycji: "+orders.length+" · Do przyjęcia: "+
+            orders.filter(active).reduce((sum,o)=>sum+o.quantity-o.receivedQuantity,0)+" szt.";
+        $("print-orders").disabled=!orders.length;
+        table($("order-table"),
+            ["Producent","Produkt / SKU","Zamówiono / przyjęto","Stan","Status","Autor / data","Uwagi","Akcje"],
+            orders.map(o=>{
+                const badge=document.createElement("span");
+                badge.className="badge "+o.status;
+                badge.textContent=statuses[o.status]||o.status;
+                const actions=[action("Historia",()=>orderHistory(o))];
+                if(o.status==="TO_ORDER"){
+                    actions.unshift(
+                        action("Edytuj",()=>openOrder(o)),
+                        action("Zamówiono",()=>orderStatus(o,"ordered"))
                     );
                 }
-
-                button(actions, "Historia", () => showHistory(order));
-                body.appendChild(row);
-            }
-        }
-
-        async function refreshData() {
-            const [products, orders] = await Promise.all([
-                api("/api/products"),
-                api("/api/purchase-orders")
-            ]);
-
-            state.products = products;
-            state.orders = orders;
-
-            refreshManufacturers();
-            renderRecommendations();
-            renderOrders();
-            updateProductInfo();
-        }
-
-        function updateProductInfo() {
-            const product = state.products.find(
-                item => item.id === Number($("product-id").value)
-            );
-
-            $("product-info").hidden = !product;
-            if (!product) return;
-
-            $("product-info").textContent =
-                product.name
-                + " • Stan: " + product.quantity + " szt."
-                + " • Minimum: " + product.minimumQuantity + " szt."
-                + " • W pozostałych aktywnych zamówieniach: "
-                + pending(product.id, state.editingId) + " szt.";
-        }
-
-        function selectProduct(product) {
-            $("product-id").value = product.id;
-            $("product-search").value = product.name + " — " + product.sku;
-            $("product-results").hidden = true;
-            updateProductInfo();
-            $("quantity").focus();
-        }
-
-        function searchProducts() {
-            $("product-id").value = "";
-            updateProductInfo();
-
-            const query = $("product-search").value.trim().toLocaleLowerCase("pl");
-            const results = $("product-results");
-            results.replaceChildren();
-            results.hidden = !query;
-            if (!query) return;
-
-            const matches = state.products.filter(product =>
-                [
-                    product.name,
-                    product.sku,
-                    product.manufacturer,
-                    product.model
-                ].join(" ").toLocaleLowerCase("pl").includes(query)
-            ).sort(productSort);
-
-            if (!matches.length) {
-                const info = document.createElement("div");
-                info.className = "empty";
-                info.textContent = "Nie znaleziono produktu.";
-                results.appendChild(info);
-            }
-
-            matches.slice(0, 40).forEach(product => button(
-                results,
-                product.name + " | " + product.sku
-                + " | stan: " + product.quantity + " szt.",
-                () => selectProduct(product),
-                "result"
-            ));
-
-            if (matches.length > 40) {
-                const info = document.createElement("div");
-                info.className = "empty";
-                info.textContent = "Dopisz fragment nazwy lub SKU, aby zawęzić wyniki.";
-                results.appendChild(info);
-            }
-        }
-
-        function openForm(order = null, product = null) {
-            $("order-form").reset();
-            state.editingId = order?.id || null;
-            $("product-id").value = "";
-            $("product-search").disabled = false;
-            $("product-results").hidden = true;
-            $("product-info").hidden = true;
-
-            $("form-title").textContent = order
-                ? "Edytuj zamówienie #" + order.id
-                : "Dodaj produkt do zamówienia";
-
-            $("quantity").value = order?.quantity || 1;
-            $("remarks").value = order?.remarks || "";
-
-            if (order) {
-                $("product-id").value = order.productId;
-                $("product-search").value = order.productName + " — " + order.sku;
-                $("product-search").disabled = true;
-                updateProductInfo();
-            } else if (product) {
-                selectProduct(product);
-            }
-
-            $("form-card").hidden = false;
-            $("form-card").scrollIntoView({ behavior: "smooth", block: "start" });
-
-            if (order || product) {
-                $("quantity").focus();
-            } else {
-                $("product-search").focus();
-            }
-        }
-
-        function closeForm() {
-            state.editingId = null;
-            $("form-card").hidden = true;
-            $("order-form").reset();
-        }
-
-        async function saveOrder(event) {
-            event.preventDefault();
-
-            const productId = Number($("product-id").value);
-            const quantity = Number($("quantity").value);
-
-            if (!Number.isSafeInteger(productId) || productId <= 0) {
-                message("Wybierz produkt z wyników wyszukiwania.", true);
-                return;
-            }
-
-            if (!Number.isInteger(quantity)
-                || quantity <= 0
-                || quantity > 2147483647) {
-                message("Podaj dodatnią, całkowitą liczbę sztuk.", true);
-                return;
-            }
-
-            const editingId = state.editingId;
-            $("save-order").disabled = true;
-
-            try {
-                await api(
-                    editingId
-                        ? "/api/purchase-orders/" + editingId
-                        : "/api/purchase-orders",
-                    {
-                        method: editingId ? "PUT" : "POST",
-                        body: JSON.stringify({
-                            productId,
-                            quantity,
-                            remarks: $("remarks").value.trim() || null
-                        })
-                    }
-                );
-
-                closeForm();
-                await refreshData();
-                message(editingId ? "Zmiany zapisane." : "Dodano do zamówienia.");
-            } catch (error) {
-                message(error.message, true);
-            } finally {
-                $("save-order").disabled = false;
-            }
-        }
-
-        async function changeStatus(order, operation) {
-            const question = operation === "ordered"
-                ? "Czy zamówienie przekazano producentowi? Oznaczyć jako zamówione?"
-                : "Anulować zamówienie produktu: " + order.productName + "?";
-
-            if (!window.confirm(question)) return;
-
-            await api(
-                "/api/purchase-orders/" + order.id + "/" + operation,
-                { method: "PATCH" }
-            );
-
-            if (state.editingId === order.id) closeForm();
-            await refreshData();
-
-            if (state.historyId === order.id) await showHistory(order);
-
-            message(operation === "ordered"
-                ? "Oznaczono jako zamówione."
-                : "Zamówienie anulowane."
-            );
-        }
-
-        async function showHistory(order) {
-            state.historyId = order.id;
-            const history = await api(
-                "/api/purchase-orders/" + order.id + "/history"
-            );
-
-            if (state.historyId !== order.id) return;
-
-            $("history-title").textContent =
-                "Historia #" + order.id + " — " + order.productName;
-
-            const body = $("history-body");
-            body.replaceChildren();
-
-            for (const event of history) {
-                const row = document.createElement("tr");
-                cell(row, date(event.createdAt));
-                cell(row, events[event.eventType] || event.eventType);
-                cell(row, (event.previousQuantity ?? "—") + " → " + event.newQuantity);
-                cell(row,
-                    statusName(event.previousStatus) + " → " + statusName(event.newStatus)
-                );
-                cell(row, event.createdByUsername);
-                cell(row, event.remarks);
-                body.appendChild(row);
-            }
-
-            $("history-card").hidden = false;
-            $("history-card").scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-
-        function printOrders() {
-            const orders = filteredOrders();
-            if (!orders.length) return;
-
-            const sheet = $("print-sheet");
-            sheet.replaceChildren();
-
-            const logo = document.createElement("img");
-            logo.src = "/eltro-logo.png";
-            logo.alt = "Eltro";
-            logo.className = "logo";
-
-            const title = document.createElement("h1");
-            title.textContent = "Zamówienia towaru";
-
-            const description = document.createElement("p");
-            description.textContent =
-                "Wydruk: " + new Date().toLocaleString("pl-PL")
-                + " | Producent: " + ($("filter-manufacturer").value || "Wszyscy")
-                + " | Status: " + $("filter-status").selectedOptions[0].textContent
-                + " | Wyszukiwanie: " + ($("filter-text").value.trim() || "—");
-
-            const table = document.createElement("table");
-            const head = document.createElement("thead");
-            const headerRow = document.createElement("tr");
-
-            [
-                "ID", "Producent", "Produkt / SKU",
-                "Zamówiono", "Przyjęto", "Status", "Uwagi"
-            ].forEach(label => {
-                const th = document.createElement("th");
-                th.textContent = label;
-                headerRow.appendChild(th);
+                if(["TO_ORDER","ORDERED"].includes(o.status)&&o.receivedQuantity===0){
+                    actions.push(action("Anuluj",()=>orderStatus(o,"cancel")));
+                }
+                return [
+                    manufacturer(o.manufacturer),o.productName+" / "+o.sku+" · #"+o.id,
+                    o.quantity+" / "+o.receivedQuantity,o.currentStock,badge,
+                    o.createdByUsername+" · "+dateTime(o.createdAt),o.remarks,actions
+                ];
+            }));
+    }
+    async function openOrder(order=null,product=null){
+        show("orders",false);
+        await loadOrders();
+        const form=editor("order-editor",
+            order?"Edytuj zamówienie #"+order.id:"Dodaj produkt do zamówienia",[
+                field("quantity","Liczba sztuk","number",'min="1" max="2147483647" step="1" required'),
+                field("remarks","Uwagi","textarea",'maxlength="2000"')
+            ],order||{quantity:1},async(data,f)=>{
+                const id=Number(f.elements.productId.value);
+                if(!id)throw new Error("Wybierz produkt z wyników wyszukiwania.");
+                await write(order?"/api/purchase-orders/"+order.id:"/api/purchase-orders",
+                    order?"PUT":"POST",{...data,productId:id});
+                await loadOrders();
             });
-
-            head.appendChild(headerRow);
-            const body = document.createElement("tbody");
-
-            for (const order of orders) {
-                const row = document.createElement("tr");
-                cell(row, order.id);
-                cell(row, manufacturer(order.manufacturer));
-                cell(row, order.productName + " / " + order.sku);
-                cell(row, order.quantity);
-                cell(row, order.receivedQuantity);
-                cell(row, statusName(order.status));
-                cell(row, order.remarks);
-                body.appendChild(row);
-            }
-
-            table.append(head, body);
-            sheet.append(logo, title, description, table);
-
-            document.body.classList.add("orders-printing");
-            try {
-                window.print();
-            } finally {
-                document.body.classList.remove("orders-printing");
-            }
-        }
-
-        $("new-order").onclick = () => openForm();
-        $("close-form").onclick = closeForm;
-        $("order-form").onsubmit = saveOrder;
-        $("product-search").oninput = searchProducts;
-        $("recommendation-search").oninput = renderRecommendations;
-
-        ["filter-text", "filter-manufacturer", "filter-status"].forEach(id => {
-            $(id).oninput = () => {
-                renderOrders();
-                renderRecommendations();
-            };
+        const info=document.createElement("p");
+        info.className="notice";
+        form.querySelector(".grid").after(info);
+        const pick=picker(form,p=>{
+            info.textContent=p?
+                "Stan: "+p.quantity+" szt. · Minimum: "+p.minimumQuantity+
+                " · W aktywnych zamówieniach: "+pending(p.id)+" szt.":"Wybierz produkt.";
         });
+        if(order){
+            const p=state.products.find(p=>p.id===order.productId);
+            if(p)pick.select(p);
+            pick.input.disabled=true;
+        }else if(product){
+            const p=state.products.find(p=>p.id===product.id);
+            if(p)pick.select(p);
+        }
+        form.elements.quantity.focus();
+    }
+    async function orderStatus(o,operation){
+        if(!confirm(operation==="ordered"?
+            "Czy zamówienie zostało przekazane producentowi?":"Anulować to zamówienie?"))return;
+        await write("/api/purchase-orders/"+o.id+"/"+operation,"PATCH");
+        $("order-editor").hidden=true;
+        await loadOrders();
+        message("Status zamówienia zapisany.");
+    }
+    async function orderHistory(o){
+        const events=await api("/api/purchase-orders/"+o.id+"/history");
+        const box=$("order-history");
+        box.hidden=false;
+        box.innerHTML='<div class="toolbar"><h2>Historia #'+o.id+' — '+esc(o.productName)+'</h2><button class="secondary">Zamknij</button></div><div data-table></div>';
+        box.querySelector("button").onclick=()=>{box.hidden=true;};
+        const names={
+            CREATED:"Utworzono",UPDATED:"Zmieniono dane",ORDERED:"Zamówiono",
+            CANCELLED:"Anulowano",DELIVERY_RECEIVED:"Przyjęto dostawę",
+            DELIVERY_CORRECTED:"Skorygowano dostawę"
+        };
+        table(box.querySelector("[data-table]"),
+            ["Data","Operacja","Ilość zamówiona","Status","Pracownik","Uwagi"],
+            events.map(e=>[
+                dateTime(e.createdAt),names[e.eventType]||e.eventType,
+                (e.previousQuantity??"—")+" → "+e.newQuantity,
+                (statuses[e.previousStatus]||"—")+" → "+(statuses[e.newStatus]||e.newStatus),
+                e.createdByUsername,e.remarks
+            ]));
+        box.scrollIntoView({behavior:"smooth",block:"start"});
+    }
+    $("new-order").onclick=safe(()=>openOrder());
+    $("refresh-orders").onclick=safe(loadOrders);
+    for(const id of ["order-manufacturer","order-status","order-search","recommendation-search"]){
+        $(id).oninput=renderOrders;
+    }
 
-        $("refresh").onclick = async () => {
-            $("refresh").disabled = true;
-            try {
-                await refreshData();
-                message("Dane odświeżone.");
-            } catch (error) {
-                message(error.message, true);
-            } finally {
-                $("refresh").disabled = false;
+    // Statystyki i raporty.
+    function polishToday(){
+        const parts=new Intl.DateTimeFormat("en-CA",{
+            timeZone:"Europe/Warsaw",year:"numeric",month:"2-digit",day:"2-digit"
+        }).formatToParts(new Date());
+        const part=type=>parts.find(p=>p.type===type).value;
+        return part("year")+"-"+part("month")+"-"+part("day");
+    }
+    function choosePeriod(period){
+        const today=polishToday();
+        $("report-to").value=today;
+        $("report-from").value=period==="year"?today.slice(0,4)+"-01-01":
+            period==="month"?today.slice(0,7)+"-01":today;
+        $("report-group").value=period==="year"?"MONTH":"DAY";
+        invalidateReport();
+    }
+    function scopeQuery(){
+        return admin()&&$("report-user").value?
+            "userId="+encodeURIComponent($("report-user").value):"";
+    }
+    function scopeLabel(){
+        return admin()?(
+            $("report-user").value?$("report-user").selectedOptions[0].textContent:"Cały sklep"
+        ):"Moja sprzedaż — "+state.user.username;
+    }
+    function invalidateReport(){
+        state.report=null;
+        state.sequence++;
+        $("print-report").disabled=true;
+        $("report-results").hidden=true;
+    }
+    async function loadStats(){
+        if(!state.usersLoaded){
+            $("report-user-label").hidden=!admin();
+            if(admin()){
+                const users=await api("/api/reports/sales/users");
+                $("report-user").innerHTML='<option value="">Cały sklep</option>'+
+                    users.map(u=>'<option value="'+u.id+'">'+esc(u.username)+'</option>').join("");
             }
-        };
+            state.usersLoaded=true;
+        }
+        if(!$("report-from").value)choosePeriod("month");
+        await updateDashboard();
+        await runReport();
+    }
+    async function updateDashboard(){
+        const query=scopeQuery();
+        const data=await api("/api/reports/sales/dashboard"+(query?"?"+query:""));
+        if(query!==scopeQuery())return;
+        $("stats-scope").textContent=scopeLabel()+" · Data w sklepie: "+data.date;
+        for(const key of ["today","month"]){
+            const total=data[key];
+            $("stats-"+key+"-gross").textContent=money(total.totalGross);
+            $("stats-"+key+"-details").textContent=total.quantity+" szt. · "+
+                total.saleCount+" transakcji · "+money(total.totalNet)+" netto";
+        }
+    }
+    function totalText(t){
+        return t.saleCount+" transakcji · "+t.quantity+" szt. · "+
+            money(t.totalNet)+" netto · "+money(t.totalGross)+" brutto";
+    }
+    function totalRow(label,t){
+        return [label,t.saleCount,t.quantity,money(t.totalNet),money(t.totalGross)];
+    }
+    async function runReport(){
+        const from=$("report-from").value,to=$("report-to").value;
+        if(!from||!to||from>to)throw new Error("Podaj prawidłowy zakres dat.");
+        invalidateReport();
+        const sequence=state.sequence,scope=scopeLabel();
+        const query=new URLSearchParams({from,to,grouping:$("report-group").value});
+        if(admin()&&$("report-user").value)query.set("userId",$("report-user").value);
+        const data=await api("/api/reports/sales?"+query);
+        if(sequence!==state.sequence)return;
+        state.report={data,scope};
+        $("report-results").hidden=false;
+        $("print-report").disabled=false;
+        $("report-title").textContent=scope+" · "+data.from+" — "+data.to;
+        $("report-total").textContent=totalText(data.totals);
+        table($("report-period-table"),["Okres","Transakcje","Sztuki","Netto","Brutto"],
+            data.periods.map(p=>totalRow(p.period,p.totals)));
+        $("report-employees-card").hidden=!admin();
+        table($("report-employee-table"),["Pracownik","Transakcje","Sztuki","Netto","Brutto"],
+            data.employees.map(e=>totalRow(e.username||"Nieprzypisana (starsze dane)",e.totals)));
+        table($("report-sale-table"),
+            ["ID","Data","Pracownik","Sztuki","Netto","Brutto","Uwagi","Akcje"],
+            data.sales.map(s=>[
+                s.id,dateTime(s.soldAt),s.username||"Nieprzypisana",s.quantity,
+                money(s.totalNet),money(s.totalGross),s.remarks,
+                [action("Szczegóły",()=>showSale(s.id))]
+            ]));
+    }
+    $("report-form").onsubmit=safe(async e=>{
+        e.preventDefault();
+        await runReport();
+    });
+    for(const id of ["report-from","report-to","report-group"]){
+        $(id).oninput=invalidateReport;
+    }
+    $("report-user").onchange=safe(async()=>{
+        invalidateReport();
+        await updateDashboard();
+        await runReport();
+    });
+    $("refresh-stats").onclick=safe(loadStats);
+    document.querySelectorAll("[data-period]").forEach(b=>{
+        b.onclick=safe(async()=>{
+            choosePeriod(b.dataset.period);
+            await runReport();
+        });
+    });
 
-        $("close-history").onclick = () => {
-            state.historyId = null;
-            $("history-card").hidden = true;
-        };
+    // Wydruki i zapis do PDF przez okno drukowania przeglądarki.
+    function printDocument(title,description,sections){
+        const sheet=$("print-sheet");
+        sheet.innerHTML='<img src="/eltro-logo.png" alt="Eltro"><h1>'+esc(title)+
+            '</h1><p>'+esc(description)+'</p><p>Wydruk: '+
+            esc(dateTime(new Date().toISOString()))+'</p>';
+        for(const section of sections){
+            const box=document.createElement("div"),heading=document.createElement("h2");
+            const target=document.createElement("div");
+            heading.textContent=section.title;
+            box.append(heading,target);
+            table(target,section.headers,section.rows);
+            sheet.append(box);
+        }
+        document.body.classList.add("printing");
+        try{window.print();}finally{document.body.classList.remove("printing");}
+    }
+    $("print-orders").onclick=()=>{
+        const orders=filteredOrders();
+        if(!orders.length)return;
+        printDocument("Zamówienia towaru",
+            "Producent: "+($("order-manufacturer").value||"Wszyscy")+
+            " · Status: "+$("order-status").selectedOptions[0].textContent+
+            " · Wyszukiwanie: "+($("order-search").value||"—"),[
+                {
+                    title:"Lista zamówień",
+                    headers:["ID","Producent","Produkt / SKU","Zamówiono","Przyjęto","Status","Uwagi"],
+                    rows:orders.map(o=>[
+                        o.id,manufacturer(o.manufacturer),o.productName+" / "+o.sku,
+                        o.quantity,o.receivedQuantity,statuses[o.status],o.remarks
+                    ])
+                }
+            ]);
+    };
+    $("print-report").onclick=()=>{
+        if(!state.report)return;
+        const {data,scope}=state.report;
+        const sections=[{
+            title:"Podsumowanie okresów",
+            headers:["Okres","Transakcje","Sztuki","Netto","Brutto"],
+            rows:data.periods.map(p=>totalRow(p.period,p.totals))
+        }];
+        if(admin())sections.push({
+            title:"Pracownicy",
+            headers:["Pracownik","Transakcje","Sztuki","Netto","Brutto"],
+            rows:data.employees.map(e=>totalRow(e.username||"Nieprzypisana",e.totals))
+        });
+        sections.push({
+            title:"Historia sprzedaży",
+            headers:["ID","Data","Pracownik","Sztuki","Netto","Brutto","Uwagi"],
+            rows:data.sales.map(s=>[
+                s.id,dateTime(s.soldAt),s.username||"Nieprzypisana",s.quantity,
+                money(s.totalNet),money(s.totalGross),s.remarks
+            ])
+        });
+        printDocument("Raport sprzedaży",
+            scope+" · "+data.from+" — "+data.to+" · "+totalText(data.totals),sections);
+    };
 
-        $("print-list").onclick = printOrders;
-
-        return {
-            refresh: refreshData,
-            async open(productId) {
-                await refreshData();
-                const product = state.products.find(item => item.id === productId);
-                if (!product) throw new Error("Produkt nie istnieje.");
-                openForm(null, product);
-            }
-        };
-    })();
-
-    initialize().catch(error => message(error.message, true));
+    async function initialize(){
+        state.user=await api("/api/me");
+        $("current-user").textContent=state.user.username+" · "+
+            (admin()?"Administrator":"Sprzedawca");
+        $("users-link").hidden=!admin();
+        $("new-product").hidden=!admin();
+        await refresh();
+        newDelivery();
+        const view=new URL(location.href).searchParams.get("view");
+        if(["products","customers","deliveries","sales","orders","stats"].includes(view)){
+            show(view);
+        }
+    }
+    initialize().catch(e=>message(e.message,true));
 </script>
 </body>
 </html>

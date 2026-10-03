@@ -60,7 +60,9 @@ public class SecurityConfig {
                                 "/api/deliveries/**",
                                 "/api/shop-settings",
                                 "/api/purchase-orders",
-                                "/api/purchase-orders/**"
+                                "/api/purchase-orders/**",
+                                "/api/reports/sales",
+                                "/api/reports/sales/**"
                         ).hasAnyRole("ADMIN", "SELLER")
 
                         .requestMatchers(
