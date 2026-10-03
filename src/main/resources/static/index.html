@@ -217,6 +217,99 @@
             background: #f8f9fa;
             color: #4a5159;
         }
+        #orders-view .form-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 18px;
+        }
+        #orders-view .order-filters {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 18px;
+        }
+        #orders-view .description { margin: 6px 0 18px; color: var(--muted); }
+        #orders-view .recommendations { border-top: 4px solid var(--red); }
+        #orders-view label { display: block; font-weight: 600; margin-bottom: 7px; }
+        #orders-view button {
+            border: 1px solid var(--red);
+            border-radius: 8px;
+            padding: 10px 15px;
+            background: var(--red);
+            color: white;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        #orders-view button:hover { background: var(--deep); }
+        #orders-view button.secondary {
+            background: white;
+            color: var(--deep);
+            border-color: #e5b5b5;
+        }
+        #orders-view button.secondary:hover { background: #fff1f1; }
+        #orders-view button.danger {
+            background: #fff0f0;
+            color: #b80000;
+            border-color: #f3c5c5;
+        }
+        #orders-view button:disabled { opacity: .55; cursor: wait; }
+        #orders-view .actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 0;
+        }
+        #orders-view .form-actions { margin-top: 20px; }
+        #orders-view .notice {
+            background: #f6f7fa;
+            border-left: 3px solid var(--red);
+            border-radius: 5px;
+            padding: 12px 15px;
+        }
+        #orders-view .badge {
+            display: inline-block;
+            padding: 4px 9px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        #orders-view .TO_ORDER { background: #fff0db; color: #956000; }
+        #orders-view .ORDERED { background: #eaf0ff; color: #2957a6; }
+        #orders-view .PARTIALLY_RECEIVED { background: #eee8ff; color: #6b43ad; }
+        #orders-view .RECEIVED { background: #e7f6ec; color: #277943; }
+        #orders-view .CANCELLED { background: #eceef2; color: #737b8c; }
+        #orders-view .results {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            margin-top: 8px;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+        #orders-view button.result {
+            display: block;
+            width: 100%;
+            border-radius: 0;
+            text-align: left;
+            background: white;
+            color: var(--ink);
+            font-weight: normal;
+            border: 0;
+            border-bottom: 1px solid var(--line);
+        }
+        #orders-view button.result:hover { background: #fff2f2; }
+        #orders-view .summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin: 18px 0;
+            color: var(--muted);
+        }
+        #orders-view .empty { text-align: center; padding: 28px; color: var(--muted); }
+        #po-print-sheet { display: none; }
         @media (max-width: 750px) {
             header { position: static; display: block; padding: 14px 18px; }
             nav { margin-top: 12px; }
@@ -226,6 +319,17 @@
             .grid, .sale-line { grid-template-columns: 1fr; }
             .toolbar { align-items: stretch; flex-direction: column; }
             #message { top: 0; }
+            #orders-view .form-grid,
+            #orders-view .order-filters { grid-template-columns: 1fr; }
+        }
+        @media print {
+            body.orders-printing { background: white; }
+            body.orders-printing > header,
+            body.orders-printing > main { display: none !important; }
+            body.orders-printing #po-print-sheet { display: block; padding: 15px; }
+            #po-print-sheet .logo { width: 175px; }
+            #po-print-sheet th, #po-print-sheet td { font-size: 11px; padding: 8px; }
+            #po-print-sheet tr { break-inside: avoid; }
         }
     </style>
 </head>
@@ -237,6 +341,7 @@
         <button data-view="customers">Klienci</button>
         <button data-view="deliveries">Dostawy</button>
         <button data-view="sales">Sprzedaż</button>
+        <button data-view="orders">Zamówienia</button>
     </nav>
     <div class="account">
         <span id="current-user">Wczytywanie konta…</span>
@@ -500,7 +605,161 @@
             <div id="sale-details"></div>
         </div>
     </section>
+
+    <section id="orders-view" hidden>
+        <div class="toolbar">
+            <div>
+                <h1>Zamówienia towaru</h1>
+                <div class="muted">Uzupełnianie magazynu i historia zamówień.</div>
+            </div>
+            <div class="actions">
+                <button id="po-new-order" type="button">+ Dodaj do zamówienia</button>
+                <button id="po-refresh" class="secondary" type="button">Odśwież</button>
+            </div>
+        </div>
+
+        <section id="po-form-card" class="card" hidden>
+            <h2 id="po-form-title">Dodaj produkt do zamówienia</h2>
+            <p class="description">Wybierz produkt i wpisz liczbę zamawianych sztuk.</p>
+            <form id="po-order-form">
+                <input id="po-product-id" type="hidden">
+                <div class="form-grid">
+                    <div>
+                        <label for="po-product-search">Wybierz produkt</label>
+                        <input id="po-product-search" type="search"
+                               placeholder="Nazwa, SKU, producent lub model"
+                               autocomplete="off">
+                        <div id="po-product-results" class="results" hidden></div>
+                    </div>
+                    <div>
+                        <label for="po-quantity">Liczba sztuk do zamówienia</label>
+                        <input id="po-quantity" type="number" min="1"
+                               max="2147483647" step="1" required>
+                    </div>
+                    <div id="po-product-info" class="notice full" hidden></div>
+                    <div class="full">
+                        <label for="po-remarks">Uwagi</label>
+                        <textarea id="po-remarks" maxlength="2000"
+                                  placeholder="Termin dostawy, wersja zestawu, uzgodnienia"></textarea>
+                    </div>
+                </div>
+                <div class="actions form-actions">
+                    <button id="po-save-order" type="submit">Zapisz</button>
+                    <button id="po-close-form" type="button" class="secondary">
+                        Anuluj edycję
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="card">
+            <label for="po-filter-manufacturer">Producent — propozycje i zapisane zamówienia</label>
+            <select id="po-filter-manufacturer">
+                <option value="">Wszyscy producenci</option>
+            </select>
+            <p class="description">
+                Filtr obejmuje obie listy poniżej. Wybierz producenta,
+                aby przygotować zamówienie podczas jednej rozmowy.
+            </p>
+        </section>
+
+        <section class="card recommendations">
+            <h2>Produkty wymagające uzupełnienia</h2>
+            <p class="description">
+                Stan równy minimum lub niższy. Produkty pozostają widoczne także
+                wtedy, gdy są już w aktywnych zamówieniach.
+            </p>
+            <label for="po-recommendation-search">Szukaj produktu do uzupełnienia</label>
+            <input id="po-recommendation-search" type="search"
+                   placeholder="Nazwa, SKU lub producent">
+            <div class="summary">
+                <span id="po-recommendation-summary">Wczytywanie produktów…</span>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr>
+                        <th>Producent</th>
+                        <th>Produkt / SKU</th>
+                        <th>Stan</th>
+                        <th>Minimum</th>
+                        <th>W aktywnych zamówieniach, do przyjęcia</th>
+                        <th>Akcja</th>
+                    </tr></thead>
+                    <tbody id="po-recommendation-body"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Zapisane zamówienia</h2>
+            <p class="description">
+                Lista zakupów do przekazania producentom i historia zamówień.
+            </p>
+            <div class="order-filters">
+                <div>
+                    <label for="po-filter-text">Wyszukaj zapisane zamówienie</label>
+                    <input id="po-filter-text" type="search"
+                           placeholder="Nazwa produktu, SKU, producent, uwagi">
+                </div>
+                <div>
+                    <label for="po-filter-status">Status</label>
+                    <select id="po-filter-status">
+                        <option value="ACTIVE">Aktywne zamówienia</option>
+                        <option value="TO_ORDER">Do zamówienia</option>
+                        <option value="ORDERED">Zamówiono</option>
+                        <option value="PARTIALLY_RECEIVED">Częściowo przyjęto</option>
+                        <option value="RECEIVED">Przyjęto na stan</option>
+                        <option value="CANCELLED">Anulowano</option>
+                        <option value="ALL">Cała historia</option>
+                    </select>
+                </div>
+            </div>
+            <div class="summary">
+                <span id="po-list-summary"></span>
+                <button id="po-print-list" type="button" class="secondary">
+                    Drukuj listę / zapisz PDF
+                </button>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr>
+                        <th>Producent</th>
+                        <th>Produkt / SKU</th>
+                        <th>Zamówiono / przyjęto</th>
+                        <th>Stan sklepu</th>
+                        <th>Status</th>
+                        <th>Autor / data</th>
+                        <th>Uwagi</th>
+                        <th>Akcje</th>
+                    </tr></thead>
+                    <tbody id="po-orders-body"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="po-history-card" class="card" hidden>
+            <div class="toolbar">
+                <h2 id="po-history-title">Historia zmian</h2>
+                <button id="po-close-history" type="button" class="secondary">Zamknij</button>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr>
+                        <th>Data</th>
+                        <th>Operacja</th>
+                        <th>Sztuki przed → po</th>
+                        <th>Status przed → po</th>
+                        <th>Użytkownik</th>
+                        <th>Uwagi po zmianie</th>
+                    </tr></thead>
+                    <tbody id="po-history-body"></tbody>
+                </table>
+            </div>
+        </section>
+    </section>
 </main>
+
+<section id="po-print-sheet"></section>
 
 <script>
     "use strict";
@@ -677,14 +936,23 @@
         row.append(cell);
     }
 
-    function showView(name) {
-        for (const view of ["products", "customers", "deliveries", "sales"]) {
+    function showView(name, reloadOrders = true) {
+        for (const view of ["products", "customers", "deliveries", "sales", "orders"]) {
             $(`${view}-view`).hidden = view !== name;
         }
 
         document.querySelectorAll("nav button").forEach(button => {
             button.classList.toggle("active", button.dataset.view === name);
         });
+
+        if (name === "orders" && reloadOrders) {
+            purchaseOrdersPanel.refresh().catch(error => message(error.message, true));
+        }
+    }
+
+    function openOrderForProduct(product) {
+        showView("orders", false);
+        purchaseOrdersPanel.open(product.id).catch(error => message(error.message, true));
     }
 
     document.querySelectorAll("nav button").forEach(button => {
@@ -708,11 +976,16 @@
             addCell(row, product.minimumQuantity);
             addCell(row, money(product.salePriceNet));
 
-            actionCell(row, isAdmin() ? [
+            const actions = isAdmin() ? [
                 ["Edytuj", () => editProduct(product)],
                 ["Zmień ceny", () => editPrices(product)]
-            ] : []);
+            ] : [];
 
+            if (product.quantity <= product.minimumQuantity) {
+                actions.push(["Zamów", () => openOrderForProduct(product)]);
+            }
+
+            actionCell(row, actions);
             body.append(row);
         }
     }
@@ -924,6 +1197,7 @@
                 method: "POST",
                 body: JSON.stringify(product)
             });
+
             form.reset();
             form.hidden = true;
             await refreshAll();
@@ -957,6 +1231,7 @@
                 method: "PATCH",
                 body: JSON.stringify(details)
             });
+
             $("edit-product-form").hidden = true;
             await refreshAll();
             message("Dane produktu zostały zmienione.");
@@ -982,6 +1257,7 @@
                     salePriceNet: Number(sale.replace(",", "."))
                 })
             });
+
             await refreshAll();
             message("Ceny zostały zmienione.");
         } catch (error) {
@@ -1097,6 +1373,7 @@
             `Nowy rabat dla ${customerName(customer)} (%)`,
             customer.discountPercent
         );
+
         if (value === null) return;
 
         try {
@@ -1106,6 +1383,7 @@
                     discountPercent: Number(value.replace(",", "."))
                 })
             });
+
             await refreshAll();
             message("Rabat został zmieniony.");
         } catch (error) {
@@ -1311,6 +1589,7 @@
         try {
             const sale = await api(`/api/sales/${id}`);
             resetSaleForm();
+
             state.editingSaleId = id;
             $("sale-form-title").textContent = `Edytuj sprzedaż #${id}`;
             $("save-sale").textContent = "Zapisz korektę";
@@ -1329,24 +1608,25 @@
     function addSaleLine(existing = null) {
         const line = document.createElement("div");
         line.className = "sale-line";
+
         line.innerHTML = `
-            <label>Produkt
-                <select class="line-product" required></select>
-            </label>
-            <label>Sztuki
-                <input class="line-quantity" type="number"
-                       min="1" step="1" value="1" required>
-            </label>
-            <label>Cena netto
-                <input class="line-price" type="number"
-                       min="0" step="0.01" placeholder="Z cennika">
-            </label>
-            <label>Rabat %
-                <input class="line-discount" type="number"
-                       min="0" max="100" step="0.01" placeholder="Klienta">
-            </label>
-            <button class="secondary remove-line" type="button">Usuń</button>
-        `;
+        <label>Produkt
+            <select class="line-product" required></select>
+        </label>
+        <label>Sztuki
+            <input class="line-quantity" type="number"
+                   min="1" step="1" value="1" required>
+        </label>
+        <label>Cena netto
+            <input class="line-price" type="number"
+                   min="0" step="0.01" placeholder="Z cennika">
+        </label>
+        <label>Rabat %
+            <input class="line-discount" type="number"
+                   min="0" max="100" step="0.01" placeholder="Klienta">
+        </label>
+        <button class="secondary remove-line" type="button">Usuń</button>
+    `;
 
         fillSelect(
             line.querySelector(".line-product"),
@@ -1388,6 +1668,7 @@
             const product = state.products.find(
                 p => p.id === Number(line.querySelector(".line-product").value)
             );
+
             if (!product) return;
 
             const quantity = Number(line.querySelector(".line-quantity").value) || 0;
@@ -1399,6 +1680,7 @@
             const net = Math.round(
                 quantity * price * (1 - discount / 100) * 100
             ) / 100;
+
             const gross = Math.round(
                 net * (1 + Number(product.vatRate) / 100) * 100
             ) / 100;
@@ -1413,6 +1695,7 @@
 
     $("sale-form").addEventListener("submit", async event => {
         event.preventDefault();
+
         if (state.editingSaleId !== null && !requireAdmin()) return;
 
         const form = event.currentTarget;
@@ -1444,6 +1727,7 @@
         try {
             const editing = state.editingSaleId !== null;
             const id = state.editingSaleId;
+
             const result = await api(
                 editing ? `/api/sales/${id}` : "/api/sales",
                 {
@@ -1455,10 +1739,12 @@
             resetSaleForm();
             form.hidden = true;
             await refreshAll();
+
             message(editing
                 ? `Zapisano korektę sprzedaży #${id}.`
                 : `Zapisano sprzedaż #${result.id}.`
             );
+
             await showSale(result.id);
         } catch (error) {
             message(error.message, true);
@@ -1537,10 +1823,589 @@
         const requestedView = new URL(window.location.href)
             .searchParams.get("view");
 
-        if (["products", "customers", "deliveries", "sales"].includes(requestedView)) {
+        if (["products", "customers", "deliveries", "sales", "orders"].includes(requestedView)) {
             showView(requestedView);
         }
     }
+
+    const purchaseOrdersPanel = (() => {
+        const $ = id => document.getElementById("po-" + id);
+
+        const state = {
+            products: [],
+            orders: [],
+            editingId: null,
+            historyId: null
+        };
+
+        const statuses = {
+            TO_ORDER: "Do zamówienia",
+            ORDERED: "Zamówiono",
+            PARTIALLY_RECEIVED: "Częściowo przyjęto",
+            RECEIVED: "Przyjęto na stan",
+            CANCELLED: "Anulowano"
+        };
+
+        const events = {
+            CREATED: "Utworzono",
+            UPDATED: "Zmieniono dane",
+            ORDERED: "Oznaczono jako zamówione",
+            CANCELLED: "Anulowano"
+        };
+
+        const statusName = value => statuses[value] || value || "—";
+        const manufacturer = value => value?.trim() || "Bez producenta";
+        const date = value => value
+            ? new Date(value).toLocaleString("pl-PL")
+            : "—";
+
+        function cell(row, value, className = "") {
+            const td = document.createElement("td");
+            td.textContent = value == null || value === "" ? "—" : value;
+            td.className = className;
+            row.appendChild(td);
+            return td;
+        }
+
+        function button(parent, label, handler, className = "secondary") {
+            const element = document.createElement("button");
+            element.type = "button";
+            element.className = className;
+            element.textContent = label;
+
+            element.onclick = async () => {
+                element.disabled = true;
+                try {
+                    await handler();
+                } catch (error) {
+                    message(error.message, true);
+                } finally {
+                    element.disabled = false;
+                }
+            };
+
+            parent.appendChild(element);
+        }
+
+        function empty(body, columns, text) {
+            const row = document.createElement("tr");
+            cell(row, text, "empty").colSpan = columns;
+            body.appendChild(row);
+        }
+
+        function active(order) {
+            return ["TO_ORDER", "ORDERED", "PARTIALLY_RECEIVED"]
+                .includes(order.status);
+        }
+
+        function pending(productId, excludedOrderId = null) {
+            return state.orders
+                .filter(order =>
+                    order.productId === productId
+                    && order.id !== excludedOrderId
+                    && active(order)
+                )
+                .reduce(
+                    (sum, order) => sum + order.quantity - order.receivedQuantity,
+                    0
+                );
+        }
+
+        function productSort(a, b) {
+            return manufacturer(a.manufacturer).localeCompare(
+                manufacturer(b.manufacturer), "pl"
+            ) || a.name.localeCompare(b.name, "pl");
+        }
+
+        function renderRecommendations() {
+            const query = $("recommendation-search").value
+                .trim().toLocaleLowerCase("pl");
+            const selectedManufacturer = $("filter-manufacturer").value;
+
+            const products = state.products
+                .filter(product =>
+                        product.quantity <= product.minimumQuantity
+                        && (
+                            !selectedManufacturer
+                            || manufacturer(product.manufacturer) === selectedManufacturer
+                        )
+                        && [
+                            product.name,
+                            product.sku,
+                            product.manufacturer
+                        ].join(" ").toLocaleLowerCase("pl").includes(query)
+                )
+                .sort(productSort);
+
+            const body = $("recommendation-body");
+            body.replaceChildren();
+
+            $("recommendation-summary").textContent =
+                "Produktów wymagających uzupełnienia: " + products.length;
+
+            if (!products.length) {
+                empty(body, 6, "Brak produktów spełniających te warunki.");
+                return;
+            }
+
+            for (const product of products) {
+                const row = document.createElement("tr");
+                const alreadyOrdered = pending(product.id);
+
+                cell(row, manufacturer(product.manufacturer));
+                cell(row, product.name + " / " + product.sku);
+                cell(row, product.quantity + " szt.", "low");
+                cell(row, product.minimumQuantity + " szt.");
+                cell(row, alreadyOrdered + " szt.");
+
+                const actions = cell(row, "");
+                actions.textContent = "";
+
+                button(
+                    actions,
+                    alreadyOrdered > 0 ? "Zamów dodatkowo" : "Zamów",
+                    () => openForm(null, product),
+                    alreadyOrdered > 0 ? "secondary" : ""
+                );
+
+                body.appendChild(row);
+            }
+        }
+
+        function filteredOrders() {
+            const query = $("filter-text").value.trim().toLocaleLowerCase("pl");
+            const selectedManufacturer = $("filter-manufacturer").value;
+            const selectedStatus = $("filter-status").value;
+
+            return state.orders.filter(order => {
+                const matchesStatus =
+                    selectedStatus === "ALL"
+                    || (selectedStatus === "ACTIVE" && active(order))
+                    || selectedStatus === order.status;
+
+                return matchesStatus
+                    && (
+                        !selectedManufacturer
+                        || manufacturer(order.manufacturer) === selectedManufacturer
+                    )
+                    && [
+                        order.productName,
+                        order.sku,
+                        order.manufacturer,
+                        order.remarks
+                    ].join(" ").toLocaleLowerCase("pl").includes(query);
+            }).sort((a, b) =>
+                manufacturer(a.manufacturer).localeCompare(
+                    manufacturer(b.manufacturer), "pl"
+                )
+                || a.productName.localeCompare(b.productName, "pl")
+                || b.id - a.id
+            );
+        }
+
+        function refreshManufacturers() {
+            const select = $("filter-manufacturer");
+            const previous = select.value;
+
+            const values = [...new Set([
+                ...state.products.map(product => manufacturer(product.manufacturer)),
+                ...state.orders.map(order => manufacturer(order.manufacturer))
+            ])].sort((a, b) => a.localeCompare(b, "pl"));
+
+            select.replaceChildren(new Option("Wszyscy producenci", ""));
+            values.forEach(value => select.add(new Option(value, value)));
+
+            if (values.includes(previous)) select.value = previous;
+        }
+
+        function renderOrders() {
+            const orders = filteredOrders();
+            const body = $("orders-body");
+            body.replaceChildren();
+
+            $("list-summary").textContent =
+                "Pozycji: " + orders.length
+                + " • Do przyjęcia w aktywnych zamówieniach: "
+                + orders.filter(active).reduce(
+                    (sum, order) => sum + order.quantity - order.receivedQuantity,
+                    0
+                ) + " szt.";
+
+            $("print-list").disabled = orders.length === 0;
+
+            if (!orders.length) {
+                empty(body, 8, "Brak zapisanych zamówień dla wybranych filtrów.");
+                return;
+            }
+
+            for (const order of orders) {
+                const row = document.createElement("tr");
+
+                cell(row, manufacturer(order.manufacturer));
+                cell(row,
+                    order.productName + " / " + order.sku + " • #" + order.id
+                );
+                cell(row, order.quantity + " / " + order.receivedQuantity + " szt.");
+                cell(row, order.currentStock + " szt.");
+
+                const statusCell = cell(row, "");
+                statusCell.textContent = "";
+
+                const badge = document.createElement("span");
+                badge.className = "badge " + order.status;
+                badge.textContent = statusName(order.status);
+                statusCell.appendChild(badge);
+
+                cell(row, order.createdByUsername + " • " + date(order.createdAt));
+                cell(row, order.remarks);
+
+                const actionsCell = cell(row, "");
+                actionsCell.textContent = "";
+                const actions = document.createElement("div");
+                actions.className = "actions";
+                actionsCell.appendChild(actions);
+
+                if (order.status === "TO_ORDER") {
+                    button(actions, "Edytuj", () => openForm(order));
+                    button(actions, "Zamówiono", () => changeStatus(order, "ordered"));
+                }
+
+                if (["TO_ORDER", "ORDERED"].includes(order.status)) {
+                    button(
+                        actions, "Anuluj",
+                        () => changeStatus(order, "cancel"), "danger"
+                    );
+                }
+
+                button(actions, "Historia", () => showHistory(order));
+                body.appendChild(row);
+            }
+        }
+
+        async function refreshData() {
+            const [products, orders] = await Promise.all([
+                api("/api/products"),
+                api("/api/purchase-orders")
+            ]);
+
+            state.products = products;
+            state.orders = orders;
+
+            refreshManufacturers();
+            renderRecommendations();
+            renderOrders();
+            updateProductInfo();
+        }
+
+        function updateProductInfo() {
+            const product = state.products.find(
+                item => item.id === Number($("product-id").value)
+            );
+
+            $("product-info").hidden = !product;
+            if (!product) return;
+
+            $("product-info").textContent =
+                product.name
+                + " • Stan: " + product.quantity + " szt."
+                + " • Minimum: " + product.minimumQuantity + " szt."
+                + " • W pozostałych aktywnych zamówieniach: "
+                + pending(product.id, state.editingId) + " szt.";
+        }
+
+        function selectProduct(product) {
+            $("product-id").value = product.id;
+            $("product-search").value = product.name + " — " + product.sku;
+            $("product-results").hidden = true;
+            updateProductInfo();
+            $("quantity").focus();
+        }
+
+        function searchProducts() {
+            $("product-id").value = "";
+            updateProductInfo();
+
+            const query = $("product-search").value.trim().toLocaleLowerCase("pl");
+            const results = $("product-results");
+            results.replaceChildren();
+            results.hidden = !query;
+            if (!query) return;
+
+            const matches = state.products.filter(product =>
+                [
+                    product.name,
+                    product.sku,
+                    product.manufacturer,
+                    product.model
+                ].join(" ").toLocaleLowerCase("pl").includes(query)
+            ).sort(productSort);
+
+            if (!matches.length) {
+                const info = document.createElement("div");
+                info.className = "empty";
+                info.textContent = "Nie znaleziono produktu.";
+                results.appendChild(info);
+            }
+
+            matches.slice(0, 40).forEach(product => button(
+                results,
+                product.name + " | " + product.sku
+                + " | stan: " + product.quantity + " szt.",
+                () => selectProduct(product),
+                "result"
+            ));
+
+            if (matches.length > 40) {
+                const info = document.createElement("div");
+                info.className = "empty";
+                info.textContent = "Dopisz fragment nazwy lub SKU, aby zawęzić wyniki.";
+                results.appendChild(info);
+            }
+        }
+
+        function openForm(order = null, product = null) {
+            $("order-form").reset();
+            state.editingId = order?.id || null;
+            $("product-id").value = "";
+            $("product-search").disabled = false;
+            $("product-results").hidden = true;
+            $("product-info").hidden = true;
+
+            $("form-title").textContent = order
+                ? "Edytuj zamówienie #" + order.id
+                : "Dodaj produkt do zamówienia";
+
+            $("quantity").value = order?.quantity || 1;
+            $("remarks").value = order?.remarks || "";
+
+            if (order) {
+                $("product-id").value = order.productId;
+                $("product-search").value = order.productName + " — " + order.sku;
+                $("product-search").disabled = true;
+                updateProductInfo();
+            } else if (product) {
+                selectProduct(product);
+            }
+
+            $("form-card").hidden = false;
+            $("form-card").scrollIntoView({ behavior: "smooth", block: "start" });
+
+            if (order || product) {
+                $("quantity").focus();
+            } else {
+                $("product-search").focus();
+            }
+        }
+
+        function closeForm() {
+            state.editingId = null;
+            $("form-card").hidden = true;
+            $("order-form").reset();
+        }
+
+        async function saveOrder(event) {
+            event.preventDefault();
+
+            const productId = Number($("product-id").value);
+            const quantity = Number($("quantity").value);
+
+            if (!Number.isSafeInteger(productId) || productId <= 0) {
+                message("Wybierz produkt z wyników wyszukiwania.", true);
+                return;
+            }
+
+            if (!Number.isInteger(quantity)
+                || quantity <= 0
+                || quantity > 2147483647) {
+                message("Podaj dodatnią, całkowitą liczbę sztuk.", true);
+                return;
+            }
+
+            const editingId = state.editingId;
+            $("save-order").disabled = true;
+
+            try {
+                await api(
+                    editingId
+                        ? "/api/purchase-orders/" + editingId
+                        : "/api/purchase-orders",
+                    {
+                        method: editingId ? "PUT" : "POST",
+                        body: JSON.stringify({
+                            productId,
+                            quantity,
+                            remarks: $("remarks").value.trim() || null
+                        })
+                    }
+                );
+
+                closeForm();
+                await refreshData();
+                message(editingId ? "Zmiany zapisane." : "Dodano do zamówienia.");
+            } catch (error) {
+                message(error.message, true);
+            } finally {
+                $("save-order").disabled = false;
+            }
+        }
+
+        async function changeStatus(order, operation) {
+            const question = operation === "ordered"
+                ? "Czy zamówienie przekazano producentowi? Oznaczyć jako zamówione?"
+                : "Anulować zamówienie produktu: " + order.productName + "?";
+
+            if (!window.confirm(question)) return;
+
+            await api(
+                "/api/purchase-orders/" + order.id + "/" + operation,
+                { method: "PATCH" }
+            );
+
+            if (state.editingId === order.id) closeForm();
+            await refreshData();
+
+            if (state.historyId === order.id) await showHistory(order);
+
+            message(operation === "ordered"
+                ? "Oznaczono jako zamówione."
+                : "Zamówienie anulowane."
+            );
+        }
+
+        async function showHistory(order) {
+            state.historyId = order.id;
+            const history = await api(
+                "/api/purchase-orders/" + order.id + "/history"
+            );
+
+            if (state.historyId !== order.id) return;
+
+            $("history-title").textContent =
+                "Historia #" + order.id + " — " + order.productName;
+
+            const body = $("history-body");
+            body.replaceChildren();
+
+            for (const event of history) {
+                const row = document.createElement("tr");
+                cell(row, date(event.createdAt));
+                cell(row, events[event.eventType] || event.eventType);
+                cell(row, (event.previousQuantity ?? "—") + " → " + event.newQuantity);
+                cell(row,
+                    statusName(event.previousStatus) + " → " + statusName(event.newStatus)
+                );
+                cell(row, event.createdByUsername);
+                cell(row, event.remarks);
+                body.appendChild(row);
+            }
+
+            $("history-card").hidden = false;
+            $("history-card").scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+
+        function printOrders() {
+            const orders = filteredOrders();
+            if (!orders.length) return;
+
+            const sheet = $("print-sheet");
+            sheet.replaceChildren();
+
+            const logo = document.createElement("img");
+            logo.src = "/eltro-logo.png";
+            logo.alt = "Eltro";
+            logo.className = "logo";
+
+            const title = document.createElement("h1");
+            title.textContent = "Zamówienia towaru";
+
+            const description = document.createElement("p");
+            description.textContent =
+                "Wydruk: " + new Date().toLocaleString("pl-PL")
+                + " | Producent: " + ($("filter-manufacturer").value || "Wszyscy")
+                + " | Status: " + $("filter-status").selectedOptions[0].textContent
+                + " | Wyszukiwanie: " + ($("filter-text").value.trim() || "—");
+
+            const table = document.createElement("table");
+            const head = document.createElement("thead");
+            const headerRow = document.createElement("tr");
+
+            [
+                "ID", "Producent", "Produkt / SKU",
+                "Zamówiono", "Przyjęto", "Status", "Uwagi"
+            ].forEach(label => {
+                const th = document.createElement("th");
+                th.textContent = label;
+                headerRow.appendChild(th);
+            });
+
+            head.appendChild(headerRow);
+            const body = document.createElement("tbody");
+
+            for (const order of orders) {
+                const row = document.createElement("tr");
+                cell(row, order.id);
+                cell(row, manufacturer(order.manufacturer));
+                cell(row, order.productName + " / " + order.sku);
+                cell(row, order.quantity);
+                cell(row, order.receivedQuantity);
+                cell(row, statusName(order.status));
+                cell(row, order.remarks);
+                body.appendChild(row);
+            }
+
+            table.append(head, body);
+            sheet.append(logo, title, description, table);
+
+            document.body.classList.add("orders-printing");
+            try {
+                window.print();
+            } finally {
+                document.body.classList.remove("orders-printing");
+            }
+        }
+
+        $("new-order").onclick = () => openForm();
+        $("close-form").onclick = closeForm;
+        $("order-form").onsubmit = saveOrder;
+        $("product-search").oninput = searchProducts;
+        $("recommendation-search").oninput = renderRecommendations;
+
+        ["filter-text", "filter-manufacturer", "filter-status"].forEach(id => {
+            $(id).oninput = () => {
+                renderOrders();
+                renderRecommendations();
+            };
+        });
+
+        $("refresh").onclick = async () => {
+            $("refresh").disabled = true;
+            try {
+                await refreshData();
+                message("Dane odświeżone.");
+            } catch (error) {
+                message(error.message, true);
+            } finally {
+                $("refresh").disabled = false;
+            }
+        };
+
+        $("close-history").onclick = () => {
+            state.historyId = null;
+            $("history-card").hidden = true;
+        };
+
+        $("print-list").onclick = printOrders;
+
+        return {
+            refresh: refreshData,
+            async open(productId) {
+                await refreshData();
+                const product = state.products.find(item => item.id === productId);
+                if (!product) throw new Error("Produkt nie istnieje.");
+                openForm(null, product);
+            }
+        };
+    })();
 
     initialize().catch(error => message(error.message, true));
 </script>

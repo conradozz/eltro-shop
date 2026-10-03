@@ -58,13 +58,16 @@ public class SecurityConfig {
                                 "/api/sales/**",
                                 "/api/deliveries",
                                 "/api/deliveries/**",
-                                "/api/shop-settings"
+                                "/api/shop-settings",
+                                "/api/purchase-orders",
+                                "/api/purchase-orders/**"
                         ).hasAnyRole("ADMIN", "SELLER")
 
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/api/customers",
-                                "/api/sales"
+                                "/api/sales",
+                                "/api/purchase-orders"
                         ).hasAnyRole("ADMIN", "SELLER")
 
                         .requestMatchers(
@@ -74,12 +77,15 @@ public class SecurityConfig {
 
                         .requestMatchers(
                                 HttpMethod.PUT,
-                                "/api/customers/*"
+                                "/api/customers/*",
+                                "/api/purchase-orders/*"
                         ).hasAnyRole("ADMIN", "SELLER")
 
                         .requestMatchers(
                                 HttpMethod.PATCH,
-                                "/api/customers/*/discount"
+                                "/api/customers/*/discount",
+                                "/api/purchase-orders/*/ordered",
+                                "/api/purchase-orders/*/cancel"
                         ).hasAnyRole("ADMIN", "SELLER")
 
                         .requestMatchers("/api/**")
