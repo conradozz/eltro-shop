@@ -115,8 +115,6 @@ public class ProductRepository {
             long productId,
             StockChangeRequest request
     ) {
-        long userId = currentUserService.requireUserId();
-
         jdbcTemplate.update(
                 """
                 INSERT INTO stock_movements (
@@ -129,7 +127,7 @@ public class ProductRepository {
                 request.quantityChange(),
                 request.movementType(),
                 request.remarks(),
-                userId
+                currentUserService.requireUserId()
         );
     }
 
@@ -148,11 +146,7 @@ public class ProductRepository {
                 ORDER BY name
                 """,
                 productMapper,
-                pattern,
-                pattern,
-                pattern,
-                pattern,
-                pattern
+                pattern, pattern, pattern, pattern, pattern
         );
     }
 
@@ -164,8 +158,7 @@ public class ProductRepository {
         return jdbcTemplate.update(
                 """
                 UPDATE products
-                SET purchase_price_net = ?,
-                    sale_price_net = ?
+                SET purchase_price_net = ?, sale_price_net = ?
                 WHERE id = ?
                 """,
                 purchasePriceNet,
@@ -207,43 +200,61 @@ public class ProductRepository {
         );
     }
 
-    public void receiveDelivery(
+    public long receiveDelivery(
             long id,
             ReceiveDeliveryRequest request,
             BigDecimal salePriceNet
     ) {
         long userId = currentUserService.requireUserId();
 
-        jdbcTemplate.update(
+        int changed = jdbcTemplate.update(
                 """
                 UPDATE products
                 SET quantity = quantity + ?,
                     purchase_price_net = ?,
                     sale_price_net = ?
                 WHERE id = ?
+                  AND quantity + ? <= 2147483647
                 """,
                 request.quantity(),
                 request.purchasePriceNet(),
                 salePriceNet,
-                id
+                id,
+                request.quantity()
         );
 
-        jdbcTemplate.update(
-                """
-                INSERT INTO stock_movements (
-                    product_id, quantity_change, movement_type, remarks,
-                    unit_purchase_price_net, markup_percent,
-                    unit_sale_price_net, created_by_user_id
-                )
-                VALUES (?, ?, 'DELIVERY', ?, ?, ?, ?, ?)
-                """,
-                id,
-                request.quantity(),
-                request.remarks(),
-                request.purchasePriceNet(),
-                request.markupPercent(),
-                salePriceNet,
-                userId
-        );
+        if (changed == 0) {
+            throw new IllegalArgumentException(
+                    "Product does not exist or stock is too large"
+            );
+        }
+
+        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
+
+        jdbcTemplate.update(connection -> {
+            PreparedStatement statement = connection.prepareStatement(
+                    """
+                    INSERT INTO stock_movements (
+                        product_id, quantity_change, movement_type,
+                        remarks, unit_purchase_price_net, markup_percent,
+                        unit_sale_price_net, created_by_user_id
+                    )
+                    VALUES (?, ?, 'DELIVERY', ?, ?, ?, ?, ?)
+                    """,
+                    Statement.RETURN_GENERATED_KEYS
+            );
+
+            statement.setLong(1, id);
+            statement.setInt(2, request.quantity());
+            statement.setString(3, request.remarks());
+            statement.setBigDecimal(4, request.purchasePriceNet());
+            statement.setBigDecimal(5, request.markupPercent());
+            statement.setBigDecimal(6, salePriceNet);
+            statement.setLong(7, userId);
+
+            return statement;
+        }, keyHolder);
+
+        return Objects.requireNonNull(keyHolder.getKey()).longValue();
     }
 }

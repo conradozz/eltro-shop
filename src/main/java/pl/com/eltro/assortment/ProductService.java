@@ -12,28 +12,34 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final ShopSettingsRepository shopSettingsRepository;
+    private final PurchaseOrderReceiptService purchaseOrderReceiptService;
 
     public ProductService(
             ProductRepository productRepository,
-            ShopSettingsRepository shopSettingsRepository
+            ShopSettingsRepository shopSettingsRepository,
+            PurchaseOrderReceiptService purchaseOrderReceiptService
     ) {
         this.productRepository = productRepository;
         this.shopSettingsRepository = shopSettingsRepository;
+        this.purchaseOrderReceiptService = purchaseOrderReceiptService;
     }
 
     public Product create(CreateProductRequest request) {
         if (request.sku() == null || request.sku().isBlank()) {
             throw new IllegalArgumentException("SKU is required");
         }
+
         if (request.name() == null || request.name().isBlank()) {
             throw new IllegalArgumentException("Name is required");
         }
+
         if (request.purchasePriceNet() == null
                 || request.purchasePriceNet().signum() < 0) {
             throw new IllegalArgumentException(
                     "Purchase price must be at least zero"
             );
         }
+
         if (request.vatRate() == null
                 || request.vatRate().signum() < 0
                 || request.vatRate().compareTo(new BigDecimal("100")) > 0) {
@@ -41,6 +47,7 @@ public class ProductService {
                     "VAT rate must be between 0 and 100"
             );
         }
+
         if (request.minimumQuantity() < 0) {
             throw new IllegalArgumentException(
                     "Minimum quantity cannot be negative"
@@ -71,7 +78,10 @@ public class ProductService {
     }
 
     @Transactional
-    public Product changeStock(long productId, StockChangeRequest request) {
+    public Product changeStock(
+            long productId,
+            StockChangeRequest request
+    ) {
         if (productRepository.findById(productId).isEmpty()) {
             throw new IllegalArgumentException("Product does not exist");
         }
@@ -84,11 +94,13 @@ public class ProductService {
                     "Quantity change cannot be zero"
             );
         }
+
         if (type == null || !Set.of(
                 "OPENING", "DELIVERY", "SALE", "RETURN", "CORRECTION"
         ).contains(type)) {
             throw new IllegalArgumentException("Invalid movement type");
         }
+
         if (("OPENING".equals(type)
                 || "DELIVERY".equals(type)
                 || "RETURN".equals(type)) && change < 0) {
@@ -96,19 +108,23 @@ public class ProductService {
                     "This movement must increase stock"
             );
         }
+
         if ("SALE".equals(type)) {
             throw new IllegalArgumentException(
                     "Use /api/sales to sell a product"
             );
         }
+
         if ("DELIVERY".equals(type)) {
             throw new IllegalArgumentException(
                     "Use /api/products/{id}/deliveries for deliveries"
             );
         }
 
-        int updatedRows =
-                productRepository.changeQuantity(productId, change);
+        int updatedRows = productRepository.changeQuantity(
+                productId,
+                change
+        );
 
         if (updatedRows == 0) {
             throw new IllegalArgumentException("Insufficient stock");
@@ -129,8 +145,8 @@ public class ProductService {
                 || purchase.signum() < 0 || sale.signum() < 0
                 || purchase.scale() > 2 || sale.scale() > 2) {
             throw new IllegalArgumentException(
-                    "Prices must be non-negative amounts " +
-                            "with at most two decimal places"
+                    "Prices must be non-negative amounts "
+                            + "with at most two decimal places"
             );
         }
 
@@ -189,9 +205,7 @@ public class ProductService {
             );
         }
 
-        if (productRepository.findById(productId).isEmpty()) {
-            throw new IllegalArgumentException("Product does not exist");
-        }
+        purchaseOrderReceiptService.lockProduct(productId);
 
         BigDecimal multiplier = BigDecimal.ONE.add(
                 request.markupPercent().movePointLeft(2)
@@ -201,10 +215,16 @@ public class ProductService {
                 .multiply(multiplier)
                 .setScale(2, RoundingMode.HALF_UP);
 
-        productRepository.receiveDelivery(
+        long deliveryId = productRepository.receiveDelivery(
                 productId,
                 request,
                 salePriceNet
+        );
+
+        purchaseOrderReceiptService.allocate(
+                productId,
+                deliveryId,
+                request.quantity()
         );
 
         return productRepository.findById(productId).orElseThrow();

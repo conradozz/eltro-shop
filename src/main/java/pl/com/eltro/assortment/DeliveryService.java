@@ -10,9 +10,14 @@ import java.math.RoundingMode;
 public class DeliveryService {
 
     private final DeliveryRepository deliveryRepository;
+    private final PurchaseOrderReceiptService purchaseOrderReceiptService;
 
-    public DeliveryService(DeliveryRepository deliveryRepository) {
+    public DeliveryService(
+            DeliveryRepository deliveryRepository,
+            PurchaseOrderReceiptService purchaseOrderReceiptService
+    ) {
         this.deliveryRepository = deliveryRepository;
+        this.purchaseOrderReceiptService = purchaseOrderReceiptService;
     }
 
     @Transactional
@@ -60,6 +65,8 @@ public class DeliveryService {
                                 "Delivery does not exist"
                         ));
 
+        purchaseOrderReceiptService.lockProduct(previous.productId());
+
         long difference =
                 (long) request.quantity() - previous.quantity();
 
@@ -70,7 +77,12 @@ public class DeliveryService {
             );
         }
 
-        if (deliveryRepository.changeProductQuantity(
+        purchaseOrderReceiptService.validateStockChange(
+                previous.productId(),
+                difference
+        );
+
+        if (difference != 0 && deliveryRepository.changeProductQuantity(
                 previous.productId(),
                 (int) difference
         ) == 0) {
@@ -83,6 +95,13 @@ public class DeliveryService {
                 previous,
                 request,
                 salePrice
+        );
+
+        purchaseOrderReceiptService.correct(
+                previous.productId(),
+                deliveryId,
+                previous.quantity(),
+                request.quantity()
         );
 
         return new DeliveryRepository.DeliveryRow(
