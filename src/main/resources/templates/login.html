@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>Logowanie | Eltro</title>
+
+    <style>
+        :root {
+            --red: #ed1118;
+            --red-dark: #c80d13;
+            --text: #20252d;
+            --muted: #6b7280;
+            --border: #e4e7ec;
+            --background: #f5f6f8;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            background: var(--background);
+            color: var(--text);
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .topbar {
+            background: #fff;
+            border-bottom: 1px solid var(--border);
+            box-shadow: 0 2px 12px rgba(20, 25, 35, 0.04);
+        }
+
+        .topbar-inner {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 18px 28px;
+            display: flex;
+            align-items: center;
+            min-height: 86px;
+        }
+
+        .header-logo {
+            display: block;
+            width: 165px;
+            height: auto;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 48px 20px;
+            background:
+                    radial-gradient(
+                            circle at 15% 20%,
+                            rgba(237, 17, 24, 0.055),
+                            transparent 38%
+                    ),
+                    radial-gradient(
+                            circle at 90% 90%,
+                            rgba(237, 17, 24, 0.035),
+                            transparent 35%
+                    ),
+                    var(--background);
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 440px;
+            padding: 38px;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-top: 4px solid var(--red);
+            border-radius: 18px;
+            box-shadow: 0 18px 55px rgba(20, 25, 35, 0.08);
+        }
+
+        .welcome {
+            margin: 0;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .card-logo {
+            display: block;
+            width: 185px;
+            max-width: 100%;
+            height: auto;
+            margin: 17px auto 20px;
+        }
+
+        .description {
+            margin: 0 0 30px;
+            color: var(--muted);
+            text-align: center;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .message {
+            margin-bottom: 22px;
+            padding: 13px 15px;
+            color: #9c1820;
+            background: #fff1f2;
+            border: 1px solid #ffd4d8;
+            border-radius: 10px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        .field {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        input {
+            width: 100%;
+            min-height: 48px;
+            padding: 12px 14px;
+            border: 1px solid #d8dde5;
+            border-radius: 10px;
+            background: #fff;
+            color: var(--text);
+            font: inherit;
+            font-size: 16px;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--red);
+            box-shadow: 0 0 0 3px rgba(237, 17, 24, 0.12);
+        }
+
+        button {
+            width: 100%;
+            min-height: 49px;
+            margin-top: 5px;
+            padding: 13px 18px;
+            border: none;
+            border-radius: 10px;
+            background: var(--red);
+            color: #fff;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        button:hover {
+            background: var(--red-dark);
+        }
+
+        button:focus-visible {
+            outline: 3px solid rgba(237, 17, 24, 0.35);
+            outline-offset: 3px;
+        }
+
+        .card-footer {
+            margin: 24px 0 0;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            color: var(--muted);
+            text-align: center;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .page-footer {
+            padding: 18px 20px;
+            color: var(--muted);
+            text-align: center;
+            font-size: 12px;
+        }
+
+        @media (max-width: 480px) {
+            .topbar-inner {
+                padding: 16px 20px;
+                min-height: 74px;
+            }
+
+            .header-logo {
+                width: 145px;
+            }
+
+            main {
+                padding: 30px 16px;
+            }
+
+            .login-card {
+                padding: 28px 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header class="topbar">
+    <div class="topbar-inner">
+        <img
+                class="header-logo"
+                src="/eltro-logo.png"
+                alt="Eltro"
+        >
+    </div>
+</header>
+
+<main>
+    <section class="login-card" aria-labelledby="login-title">
+        <h1 class="welcome" id="login-title">Zaloguj się do</h1>
+
+        <img
+                class="card-logo"
+                src="/eltro-logo.png"
+                alt="Eltro"
+        >
+
+        <p class="description">
+            Panel obsługi sklepu<br>
+            Produkty, klienci, dostawy i sprzedaż
+        </p>
+
+        <div
+                class="message"
+                role="alert"
+                __MESSAGE_HIDDEN__
+        >__MESSAGE__</div>
+
+        <form action="/login" method="post">
+            <input
+                    type="hidden"
+                    name="__CSRF_PARAMETER__"
+                    value="__CSRF_TOKEN__"
+            >
+
+            <div class="field">
+                <label for="username">Login</label>
+                <input
+                        id="username"
+                        name="username"
+                        type="text"
+                        autocomplete="username"
+                        placeholder="Wpisz login"
+                        required
+                        autofocus
+                >
+            </div>
+
+            <div class="field">
+                <label for="password">Hasło</label>
+                <input
+                        id="password"
+                        name="password"
+                        type="password"
+                        autocomplete="current-password"
+                        placeholder="Wpisz hasło"
+                        required
+                >
+            </div>
+
+            <button type="submit">Zaloguj się</button>
+        </form>
+
+        <p class="card-footer">
+            Dostęp dla uprawnionych użytkowników.<br>
+            W sprawie konta skontaktuj się z administratorem.
+        </p>
+    </section>
+</main>
+
+<footer class="page-footer">
+    Eltro · System obsługi sklepu
+</footer>
+
+</body>
+</html>

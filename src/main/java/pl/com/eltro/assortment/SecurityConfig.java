@@ -89,6 +89,9 @@ public class SecurityConfig {
                 )
 
                 .formLogin(form -> form
+                        .loginPage("/login")
+                        .loginProcessingUrl("/login")
+                        .failureUrl("/login?error")
                         .defaultSuccessUrl("/", true)
                         .permitAll()
                 )
@@ -117,7 +120,7 @@ public class SecurityConfig {
                             } else {
                                 event.getResponse().sendRedirect(
                                         event.getRequest().getContextPath()
-                                                + "/login"
+                                                + "/login?expired"
                                 );
                             }
                         })
