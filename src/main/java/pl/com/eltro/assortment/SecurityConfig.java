@@ -11,6 +11,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
+import org.springframework.security.web.csrf.InvalidCsrfTokenException;
+import org.springframework.security.web.csrf.MissingCsrfTokenException;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 @Configuration
@@ -99,6 +101,105 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
 
+                .exceptionHandling(exceptions -> exceptions
+                        .accessDeniedHandler((request, response, exception) -> {
+                            String path = request.getServletPath();
+
+                            boolean csrfError =
+                                    exception instanceof InvalidCsrfTokenException
+                                            || exception instanceof MissingCsrfTokenException;
+
+                            boolean loginSubmission =
+                                    "/login".equals(path)
+                                            && "POST".equalsIgnoreCase(
+                                            request.getMethod()
+                                    );
+
+                            if (csrfError && loginSubmission) {
+                                response.sendRedirect(
+                                        request.getContextPath()
+                                                + "/login?expired"
+                                );
+                                return;
+                            }
+
+                            if (path.startsWith("/api/")) {
+                                response.setStatus(
+                                        HttpStatus.FORBIDDEN.value()
+                                );
+                                response.setContentType(
+                                        "application/json;charset=UTF-8"
+                                );
+
+                                response.getWriter().write(
+                                        csrfError
+                                                ? """
+                                                  {"error":"Formularz wygasł. Odśwież stronę i spróbuj ponownie."}
+                                                  """
+                                                : """
+                                                  {"error":"Brak uprawnień do wykonania tej operacji."}
+                                                  """
+                                );
+                                return;
+                            }
+
+                            response.setStatus(
+                                    HttpStatus.FORBIDDEN.value()
+                            );
+                            response.setContentType(
+                                    "text/html;charset=UTF-8"
+                            );
+                            response.getWriter().write(
+                                    """
+                                    <!doctype html>
+                                    <html lang="pl">
+                                    <head>
+                                        <meta charset="UTF-8">
+                                        <meta name="viewport"
+                                              content="width=device-width,initial-scale=1">
+                                        <title>Eltro — brak dostępu</title>
+                                        <script src="/eltro-demo.js" defer></script>
+                                        <style>
+                                            body {
+                                                margin:0;
+                                                background:#f4f5f7;
+                                                color:#24272b;
+                                                font:16px Arial,sans-serif;
+                                            }
+                                            header {
+                                                padding:20px 30px;
+                                                background:white;
+                                                border-bottom:1px solid #e6e8eb;
+                                            }
+                                            header img { width:150px; }
+                                            main {
+                                                max-width:600px;
+                                                margin:70px auto;
+                                                padding:30px;
+                                                background:white;
+                                                border-radius:14px;
+                                            }
+                                            a { color:#a90000; }
+                                        </style>
+                                    </head>
+                                    <body>
+                                        <header>
+                                            <img src="eltro-logo.png" alt="Eltro">
+                                        </header>
+                                        <main>
+                                            <h1>Brak dostępu</h1>
+                                            <p>Nie możesz wykonać tej operacji.
+                                               Wróć do panelu lub zaloguj się ponownie.</p>
+                                            <p><a href="/">Wróć do panelu</a></p>
+                                            <p><a href="/login">Przejdź do logowania</a></p>
+                                        </main>
+                                    </body>
+                                    </html>
+                                    """
+                            );
+                        })
+                )
+
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
@@ -118,11 +219,9 @@ public class SecurityConfig {
                                 event.getResponse().setStatus(
                                         HttpStatus.UNAUTHORIZED.value()
                                 );
-
                                 event.getResponse().setContentType(
                                         "application/json;charset=UTF-8"
                                 );
-
                                 event.getResponse().getWriter().write(
                                         """
                                         {"error":"Session expired"}
