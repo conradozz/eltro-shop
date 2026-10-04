@@ -15,22 +15,26 @@ public class SaleService {
     private final ProductRepository productRepository;
     private final CustomerRepository customerRepository;
     private final ObjectMapper objectMapper;
+    private final SalesDocumentRepository documentRepository;
 
     public SaleService(
             SaleRepository saleRepository,
             ProductRepository productRepository,
             CustomerRepository customerRepository,
-            ObjectMapper objectMapper
+            ObjectMapper objectMapper,
+            SalesDocumentRepository documentRepository
     ) {
         this.saleRepository = saleRepository;
         this.productRepository = productRepository;
         this.customerRepository = customerRepository;
         this.objectMapper = objectMapper;
+        this.documentRepository = documentRepository;
     }
 
     @Transactional
     public long create(CreateSaleRequest request) {
         validateItems(request.items());
+
         BigDecimal customerDiscount =
                 getCustomerDiscount(request.customerId());
 
@@ -39,7 +43,12 @@ public class SaleService {
                 request.remarks()
         );
 
-        saveItems(saleId, request.items(), customerDiscount);
+        saveItems(
+                saleId,
+                request.items(),
+                customerDiscount
+        );
+
         return saleId;
     }
 
@@ -56,16 +65,18 @@ public class SaleService {
             );
         }
 
+        if (documentRepository.existsForSale(saleId)) {
+            throw new IllegalArgumentException(
+                    "Cannot edit a sale with an issued document"
+            );
+        }
+
         SaleDetails previous = saleRepository.findById(saleId)
                 .orElseThrow();
 
         BigDecimal customerDiscount =
                 getCustomerDiscount(request.customerId());
 
-        /*
-         * Oddajemy na magazyn sztuki z obecnej wersji sprzedaży.
-         * Pierwotnych ruchów SALE nie usuwamy.
-         */
         for (SaleLine oldItem : previous.items()) {
             int changed = productRepository.changeQuantity(
                     oldItem.productId(),
@@ -93,11 +104,11 @@ public class SaleService {
                 request.remarks()
         );
 
-        /*
-         * Zapisujemy nową wersję pozycji. saveItems pomniejszy
-         * magazyn i utworzy nowe ruchy SALE.
-         */
-        saveItems(saleId, request.items(), customerDiscount);
+        saveItems(
+                saleId,
+                request.items(),
+                customerDiscount
+        );
 
         SaleDetails updated = saleRepository.findById(saleId)
                 .orElseThrow();
@@ -119,6 +130,12 @@ public class SaleService {
         }
 
         for (SaleItemRequest item : items) {
+            if (item == null) {
+                throw new IllegalArgumentException(
+                        "Sale item cannot be null"
+                );
+            }
+
             if (item.quantity() <= 0) {
                 throw new IllegalArgumentException(
                         "Quantity must be positive"
@@ -148,7 +165,8 @@ public class SaleService {
             BigDecimal customerDiscount
     ) {
         for (SaleItemRequest item : items) {
-            Product product = productRepository.findById(item.productId())
+            Product product = productRepository
+                    .findById(item.productId())
                     .orElseThrow(() ->
                             new IllegalArgumentException(
                                     "Product does not exist"
@@ -167,8 +185,8 @@ public class SaleService {
                     || price.signum() < 0
                     || price.scale() > 2) {
                 throw new IllegalArgumentException(
-                        "Price must be non-negative " +
-                                "with at most two decimal places"
+                        "Price must be non-negative "
+                                + "with at most two decimal places"
                 );
             }
 
@@ -177,8 +195,8 @@ public class SaleService {
                     || discount.compareTo(new BigDecimal("100")) > 0
                     || discount.scale() > 2) {
                 throw new IllegalArgumentException(
-                        "Discount must be between 0 and 100 " +
-                                "with at most two decimal places"
+                        "Discount must be between 0 and 100 "
+                                + "with at most two decimal places"
                 );
             }
 

@@ -62,14 +62,17 @@ public class SecurityConfig {
                                 "/api/purchase-orders",
                                 "/api/purchase-orders/**",
                                 "/api/reports/sales",
-                                "/api/reports/sales/**"
+                                "/api/reports/sales/**",
+                                "/api/documents",
+                                "/api/documents/**"
                         ).hasAnyRole("ADMIN", "SELLER")
 
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/api/customers",
                                 "/api/sales",
-                                "/api/purchase-orders"
+                                "/api/purchase-orders",
+                                "/api/sales/*/documents"
                         ).hasAnyRole("ADMIN", "SELLER")
 
                         .requestMatchers(

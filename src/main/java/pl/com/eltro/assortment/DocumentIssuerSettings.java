@@ -1,4 +1,13 @@
 package pl.com.eltro.assortment;
 
-public class DocumentIssuerSettings {
+public record DocumentIssuerSettings(
+        String companyName,
+        String nip,
+        String street,
+        String postalCode,
+        String city,
+        String email,
+        String phone,
+        String bankAccount
+) {
 }
