@@ -32,11 +32,12 @@
         button{padding:10px 14px;border:1px solid var(--red);border-radius:8px;background:var(--red);color:white;font:600 14px Arial,sans-serif;cursor:pointer}
         button.secondary{background:white;color:var(--deep);border-color:#e5b5b5}
         button:disabled{opacity:.55;cursor:wait}
-        .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+        .actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:18px}
         .muted{color:var(--muted)}
-        .notice{background:#f8f9fa;padding:12px;border-radius:8px}
-        #message{position:sticky;top:100px;z-index:30;box-shadow:0 4px 16px #20283320;background:#e9f6ed;border-left:4px solid #27833c;padding:13px;border-radius:8px}
+        .notice{background:#f8f9fa;padding:14px;border-radius:8px}
+        #message{position:sticky;top:100px;z-index:30;background:#e9f6ed;border-left:4px solid #27833c;padding:13px;border-radius:8px;box-shadow:0 4px 16px #20283320}
         #message.error{background:#fff0ee;border-color:var(--red)}
+        #buyer-warning{background:#fff5df;border-left:4px solid #d18b00}
         .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:10px}
         table{width:100%;border-collapse:collapse}
         th,td{padding:11px;text-align:left;border-bottom:1px solid var(--line);font-size:13px}
@@ -44,7 +45,7 @@
         td button{margin:3px}
         summary{font-weight:bold;cursor:pointer}
         details[open] summary{margin-bottom:20px}
-        .document{border-top:4px solid var(--red)}
+        .document{border-top:4px solid var(--red);scroll-margin-top:110px}
         .document-heading{display:flex;justify-content:space-between;gap:20px;align-items:start;margin-bottom:26px}
         .document-heading img{width:170px}
         .document-heading h2{margin-bottom:4px}
@@ -61,6 +62,7 @@
             .grid{grid-template-columns:1fr}
             .card{padding:18px}
             .document-heading{flex-direction:column}
+            #message{top:10px}
         }
         @media print{
             body{background:white}
@@ -70,9 +72,7 @@
             #document-preview{display:block!important;border:0;box-shadow:none;padding:10px;margin:0}
             .table-wrap{overflow:visible;border-radius:0}
             th,td{font-size:10px;padding:7px}
-            tr{break-inside:avoid}
-            .party{break-inside:avoid}
-            .document-total,.document-footer{break-inside:avoid}
+            tr,.party,.document-total,.document-footer{break-inside:avoid}
         }
     </style>
 </head>
@@ -91,7 +91,7 @@
     <div class="account">
         <span id="current-user">Wczytywanie…</span>
         <a id="users-link" href="/users.html" hidden>Użytkownicy</a>
-        <button id="logout" class="secondary">Wyloguj</button>
+        <button id="logout" class="secondary" type="button">Wyloguj</button>
     </div>
 </header>
 
@@ -104,7 +104,8 @@
     <p id="message" hidden role="status"></p>
 
     <details id="issuer-card" class="card screen-only" hidden>
-        <summary>Dane wystawcy — ustawienia administratora</summary>
+        <summary>Dane Twojego sklepu — wystawca dokumentu</summary>
+        <p class="notice">To dane sprzedawcy, czyli sklepu. Dane nabywcy pobieramy osobno z klienta przypisanego do sprzedaży.</p>
         <form id="issuer-form">
             <div class="grid">
                 <label>Nazwa firmy
@@ -132,7 +133,7 @@
                     <input name="bankAccount" maxlength="50" placeholder="Numer konta lub IBAN">
                 </label>
             </div>
-            <p class="muted">Zmiana tych danych dotyczy nowych dokumentów. Wystawione dokumenty zachowują własną kopię danych.</p>
+            <p class="muted">Po zmianie kliknij „Zapisz dane wystawcy”. Nowe dane dotyczą kolejnych dokumentów. Wystawione dokumenty zachowują własną kopię danych.</p>
             <button type="submit">Zapisz dane wystawcy</button>
         </form>
     </details>
@@ -142,7 +143,7 @@
         <div class="grid">
             <label>Ostatnie sprzedaże
                 <select id="recent-sales">
-                    <option value="">Wybierz z listy</option>
+                    <option value="">Wczytywanie sprzedaży…</option>
                 </select>
             </label>
             <label>Numer ID sprzedaży
@@ -158,7 +159,18 @@
         <h2 id="sale-title"></h2>
         <p id="sale-description"></p>
         <p id="sale-total" class="notice"></p>
-        <h3>Wystawione dokumenty</h3>
+
+        <h3>Dane nabywcy pobrane z klienta</h3>
+        <div id="buyer-details" class="party"></div>
+        <p id="buyer-warning" class="notice" hidden></p>
+        <p class="muted">Zmiany danych klienta wykonaj w zakładce Klienci, a następnie odśwież dane tutaj. Wystawione dokumenty zachowują dane z chwili wystawienia.</p>
+        <div class="actions">
+            <a href="/?view=customers">Przejdź do klientów</a>
+            <a href="/?view=sales">Zmień klienta w edycji sprzedaży</a>
+            <button id="reload-sale" type="button" class="secondary">Odśwież dane sprzedaży i klienta</button>
+        </div>
+
+        <h3 style="margin-top:24px">Wystawione dokumenty</h3>
         <div id="existing-documents"></div>
     </section>
 
@@ -211,7 +223,7 @@
     <section id="document-preview" class="card document" hidden>
         <div class="toolbar screen-only">
             <h2>Podgląd wystawionego dokumentu</h2>
-            <button id="print-document">Drukuj / zapisz PDF</button>
+            <button id="print-document" type="button">Drukuj / zapisz PDF</button>
         </div>
         <div id="document-content"></div>
     </section>
@@ -220,14 +232,15 @@
 <script>
     "use strict";
 
-    const $=id=>document.getElementById(id);
+    const dom=window.document;
+    const $=id=>dom.getElementById(id);
     const state={user:null,sale:null,customer:null,documents:[],document:null};
-    const admin=()=>state.user?.roles.includes("ADMIN")===true;
+    const admin=()=>state.user?.roles?.includes("ADMIN")===true;
+    const optional=value=>String(value??"").trim()||null;
     const esc=value=>String(value??"")
         .replace(/&/g,"&amp;").replace(/</g,"&lt;")
         .replace(/>/g,"&gt;").replace(/"/g,"&quot;")
         .replace(/'/g,"&#39;");
-    const optional=value=>String(value??"").trim()||null;
     const money=value=>Number(value??0).toLocaleString("pl-PL",{
         style:"currency",currency:"PLN"
     });
@@ -238,28 +251,40 @@
         (customer.customerType==="COMPANY"?customer.companyName:
             [customer.firstName,customer.lastName].filter(Boolean).join(" ")):
         "Bez przypisanego klienta";
+
     const documentTypes={
-        INVOICE:"Faktura",
-        SALE_CONFIRMATION:"Potwierdzenie sprzedaży"
+        SALE_CONFIRMATION:"Potwierdzenie sprzedaży",
+        INVOICE:"Faktura"
     };
     const paymentStatuses={
-        PAID:"Zapłacono",
-        DEFERRED:"Płatność odroczona",
-        UNPAID:"Niezapłacono"
+        PAID:"Zapłacono",DEFERRED:"Płatność odroczona",UNPAID:"Niezapłacono"
     };
     const paymentMethods={
         CASH:"Gotówka",CARD:"Karta",TRANSFER:"Przelew",OTHER:"Inny"
+    };
+    const errorTranslations={
+        "Configure document issuer company name":"Uzupełnij i zapisz nazwę firmy w danych wystawcy.",
+        "Configure issuer NIP with 10 digits":"Uzupełnij i zapisz NIP wystawcy: 10 cyfr.",
+        "Configure issuer street":"Uzupełnij i zapisz ulicę oraz numer wystawcy.",
+        "Configure issuer postal code":"Uzupełnij i zapisz kod pocztowy wystawcy.",
+        "Configure issuer city":"Uzupełnij i zapisz miasto wystawcy.",
+        "Assign a customer to the sale before issuing an invoice":"Przypisz klienta do sprzedaży przed wystawieniem faktury.",
+        "Customer street is required":"Uzupełnij ulicę i numer w danych klienta.",
+        "Customer postal code is required":"Uzupełnij kod pocztowy w danych klienta.",
+        "Customer city is required":"Uzupełnij miasto w danych klienta.",
+        "This document type has already been issued for this sale":"Ten rodzaj dokumentu został już wystawiony. Wczytaj ponownie sprzedaż i otwórz podgląd.",
+        "Sale does not exist":"Sprzedaż nie istnieje.",
+        "Cannot edit a sale with an issued document":"Sprzedaż ma wystawiony dokument i nie można jej zwyczajnie edytować."
     };
 
     let csrfPromise;
 
     function message(text,error=false){
-        $("message").textContent=text;
-        $("message").className=error?"error":"";
-        $("message").hidden=false;
-        if(error)$("message").scrollIntoView({
-            behavior:"smooth",block:"center"
-        });
+        const box=$("message");
+        box.textContent=errorTranslations[text]||text;
+        box.className=error?"error":"";
+        box.hidden=false;
+        if(error)box.scrollIntoView({behavior:"smooth",block:"center"});
     }
 
     function safe(handler){
@@ -328,16 +353,63 @@
 
     function polishToday(){
         const parts=new Intl.DateTimeFormat("en-CA",{
-            timeZone:"Europe/Warsaw",year:"numeric",month:"2-digit",day:"2-digit"
+            timeZone:"Europe/Warsaw",
+            year:"numeric",month:"2-digit",day:"2-digit"
         }).formatToParts(new Date());
         const part=type=>parts.find(p=>p.type===type).value;
         return part("year")+"-"+part("month")+"-"+part("day");
     }
 
-    $("logout").onclick=safe(async()=>{
-        await api("/logout",{method:"POST"});
-        location.assign("/login?logout");
-    });
+    function party(name,nip,street,postalCode,city,email,phone){
+        return "<h3>"+esc(name||"—")+"</h3>"+
+            (nip?"<p>NIP: "+esc(nip)+"</p>":"")+
+            (street?"<p>"+esc(street)+"</p>":"")+
+            ((postalCode||city)?"<p>"+
+                esc([postalCode,city].filter(Boolean).join(" "))+"</p>":"")+
+            (email?"<p>E-mail: "+esc(email)+"</p>":"")+
+            (phone?"<p>Telefon: "+esc(phone)+"</p>":"");
+    }
+
+    function buyerProblems(){
+        const customer=state.customer;
+        if(!customer)return ["Przypisz klienta do sprzedaży przed wystawieniem faktury."];
+
+        const problems=[];
+        if(customer.customerType==="COMPANY"){
+            if(!optional(customer.companyName)){
+                problems.push("Brakuje nazwy firmy klienta.");
+            }
+            if(!/^[0-9]{10}$/.test(customer.nip||"")){
+                problems.push("NIP klienta musi zawierać 10 cyfr.");
+            }
+        }else if(customer.customerType==="PERSON"){
+            if(!optional(customer.firstName)||!optional(customer.lastName)){
+                problems.push("Brakuje imienia lub nazwiska klienta.");
+            }
+        }else{
+            problems.push("Nieprawidłowy typ klienta.");
+        }
+
+        if(!optional(customer.street))problems.push("Brakuje ulicy i numeru klienta.");
+        if(!optional(customer.postalCode))problems.push("Brakuje kodu pocztowego klienta.");
+        if(!optional(customer.city))problems.push("Brakuje miasta klienta.");
+        return problems;
+    }
+
+    function renderBuyer(){
+        const customer=state.customer;
+        $("buyer-details").innerHTML=customer?
+            party(
+                customerName(customer),customer.nip,customer.street,
+                customer.postalCode,customer.city,customer.email,customer.phone
+            ):
+            "<p>Sprzedaż bez przypisanego klienta.</p>";
+
+        const problems=buyerProblems();
+        $("buyer-warning").hidden=problems.length===0;
+        $("buyer-warning").textContent=
+            "Do wystawienia faktury: "+problems.join(" ");
+    }
 
     async function loadIssuer(){
         const settings=await api("/api/document-issuer");
@@ -357,18 +429,27 @@
         const form=$("issuer-form");
         const button=form.querySelector('[type="submit"]');
         const settings={};
+
         for(const name of [
             "companyName","nip","street","postalCode",
             "city","email","phone","bankAccount"
         ]){
             settings[name]=optional(form.elements[name].value);
         }
+
         button.disabled=true;
         try{
             await write("/api/document-issuer","PUT",settings);
-            message("Zapisano dane wystawcy.");
             await loadIssuer();
-        }finally{button.disabled=false;}
+            message("Zapisano dane wystawcy.");
+        }finally{
+            button.disabled=false;
+        }
+    });
+
+    $("logout").onclick=safe(async()=>{
+        await api("/logout",{method:"POST"});
+        location.assign("/login?logout");
     });
 
     $("recent-sales").onchange=()=>{
@@ -385,17 +466,35 @@
         }
         const button=$("sale-select-form").querySelector('[type="submit"]');
         button.disabled=true;
-        try{await loadSale(id);}
-        finally{button.disabled=false;}
+        try{
+            await loadSale(id);
+        }finally{
+            button.disabled=false;
+        }
+    });
+
+    $("reload-sale").onclick=safe(async()=>{
+        if(!state.sale)return;
+        const id=state.sale.id;
+        const button=$("reload-sale");
+        button.disabled=true;
+        try{
+            await loadSale(id);
+            message("Odświeżono dane sprzedaży i klienta.");
+        }finally{
+            button.disabled=false;
+        }
     });
 
     async function loadSale(id){
+        $("message").hidden=true;
         $("document-form").hidden=true;
         $("sale-card").hidden=true;
         $("document-preview").hidden=true;
         state.document=null;
         state.sale=null;
         state.customer=null;
+        state.documents=[];
 
         const sale=await api("/api/sales/"+id);
         const customer=sale.customerId?
@@ -407,6 +506,10 @@
         state.documents=documents;
 
         $("sale-id").value=id;
+        if([...$("recent-sales").options].some(option=>Number(option.value)===id)){
+            $("recent-sales").value=String(id);
+        }
+
         $("sale-title").textContent="Sprzedaż #"+sale.id;
         $("sale-description").textContent=
             customerName(customer)+" · "+dateTime(sale.soldAt)+
@@ -420,17 +523,18 @@
         $("payment-method").value="CASH";
         $("goods-issued").value="true";
         $("payment-due").value="";
+
         updatePaymentFields();
+        renderBuyer();
         renderExistingDocuments();
         updateDocumentTypes();
-
         $("sale-card").hidden=false;
 
         const url=new URL(location.href);
         url.searchParams.set("saleId",id);
         history.replaceState(null,"",url);
 
-        if(documents.length)showDocument(documents[0]);
+        if(documents.length)showDocument(documents[0],false);
     }
 
     function updateDocumentTypes(){
@@ -439,8 +543,8 @@
         select.replaceChildren();
 
         for(const [type,label] of Object.entries(documentTypes)){
-            if(state.documents.some(document=>document.documentType===type))continue;
-            const option=window.document.createElement("option");
+            if(state.documents.some(record=>record.documentType===type))continue;
+            const option=dom.createElement("option");
             option.value=type;
             option.textContent=label;
             select.append(option);
@@ -466,46 +570,50 @@
     function renderExistingDocuments(){
         const container=$("existing-documents");
         container.replaceChildren();
+
         if(!state.documents.length){
-            const text=window.document.createElement("p");
+            const text=dom.createElement("p");
             text.className="muted";
             text.textContent="Nie wystawiono jeszcze dokumentów.";
             container.append(text);
             return;
         }
 
-        const wrap=window.document.createElement("div");
+        const wrap=dom.createElement("div");
         wrap.className="table-wrap";
-        const table=window.document.createElement("table");
+        const table=dom.createElement("table");
         table.innerHTML=
             "<thead><tr><th>Numer</th><th>Rodzaj</th><th>Data</th>"+
             "<th>Płatność</th><th>Towar wydano</th><th>Akcje</th></tr></thead>";
-        const body=window.document.createElement("tbody");
+        const body=dom.createElement("tbody");
 
-        for(const document of state.documents){
-            const row=window.document.createElement("tr");
+        for(const record of state.documents){
+            const row=dom.createElement("tr");
             const values=[
-                document.documentNumber,
-                documentTypes[document.documentType],
-                document.issuedOn,
-                paymentStatuses[document.paymentStatus],
-                document.goodsIssued?"Tak":"Nie"
+                record.documentNumber,
+                documentTypes[record.documentType],
+                record.issuedOn,
+                paymentStatuses[record.paymentStatus],
+                record.goodsIssued?"Tak":"Nie"
             ];
+
             for(const value of values){
-                const cell=window.document.createElement("td");
-                cell.textContent=value;
+                const cell=dom.createElement("td");
+                cell.textContent=value??"—";
                 row.append(cell);
             }
-            const cell=window.document.createElement("td");
-            const button=window.document.createElement("button");
+
+            const cell=dom.createElement("td");
+            const button=dom.createElement("button");
             button.type="button";
             button.className="secondary";
-            button.textContent="Podgląd";
-            button.onclick=()=>showDocument(document);
+            button.textContent="Podgląd / drukuj";
+            button.onclick=safe(async()=>showDocument(record));
             cell.append(button);
             row.append(cell);
             body.append(row);
         }
+
         table.append(body);
         wrap.append(table);
         container.append(wrap);
@@ -527,50 +635,52 @@
             remarks:optional($("document-remarks").value)
         };
 
+        if(request.documentType==="INVOICE"){
+            const problems=buyerProblems();
+            if(problems.length)throw new Error(problems.join(" "));
+        }
+
         if(!confirm(
             "Wystawić dokument dla sprzedaży #"+saleId+"?\n"+
             "Sprzedaż zostanie zablokowana przed zwykłą edycją."
         ))return;
 
-        const button=$("issue-document");
-        const selectButton=$("sale-select-form").querySelector('[type="submit"]');
-        button.disabled=true;
-        selectButton.disabled=true;
+        const controls=[
+            ...$("document-form").querySelectorAll("input,select,textarea,button"),
+            ...$("sale-select-form").querySelectorAll("input,select,button"),
+            $("reload-sale")
+        ];
+        const disabledBefore=controls.map(control=>control.disabled);
+        controls.forEach(control=>control.disabled=true);
 
         try{
-            const document=await write(
+            const record=await write(
                 "/api/sales/"+saleId+"/documents","POST",request
             );
-            await loadSale(saleId);
-            showDocument(document);
-            message("Wystawiono dokument "+document.documentNumber+".");
+
+            state.documents=[record,...state.documents];
+            renderExistingDocuments();
+            updateDocumentTypes();
+            showDocument(record);
+            message("Wystawiono dokument "+record.documentNumber+".");
         }finally{
-            button.disabled=false;
-            selectButton.disabled=false;
+            controls.forEach((control,index)=>control.disabled=disabledBefore[index]);
+            updatePaymentFields();
         }
     });
 
-    function party(name,nip,street,postalCode,city,email,phone){
-        return '<h3>'+esc(name||"—")+'</h3>'+
-            (nip?'<p>NIP: '+esc(nip)+'</p>':"")+
-            (street?'<p>'+esc(street)+'</p>':"")+
-            ((postalCode||city)?'<p>'+esc([postalCode,city].filter(Boolean).join(" "))+'</p>':"")+
-            (email?'<p>'+esc(email)+'</p>':"")+
-            (phone?'<p>'+esc(phone)+'</p>':"");
-    }
-
-    function showDocument(document){
-        state.document=document;
-
-        const issuer=document.issuer;
-        const customer=document.customer;
-        const items=document.sale.items;
+    function showDocument(record,scroll=true){
+        state.document=record;
+        const issuer=record.issuer;
+        const customer=record.customer;
+        const items=record.sale.items;
 
         const rows=items.map((item,index)=>
             "<tr>"+
             "<td>"+(index+1)+"</td>"+
-            "<td>"+esc(item.productName)+"<br><span class=\"muted\">"+esc(item.sku)+"</span></td>"+
-            "<td>"+item.quantity+"</td>"+
+            "<td>"+esc(item.productName)+
+            "<br><span class=\"muted\">"+esc(item.sku)+"</span></td>"+
+            "<td>"+esc(item.quantity)+"</td>"+
             "<td>"+esc(money(item.unitSalePriceNet))+"</td>"+
             "<td>"+esc(item.discountPercent)+"%</td>"+
             "<td>"+esc(item.vatRate)+"%</td>"+
@@ -580,7 +690,6 @@
         ).join("");
 
         const vatGroups=new Map();
-
         for(const item of items){
             const rate=Number(item.vatRate);
             const group=vatGroups.get(rate)||{net:0,gross:0};
@@ -608,60 +717,70 @@
         $("document-content").innerHTML=
             '<div class="document-heading">'+
             '<img src="/eltro-logo.png" alt="Eltro">'+
-            '<div><h2>'+esc(documentTypes[document.documentType])+'</h2>'+
-            '<strong>'+esc(document.documentNumber)+'</strong></div>'+
-            '</div>'+
+            '<div><h2>'+esc(documentTypes[record.documentType])+'</h2>'+
+            '<strong>'+esc(record.documentNumber)+'</strong></div></div>'+
             '<div class="grid">'+
             '<div class="party"><p class="muted">SPRZEDAWCA</p>'+
             party(
                 issuer.companyName,issuer.nip,issuer.street,
                 issuer.postalCode,issuer.city,issuer.email,issuer.phone
-            )+
-            '</div>'+
-            '<div class="party"><p class="muted">NABYWCA</p>'+customerBlock+'</div>'+
-            '</div>'+
+            )+'</div>'+
+            '<div class="party"><p class="muted">NABYWCA</p>'+
+            customerBlock+'</div></div>'+
             '<div class="document-meta">'+
-            '<span>Data wystawienia: <strong>'+esc(document.issuedOn)+'</strong></span>'+
-            '<span>Data sprzedaży: <strong>'+esc(document.saleOn)+'</strong></span>'+
-            '<span>Sprzedaż: <strong>#'+document.saleId+'</strong></span>'+
-            '</div>'+
+            '<span>Data wystawienia: <strong>'+esc(record.issuedOn)+'</strong></span>'+
+            '<span>Data sprzedaży: <strong>'+esc(record.saleOn)+'</strong></span>'+
+            '<span>Sprzedaż: <strong>#'+esc(record.saleId)+'</strong></span></div>'+
             '<div class="table-wrap"><table>'+
             '<thead><tr><th>Lp.</th><th>Produkt</th><th>Szt.</th>'+
             '<th>Cena netto</th><th>Rabat</th><th>VAT</th>'+
             '<th>Wartość netto</th><th>Wartość brutto</th></tr></thead>'+
-            '<tbody>'+rows+'</tbody>'+
-            '</table></div>'+
+            '<tbody>'+rows+'</tbody></table></div>'+
             '<h3 style="margin-top:22px">Podsumowanie VAT</h3>'+
             '<div class="table-wrap"><table>'+
             '<thead><tr><th>Stawka</th><th>Netto</th><th>VAT</th><th>Brutto</th></tr></thead>'+
-            '<tbody>'+vatRows+'</tbody>'+
-            '</table></div>'+
-            '<p class="document-total">Razem: '+esc(money(document.totalGross))+
-            '<small>Netto: '+esc(money(document.totalNet))+'</small>'+
-            '</p>'+
+            '<tbody>'+vatRows+'</tbody></table></div>'+
+            '<p class="document-total">Razem: '+esc(money(record.totalGross))+
+            '<small>Netto: '+esc(money(record.totalNet))+'</small></p>'+
             '<div class="document-footer">'+
-            'Płatność: '+esc(paymentStatuses[document.paymentStatus])+
-            '\nSposób płatności: '+esc(paymentMethods[document.paymentMethod])+
-            (document.paymentDueOn?'\nTermin płatności: '+esc(document.paymentDueOn):"")+
-            '\nTowar wydano: '+(document.goodsIssued?"Tak":"Nie")+
+            'Płatność: '+esc(paymentStatuses[record.paymentStatus])+
+            '\nSposób płatności: '+esc(paymentMethods[record.paymentMethod])+
+            (record.paymentDueOn?'\nTermin płatności: '+esc(record.paymentDueOn):"")+
+            '\nTowar wydano: '+(record.goodsIssued?"Tak":"Nie")+
             (issuer.bankAccount?'\nKonto bankowe: '+esc(issuer.bankAccount):"")+
-            (document.recipientEmail?'\nE-mail odbiorcy: '+esc(document.recipientEmail):"")+
-            (document.remarks?'\nUwagi: '+esc(document.remarks):"")+
-            '\nWystawił: '+esc(document.createdByUsername)+
+            (record.recipientEmail?'\nE-mail odbiorcy: '+esc(record.recipientEmail):"")+
+            (record.remarks?'\nUwagi: '+esc(record.remarks):"")+
+            '\nWystawił: '+esc(record.createdByUsername)+
             '</div>';
 
         $("document-preview").hidden=false;
-        $("document-preview").scrollIntoView({
-            behavior:"smooth",block:"start"
-        });
+        if(scroll){
+            $("document-preview").scrollIntoView({
+                behavior:"smooth",block:"start"
+            });
+        }
     }
+
+    let previousPrintTitle=null;
+
+    window.addEventListener("afterprint",()=>{
+        if(previousPrintTitle!==null){
+            dom.title=previousPrintTitle;
+            previousPrintTitle=null;
+        }
+    });
 
     $("print-document").onclick=()=>{
         if(!state.document)return;
-        const previousTitle=document.title;
-        document.title=state.document.documentNumber.replaceAll("/","-");
-        try{window.print();}
-        finally{document.title=previousTitle;}
+        if(previousPrintTitle===null)previousPrintTitle=dom.title;
+        dom.title=state.document.documentNumber.replaceAll("/","-");
+        try{
+            window.print();
+        }catch(error){
+            dom.title=previousPrintTitle;
+            previousPrintTitle=null;
+            message("Nie udało się otworzyć drukowania: "+error.message,true);
+        }
     };
 
     async function initialize(){
@@ -671,19 +790,32 @@
         $("users-link").hidden=!admin();
 
         const sales=await api("/api/sales");
-        $("recent-sales").innerHTML='<option value="">Wybierz z listy</option>'+
-            sales.map(sale=>
-                '<option value="'+sale.id+'">#'+sale.id+" · "+
-                esc(dateTime(sale.soldAt))+" · "+
-                esc(sale.createdByUsername||"Nieprzypisany")+
-                '</option>'
-            ).join("");
+        if(!Array.isArray(sales)){
+            throw new Error("Nieprawidłowa odpowiedź listy sprzedaży.");
+        }
 
-        if(admin())await loadIssuer();
+        const select=$("recent-sales");
+        select.replaceChildren();
+        const first=dom.createElement("option");
+        first.value="";
+        first.textContent=sales.length?"Wybierz z listy":"Brak sprzedaży";
+        select.append(first);
 
-        const saleId=Number(
-            new URL(location.href).searchParams.get("saleId")
-        );
+        for(const sale of sales){
+            const option=dom.createElement("option");
+            option.value=String(sale.id);
+            option.textContent="#"+sale.id+" · "+dateTime(sale.soldAt)+
+                " · "+(sale.createdByUsername||"Nieprzypisany")+
+                (sale.customerId?" · klient #"+sale.customerId:" · bez klienta");
+            select.append(option);
+        }
+
+        if(admin()){
+            try{await loadIssuer();}
+            catch(error){message(error.message,true);}
+        }
+
+        const saleId=Number(new URL(location.href).searchParams.get("saleId"));
         if(Number.isSafeInteger(saleId)&&saleId>0){
             await loadSale(saleId);
         }

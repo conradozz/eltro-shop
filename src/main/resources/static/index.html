@@ -14,6 +14,8 @@
         nav{display:flex;gap:5px;flex-wrap:wrap}
         nav button{border:0;background:transparent;color:#484e55}
         nav button.active{background:var(--red);color:white}
+        nav a{display:inline-flex;align-items:center;padding:10px 14px;border-radius:8px;text-decoration:none;color:#484e55;font:600 14px Arial,sans-serif}
+        nav a:hover{background:#fff3f3}
         .account{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
         .account span{font-size:13px;color:var(--muted)}
         a{color:var(--deep)}
@@ -96,6 +98,7 @@
         <button data-view="sales">Sprzedaż</button>
         <button data-view="orders">Zamówienia</button>
         <button data-view="stats">Statystyki</button>
+        <a href="/documents.html">Dokumenty</a>
     </nav>
     <div class="account">
         <span id="current-user">Wczytywanie konta…</span>
@@ -315,12 +318,14 @@
         $("message").className=error?"error":"";
         $("message").hidden=false;
     }
+
     function session(r){
         if(r.status===401||(r.redirected&&new URL(r.url).pathname==="/login")){
             location.assign("/login");
             throw new Error("Sesja wygasła. Zaloguj się ponownie.");
         }
     }
+
     async function csrf(){
         if(!csrfPromise)csrfPromise=fetch("/api/csrf",{credentials:"same-origin",cache:"no-store"})
             .then(async r=>{
@@ -332,6 +337,7 @@
             }).catch(e=>{csrfPromise=null;throw e;});
         return csrfPromise;
     }
+
     async function api(path,options={}){
         const method=(options.method||"GET").toUpperCase(),headers=new Headers(options.headers);
         headers.set("Accept","application/json");
@@ -352,30 +358,40 @@
         }
         return body;
     }
+
     const write=(path,method,data)=>api(path,{
         method,...(data===undefined?{}:{body:JSON.stringify(data)})
     });
+
     function safe(handler){
         return async event=>{
             try{await handler(event);}catch(e){message(e.message,true);}
         };
     }
+
     function requireAdmin(){
         if(!admin())throw new Error("Ta operacja wymaga administratora.");
     }
+
     function action(label,run){return {label,run};}
+
+    function openDocuments(saleId){
+        location.assign("/documents.html?saleId="+encodeURIComponent(saleId));
+    }
 
     function table(target,headers,rows){
         const wrap=document.createElement("div");
         wrap.className="table-wrap";
         const t=document.createElement("table"),head=document.createElement("thead");
         const tr=document.createElement("tr"),body=document.createElement("tbody");
+
         for(const h of headers){
             const th=document.createElement("th");
             th.textContent=h;
             tr.append(th);
         }
         head.append(tr);
+
         for(const values of rows){
             const row=document.createElement("tr");
             for(const value of values){
@@ -402,6 +418,7 @@
             }
             body.append(row);
         }
+
         if(!rows.length){
             const row=document.createElement("tr"),td=document.createElement("td");
             td.colSpan=headers.length;
@@ -424,9 +441,11 @@
         if(view==="orders"&&load)loadOrders().catch(e=>message(e.message,true));
         if(view==="stats")loadStats().catch(e=>message(e.message,true));
     }
+
     document.querySelectorAll("nav button").forEach(b=>{
         b.onclick=()=>show(b.dataset.view);
     });
+
     $("logout").onclick=safe(async()=>{
         await api("/logout",{method:"POST"});
         location.assign("/login?logout");
@@ -453,6 +472,7 @@
     function editor(target,title,fields,values,onSave){
         const box=$(target);
         box.hidden=false;
+
         const controls=fields.map(f=>{
             const value=esc(values[f.name]??"");
             let control;
@@ -465,10 +485,12 @@
             }
             return '<label class="'+(f.type==="textarea"?"full":"")+'" data-field="'+f.name+'">'+esc(f.label)+control+'</label>';
         }).join("");
+
         box.innerHTML='<form class="card"><h2>'+esc(title)+'</h2><div class="grid">'+controls+'</div><div class="actions"><button type="submit">Zapisz</button><button type="button" class="secondary" data-cancel>Anuluj</button></div></form>';
         const form=box.querySelector("form");
         if(form.elements.customerType)form.elements.customerType.value=values.customerType||"PERSON";
         form.querySelector("[data-cancel]").onclick=()=>{box.hidden=true;};
+
         form.onsubmit=safe(async e=>{
             e.preventDefault();
             const b=form.querySelector('[type="submit"]');
@@ -486,6 +508,7 @@
                 message("Zapisano zmiany.");
             }finally{b.disabled=false;}
         });
+
         box.scrollIntoView({behavior:"smooth",block:"start"});
         return form;
     }
@@ -516,6 +539,7 @@
                 return write(p?"/api/products/"+p.id+"/details":"/api/products",p?"PATCH":"POST",data);
             });
     }
+
     function editPrices(p){
         requireAdmin();
         editor("product-editor","Ceny: "+p.name,[
@@ -523,6 +547,7 @@
             field("salePriceNet","Cena sprzedaży netto","number",'min="0" step="0.01" required')
         ],p,data=>write("/api/products/"+p.id+"/prices","PATCH",data));
     }
+
     function renderProducts(){
         const q=$("product-search").value.toLocaleLowerCase("pl");
         table($("product-table"),["Produkt / SKU","Producent","Stan","Minimum","Cena netto","Akcje"],
@@ -531,14 +556,18 @@
                 const stock=document.createElement("span");
                 stock.textContent=p.quantity;
                 if(p.quantity<=p.minimumQuantity)stock.className="low";
+
                 const actions=admin()?[
                     action("Edytuj",()=>editProduct(p)),
                     action("Zmień ceny",()=>editPrices(p))
                 ]:[];
-                if(p.quantity<=p.minimumQuantity)actions.push(action("Zamów",()=>openOrder(null,p)));
+                if(p.quantity<=p.minimumQuantity){
+                    actions.push(action("Zamów",()=>openOrder(null,p)));
+                }
                 return [productName(p),p.manufacturer||"—",stock,p.minimumQuantity,money(p.salePriceNet),actions];
             }));
     }
+
     $("new-product").onclick=safe(()=>editProduct());
     $("product-search").oninput=renderProducts;
 
@@ -557,11 +586,13 @@
         field("discountPercent","Rabat (%)","number",'min="0" max="100" step="0.01" required'),
         field("remarks","Uwagi","textarea")
     ];
+
     function editCustomer(c=null){
         if(c)requireAdmin();
         const form=editor("customer-editor",c?"Edytuj klienta #"+c.id:"Nowy klient",
             customerFields,c||{customerType:"PERSON",discountPercent:0},
             data=>write(c?"/api/customers/"+c.id:"/api/customers",c?"PUT":"POST",data));
+
         function update(){
             const company=form.elements.customerType.value==="COMPANY";
             for(const name of ["companyName","nip","regon"]){
@@ -575,12 +606,14 @@
         form.elements.customerType.onchange=update;
         update();
     }
+
     function editDiscount(c){
         requireAdmin();
         editor("customer-editor","Rabat: "+customerName(c),[
             field("discountPercent","Rabat (%)","number",'min="0" max="100" step="0.01" required')
         ],c,data=>write("/api/customers/"+c.id+"/discount","PATCH",data));
     }
+
     function renderCustomers(){
         const q=$("customer-search").value.toLocaleLowerCase("pl");
         const rows=state.customers.filter(c=>[customerName(c),c.firstName,c.lastName,c.nip,c.city]
@@ -594,6 +627,7 @@
         });
         table($("customer-table"),["Klient","Kontakt","Miasto","NIP","Rabat","Akcje"],rows);
     }
+
     $("new-customer").onclick=()=>editCustomer();
     $("customer-search").oninput=renderCustomers;
 
@@ -603,15 +637,18 @@
         label.className="full";
         label.innerHTML='Wyszukaj produkt<input type="search" placeholder="Nazwa, SKU, producent lub model" autocomplete="off"><input type="hidden" name="productId"><div class="results" hidden></div>';
         form.querySelector(".grid").prepend(label);
+
         const input=label.querySelector('[type="search"]');
         const id=label.querySelector('[type="hidden"]');
         const results=label.querySelector(".results");
+
         function select(p){
             id.value=p.id;
             input.value=productName(p);
             results.hidden=true;
             onSelected(p);
         }
+
         input.oninput=()=>{
             id.value="";
             onSelected(null);
@@ -619,8 +656,10 @@
             const q=input.value.trim().toLocaleLowerCase("pl");
             results.hidden=!q;
             if(!q)return;
+
             const matches=state.products.filter(p=>[p.name,p.sku,p.manufacturer,p.model]
                 .join(" ").toLocaleLowerCase("pl").includes(q)).slice(0,40);
+
             for(const p of matches){
                 const b=document.createElement("button");
                 b.type="button";
@@ -632,12 +671,14 @@
         };
         return {select,input,id};
     }
+
     const deliveryFields=[
         field("quantity","Liczba sztuk","number",'min="1" step="1" required'),
         field("purchasePriceNet","Cena zakupu netto / szt.","number",'min="0" step="0.01" required'),
         field("markupPercent","Narzut (%)","number",'min="0" max="1000" step="0.01" required'),
         field("remarks","Uwagi","textarea")
     ];
+
     function newDelivery(){
         const form=editor("delivery-editor","Przyjęcie towaru",deliveryFields,
             {quantity:1,markupPercent:state.markup},async(data,f)=>{
@@ -645,10 +686,12 @@
                 if(!id)throw new Error("Wybierz produkt z wyników wyszukiwania.");
                 await write("/api/products/"+id+"/deliveries","POST",data);
             });
+
         const preview=document.createElement("p");
         preview.className="notice";
         form.querySelector(".grid").after(preview);
         let product=null;
+
         function update(){
             preview.textContent=product?
                 "Obecny stan: "+product.quantity+" szt. · Cena sprzedaży po dostawie: "+
@@ -656,6 +699,7 @@
                 " netto · Stan po dostawie: "+(product.quantity+Number(form.elements.quantity.value||0))+" szt.":
                 "Wybierz produkt, aby zobaczyć obecny stan.";
         }
+
         picker(form,p=>{
             product=p;
             if(p){
@@ -668,10 +712,12 @@
         form.querySelector("[data-cancel]").onclick=newDelivery;
         update();
     }
+
     function editDelivery(d){
         requireAdmin();
         const fields=deliveryFields.map(f=>["purchasePriceNet","markupPercent"].includes(f.name)?
             {...f,extra:f.extra.replace("required","")}:f);
+
         const form=editor("delivery-correction","Korekta dostawy #"+d.id+" — "+d.productName,
             fields,d,async data=>{
                 requireAdmin();
@@ -680,12 +726,14 @@
                 }
                 await write("/api/deliveries/"+d.id,"PUT",data);
             });
+
         const p=state.products.find(p=>p.id===d.productId);
         const notice=document.createElement("p");
         notice.className="notice";
         notice.textContent="Obecny stan produktu: "+(p?.quantity??"—")+" szt.";
         form.querySelector("h2").after(notice);
     }
+
     function renderDeliveries(){
         table($("delivery-table"),
             ["ID","Produkt","Sztuki","Zakup netto","Narzut","Sprzedaż netto","Data","Pracownik","Akcje"],
@@ -701,6 +749,7 @@
                 ]:[]
             ]));
     }
+
     $("refresh-deliveries").onclick=safe(refresh);
 
     // Sprzedaż — wyszukiwarka pokazująca stan magazynowy.
@@ -708,11 +757,13 @@
         const id=Number(line.dataset.productId);
         return id?state.products.find(p=>p.id===id):null;
     }
+
     function updateLineStock(line){
         const product=lineProduct(line);
         const stock=line.querySelector(".line-stock");
         if(!stock)return;
         stock.className="line-stock";
+
         if(!product){
             stock.textContent="Wybierz produkt";
             return;
@@ -729,14 +780,14 @@
             }
         }
     }
+
     function addLine(item=null){
         const line=document.createElement("div");
         line.className="sale-line";
         line.innerHTML=
             '<div class="sale-product-picker">'+
             '<label>Produkt<input class="line-product" type="search" autocomplete="off" required placeholder="Nazwa, SKU, producent lub model"></label>'+
-            '<div class="results line-results" hidden></div>'+
-            '</div>'+
+            '<div class="results line-results" hidden></div></div>'+
             '<label>Sztuki<input class="line-quantity" type="number" min="1" step="1" value="1" required><span class="line-stock">Wybierz produkt</span></label>'+
             '<label>Cena netto<input class="line-price" type="number" min="0" step="0.01" placeholder="Z cennika"></label>'+
             '<label>Rabat %<input class="line-discount" type="number" min="0" max="100" step="0.01" placeholder="Klienta"></label>'+
@@ -761,6 +812,7 @@
                 results.hidden=true;
                 return;
             }
+
             const matches=state.products.filter(product=>
                 [product.name,product.sku,product.manufacturer,product.model,product.category]
                     .join(" ").toLocaleLowerCase("pl").includes(query)
@@ -854,16 +906,20 @@
             updateLineStock(line);
             salePreview();
         });
+
         $("sale-lines").append(line);
         updateLineStock(line);
         salePreview();
     }
+
     function salePreview(){
         const customer=state.customers.find(c=>c.id===Number($("sale-customer").value));
         let net=0,gross=0;
+
         for(const line of $("sale-lines").children){
             const product=lineProduct(line);
             if(!product)continue;
+
             const price=num(line.querySelector(".line-price").value)??Number(product.salePriceNet);
             const discount=num(line.querySelector(".line-discount").value)??Number(customer?.discountPercent??0);
             const quantity=Number(line.querySelector(".line-quantity").value);
@@ -873,11 +929,13 @@
         }
         $("sale-preview").textContent="Podgląd koszyka: "+money(net)+" netto / "+money(gross)+" brutto";
     }
+
     async function openSale(id=null){
         if($("save-sale").disabled)return;
         if(id)requireAdmin();
         await refresh();
         const sale=id?await api("/api/sales/"+id):null;
+
         state.saleId=id;
         $("sale-title").textContent=id?"Korekta sprzedaży #"+id:"Nowa sprzedaż";
         $("save-sale").textContent=id?"Zapisz korektę":"Zapisz sprzedaż";
@@ -890,6 +948,7 @@
         $("sale-form").hidden=false;
         $("sale-form").scrollIntoView({behavior:"smooth",block:"start"});
     }
+
     $("new-sale").onclick=safe(()=>openSale());
     $("add-line").onclick=()=>{
         if(!$("save-sale").disabled)addLine();
@@ -904,7 +963,6 @@
     $("sale-form").onsubmit=safe(async event=>{
         event.preventDefault();
         if($("save-sale").disabled)return;
-
         const saleId=state.saleId;
         if(saleId)requireAdmin();
 
@@ -939,7 +997,6 @@
         try{
             if(!saleId){
                 const availability=await write("/api/sales?preview=true","POST",request);
-
                 if(!availability.canSellAnything){
                     message("Żaden produkt z koszyka nie jest dostępny. Sprzedaż nie została zapisana.",true);
                     return;
@@ -967,7 +1024,6 @@
                         return;
                     }
                 }
-
                 request=availability.availableRequest;
             }
 
@@ -995,8 +1051,10 @@
         show("sales");
         const box=$("sale-details");
         box.hidden=false;
-        box.innerHTML='<div class="toolbar"><h2>Sprzedaż #'+sale.id+'</h2><button class="secondary" data-close>Zamknij</button></div><pre></pre>';
+        box.innerHTML='<div class="toolbar"><h2>Sprzedaż #'+sale.id+'</h2><div class="actions"><button type="button" data-documents>Faktura / dokumenty</button><button type="button" class="secondary" data-close>Zamknij</button></div></div><pre></pre>';
         box.querySelector("[data-close]").onclick=()=>{box.hidden=true;};
+        box.querySelector("[data-documents]").onclick=()=>openDocuments(sale.id);
+
         box.querySelector("pre").textContent=
             "Data: "+dateTime(sale.soldAt)+
             "\nPracownik: "+(sale.createdByUsername||"Nieprzypisana")+
@@ -1011,9 +1069,13 @@
             "\nUwagi: "+(sale.remarks||"—");
         box.scrollIntoView({behavior:"smooth",block:"start"});
     }
+
     function renderSales(){
         const rows=state.sales.map(sale=>{
-            const actions=[action("Szczegóły",()=>showSale(sale.id))];
+            const actions=[
+                action("Szczegóły",()=>showSale(sale.id)),
+                action("Faktura / dokumenty",()=>openDocuments(sale.id))
+            ];
             if(admin())actions.push(action("Edytuj",()=>openSale(sale.id)));
             return [sale.id,dateTime(sale.soldAt),
                 customerName(state.customers.find(c=>c.id===sale.customerId)),
@@ -1029,21 +1091,25 @@
         ]);
         state.products=products;
         state.orders=orders;
+
         const select=$("order-manufacturer"),previous=select.value;
         const values=[...new Set([
             ...products.map(p=>manufacturer(p.manufacturer)),
             ...orders.map(o=>manufacturer(o.manufacturer))
         ])].sort((a,b)=>a.localeCompare(b,"pl"));
+
         select.innerHTML='<option value="">Wszyscy producenci</option>'+
             values.map(value=>'<option value="'+esc(value)+'">'+esc(value)+'</option>').join("");
         if(values.includes(previous))select.value=previous;
         renderOrders();
         renderProducts();
     }
+
     function orderSort(a,b){
         return manufacturer(a.manufacturer).localeCompare(manufacturer(b.manufacturer),"pl")||
             (a.productName||a.name).localeCompare(b.productName||b.name,"pl");
     }
+
     function filteredOrders(){
         const producer=$("order-manufacturer").value,status=$("order-status").value;
         const query=$("order-search").value.toLocaleLowerCase("pl");
@@ -1054,6 +1120,7 @@
                 .join(" ").toLocaleLowerCase("pl").includes(query)
         ).sort(orderSort);
     }
+
     function renderOrders(){
         const producer=$("order-manufacturer").value;
         const query=$("recommendation-search").value.toLocaleLowerCase("pl");
@@ -1063,6 +1130,7 @@
             [product.name,product.sku,product.manufacturer]
                 .join(" ").toLocaleLowerCase("pl").includes(query)
         ).sort(orderSort);
+
         $("recommendation-summary").textContent="Produktów wymagających uzupełnienia: "+recommended.length;
         table($("recommendation-table"),
             ["Producent","Produkt / SKU","Stan","Minimum","W zamówieniach","Akcje"],
@@ -1071,16 +1139,19 @@
                 product.quantity,product.minimumQuantity,pending(product.id),
                 [action(pending(product.id)>0?"Zamów dodatkowo":"Zamów",()=>openOrder(null,product))]
             ]));
+
         const orders=filteredOrders();
         $("order-summary").textContent="Pozycji: "+orders.length+" · Do przyjęcia: "+
             orders.filter(active).reduce((sum,order)=>sum+order.quantity-order.receivedQuantity,0)+" szt.";
         $("print-orders").disabled=!orders.length;
+
         table($("order-table"),
             ["Producent","Produkt / SKU","Zamówiono / przyjęto","Stan","Status","Autor / data","Uwagi","Akcje"],
             orders.map(order=>{
                 const badge=document.createElement("span");
                 badge.className="badge "+order.status;
                 badge.textContent=statuses[order.status]||order.status;
+
                 const actions=[action("Historia",()=>orderHistory(order))];
                 if(order.status==="TO_ORDER"){
                     actions.unshift(
@@ -1098,9 +1169,11 @@
                 ];
             }));
     }
+
     async function openOrder(order=null,product=null){
         show("orders",false);
         await loadOrders();
+
         const form=editor("order-editor",
             order?"Edytuj zamówienie #"+order.id:"Dodaj produkt do zamówienia",[
                 field("quantity","Liczba sztuk","number",'min="1" max="2147483647" step="1" required'),
@@ -1112,6 +1185,7 @@
                     order?"PUT":"POST",{...data,productId:id});
                 await loadOrders();
             });
+
         const info=document.createElement("p");
         info.className="notice";
         form.querySelector(".grid").after(info);
@@ -1120,6 +1194,7 @@
                 "Stan: "+p.quantity+" szt. · Minimum: "+p.minimumQuantity+
                 " · W aktywnych zamówieniach: "+pending(p.id)+" szt.":"Wybierz produkt.";
         });
+
         if(order){
             const p=state.products.find(p=>p.id===order.productId);
             if(p)pick.select(p);
@@ -1130,20 +1205,24 @@
         }
         form.elements.quantity.focus();
     }
+
     async function orderStatus(order,operation){
         if(!confirm(operation==="ordered"?
             "Czy zamówienie zostało przekazane producentowi?":"Anulować to zamówienie?"))return;
+
         await write("/api/purchase-orders/"+order.id+"/"+operation,"PATCH");
         $("order-editor").hidden=true;
         await loadOrders();
         message("Status zamówienia zapisany.");
     }
+
     async function orderHistory(order){
         const events=await api("/api/purchase-orders/"+order.id+"/history");
         const box=$("order-history");
         box.hidden=false;
         box.innerHTML='<div class="toolbar"><h2>Historia #'+order.id+' — '+esc(order.productName)+'</h2><button class="secondary">Zamknij</button></div><div data-table></div>';
         box.querySelector("button").onclick=()=>{box.hidden=true;};
+
         const names={
             CREATED:"Utworzono",UPDATED:"Zmieniono dane",ORDERED:"Zamówiono",
             CANCELLED:"Anulowano",DELIVERY_RECEIVED:"Przyjęto dostawę",
@@ -1159,6 +1238,7 @@
             ]));
         box.scrollIntoView({behavior:"smooth",block:"start"});
     }
+
     $("new-order").onclick=safe(()=>openOrder());
     $("refresh-orders").onclick=safe(loadOrders);
     for(const id of ["order-manufacturer","order-status","order-search","recommendation-search"]){
@@ -1173,6 +1253,7 @@
         const part=type=>parts.find(p=>p.type===type).value;
         return part("year")+"-"+part("month")+"-"+part("day");
     }
+
     function choosePeriod(period){
         const today=polishToday();
         $("report-to").value=today;
@@ -1181,21 +1262,25 @@
         $("report-group").value=period==="year"?"MONTH":"DAY";
         invalidateReport();
     }
+
     function scopeQuery(){
         return admin()&&$("report-user").value?
             "userId="+encodeURIComponent($("report-user").value):"";
     }
+
     function scopeLabel(){
         return admin()?(
             $("report-user").value?$("report-user").selectedOptions[0].textContent:"Cały sklep"
         ):"Moja sprzedaż — "+state.user.username;
     }
+
     function invalidateReport(){
         state.report=null;
         state.sequence++;
         $("print-report").disabled=true;
         $("report-results").hidden=true;
     }
+
     async function loadStats(){
         if(!state.usersLoaded){
             $("report-user-label").hidden=!admin();
@@ -1210,10 +1295,12 @@
         await updateDashboard();
         await runReport();
     }
+
     async function updateDashboard(){
         const query=scopeQuery();
         const data=await api("/api/reports/sales/dashboard"+(query?"?"+query:""));
         if(query!==scopeQuery())return;
+
         $("stats-scope").textContent=scopeLabel()+" · Data w sklepie: "+data.date;
         for(const key of ["today","month"]){
             const total=data[key];
@@ -1222,40 +1309,52 @@
                 total.saleCount+" transakcji · "+money(total.totalNet)+" netto";
         }
     }
+
     function totalText(total){
         return total.saleCount+" transakcji · "+total.quantity+" szt. · "+
             money(total.totalNet)+" netto · "+money(total.totalGross)+" brutto";
     }
+
     function totalRow(label,total){
         return [label,total.saleCount,total.quantity,money(total.totalNet),money(total.totalGross)];
     }
+
     async function runReport(){
         const from=$("report-from").value,to=$("report-to").value;
         if(!from||!to||from>to)throw new Error("Podaj prawidłowy zakres dat.");
         invalidateReport();
+
         const sequence=state.sequence,scope=scopeLabel();
         const query=new URLSearchParams({from,to,grouping:$("report-group").value});
         if(admin()&&$("report-user").value)query.set("userId",$("report-user").value);
         const data=await api("/api/reports/sales?"+query);
         if(sequence!==state.sequence)return;
+
         state.report={data,scope};
         $("report-results").hidden=false;
         $("print-report").disabled=false;
         $("report-title").textContent=scope+" · "+data.from+" — "+data.to;
         $("report-total").textContent=totalText(data.totals);
+
         table($("report-period-table"),["Okres","Transakcje","Sztuki","Netto","Brutto"],
             data.periods.map(period=>totalRow(period.period,period.totals)));
+
         $("report-employees-card").hidden=!admin();
         table($("report-employee-table"),["Pracownik","Transakcje","Sztuki","Netto","Brutto"],
             data.employees.map(employee=>totalRow(employee.username||"Nieprzypisana (starsze dane)",employee.totals)));
+
         table($("report-sale-table"),
             ["ID","Data","Pracownik","Sztuki","Netto","Brutto","Uwagi","Akcje"],
             data.sales.map(sale=>[
                 sale.id,dateTime(sale.soldAt),sale.username||"Nieprzypisana",sale.quantity,
                 money(sale.totalNet),money(sale.totalGross),sale.remarks,
-                [action("Szczegóły",()=>showSale(sale.id))]
+                [
+                    action("Szczegóły",()=>showSale(sale.id)),
+                    action("Faktura / dokumenty",()=>openDocuments(sale.id))
+                ]
             ]));
     }
+
     $("report-form").onsubmit=safe(async event=>{
         event.preventDefault();
         await runReport();
@@ -1282,6 +1381,7 @@
         sheet.innerHTML='<img src="/eltro-logo.png" alt="Eltro"><h1>'+esc(title)+
             '</h1><p>'+esc(description)+'</p><p>Wydruk: '+
             esc(dateTime(new Date().toISOString()))+'</p>';
+
         for(const section of sections){
             const box=document.createElement("div"),heading=document.createElement("h2");
             const target=document.createElement("div");
@@ -1293,9 +1393,11 @@
         document.body.classList.add("printing");
         try{window.print();}finally{document.body.classList.remove("printing");}
     }
+
     $("print-orders").onclick=()=>{
         const orders=filteredOrders();
         if(!orders.length)return;
+
         printDocument("Zamówienia towaru",
             "Producent: "+($("order-manufacturer").value||"Wszyscy")+
             " · Status: "+$("order-status").selectedOptions[0].textContent+
@@ -1310,6 +1412,7 @@
                 }
             ]);
     };
+
     $("print-report").onclick=()=>{
         if(!state.report)return;
         const {data,scope}=state.report;
@@ -1318,11 +1421,13 @@
             headers:["Okres","Transakcje","Sztuki","Netto","Brutto"],
             rows:data.periods.map(period=>totalRow(period.period,period.totals))
         }];
+
         if(admin())sections.push({
             title:"Pracownicy",
             headers:["Pracownik","Transakcje","Sztuki","Netto","Brutto"],
             rows:data.employees.map(employee=>totalRow(employee.username||"Nieprzypisana",employee.totals))
         });
+
         sections.push({
             title:"Historia sprzedaży",
             headers:["ID","Data","Pracownik","Sztuki","Netto","Brutto","Uwagi"],
@@ -1331,6 +1436,7 @@
                 money(sale.totalNet),money(sale.totalGross),sale.remarks
             ])
         });
+
         printDocument("Raport sprzedaży",
             scope+" · "+data.from+" — "+data.to+" · "+totalText(data.totals),sections);
     };
@@ -1343,11 +1449,13 @@
         $("new-product").hidden=!admin();
         await refresh();
         newDelivery();
+
         const view=new URL(location.href).searchParams.get("view");
         if(["products","customers","deliveries","sales","orders","stats"].includes(view)){
             show(view);
         }
     }
+
     initialize().catch(error=>message(error.message,true));
 </script>
 </body>
