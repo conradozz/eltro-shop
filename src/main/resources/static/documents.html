@@ -1,0 +1,695 @@
+<!doctype html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Eltro — dokumenty sprzedaży</title>
+    <style>
+        :root{--red:#d90000;--deep:#a90000;--ink:#24272b;--muted:#687078;--line:#e6e8eb;--bg:#f4f5f7}
+        *{box-sizing:border-box}
+        [hidden]{display:none!important}
+        body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Arial,sans-serif}
+        header{position:sticky;top:0;z-index:20;display:flex;align-items:center;flex-wrap:wrap;gap:18px;padding:13px max(24px,calc((100vw - 1280px)/2));background:white;border-bottom:1px solid var(--line)}
+        header img{width:150px}
+        nav{display:flex;gap:5px;flex-wrap:wrap}
+        nav a{padding:10px 14px;border-radius:8px;text-decoration:none;color:#484e55;font-weight:600;font-size:14px}
+        nav a.active{background:var(--red);color:white}
+        .account{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+        .account span{font-size:13px;color:var(--muted)}
+        a{color:var(--deep)}
+        main{max-width:1280px;margin:auto;padding:32px 24px 80px}
+        h1{font-size:29px;margin:0}
+        h2{font-size:20px;margin:0 0 18px}
+        h3{font-size:15px;margin:0 0 8px}
+        .toolbar{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:22px}
+        .card{padding:24px;margin-bottom:22px;background:white;border:1px solid var(--line);border-radius:14px;box-shadow:0 7px 28px #2028330a}
+        .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+        .full{grid-column:1/-1}
+        label{display:block;font-size:13px;font-weight:bold}
+        input,select,textarea{display:block;width:100%;margin-top:7px;padding:11px 12px;border:1px solid #cfd4da;border-radius:8px;font:inherit;background:white;color:var(--ink)}
+        input:focus,select:focus,textarea:focus{outline:2px solid #d9000033;border-color:var(--red)}
+        textarea{min-height:80px}
+        button{padding:10px 14px;border:1px solid var(--red);border-radius:8px;background:var(--red);color:white;font:600 14px Arial,sans-serif;cursor:pointer}
+        button.secondary{background:white;color:var(--deep);border-color:#e5b5b5}
+        button:disabled{opacity:.55;cursor:wait}
+        .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+        .muted{color:var(--muted)}
+        .notice{background:#f8f9fa;padding:12px;border-radius:8px}
+        #message{position:sticky;top:100px;z-index:30;box-shadow:0 4px 16px #20283320;background:#e9f6ed;border-left:4px solid #27833c;padding:13px;border-radius:8px}
+        #message.error{background:#fff0ee;border-color:var(--red)}
+        .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:10px}
+        table{width:100%;border-collapse:collapse}
+        th,td{padding:11px;text-align:left;border-bottom:1px solid var(--line);font-size:13px}
+        th{background:#f8f9fa;color:var(--muted);font-size:11px;text-transform:uppercase}
+        td button{margin:3px}
+        summary{font-weight:bold;cursor:pointer}
+        details[open] summary{margin-bottom:20px}
+        .document{border-top:4px solid var(--red)}
+        .document-heading{display:flex;justify-content:space-between;gap:20px;align-items:start;margin-bottom:26px}
+        .document-heading img{width:170px}
+        .document-heading h2{margin-bottom:4px}
+        .party{padding:16px;border:1px solid var(--line);border-radius:8px}
+        .party p{margin:4px 0;white-space:pre-line}
+        .document-meta{display:flex;gap:24px;flex-wrap:wrap;margin:22px 0}
+        .document-total{text-align:right;font-size:20px;font-weight:bold}
+        .document-total small{display:block;font-size:14px;font-weight:normal;color:var(--muted)}
+        .document-footer{margin-top:24px;padding-top:16px;border-top:1px solid var(--line);white-space:pre-line}
+        @media(max-width:800px){
+            header{position:static;padding:15px}
+            .account{margin-left:0}
+            main{padding:24px 14px}
+            .grid{grid-template-columns:1fr}
+            .card{padding:18px}
+            .document-heading{flex-direction:column}
+        }
+        @media print{
+            body{background:white}
+            body>header,#message,.screen-only{display:none!important}
+            main{max-width:none;padding:0}
+            main> :not(#document-preview){display:none!important}
+            #document-preview{display:block!important;border:0;box-shadow:none;padding:10px;margin:0}
+            .table-wrap{overflow:visible;border-radius:0}
+            th,td{font-size:10px;padding:7px}
+            tr{break-inside:avoid}
+            .party{break-inside:avoid}
+            .document-total,.document-footer{break-inside:avoid}
+        }
+    </style>
+</head>
+<body>
+<header>
+    <img src="/eltro-logo.png" alt="Eltro">
+    <nav>
+        <a href="/?view=products">Produkty</a>
+        <a href="/?view=customers">Klienci</a>
+        <a href="/?view=deliveries">Dostawy</a>
+        <a href="/?view=sales">Sprzedaż</a>
+        <a href="/?view=orders">Zamówienia</a>
+        <a href="/?view=stats">Statystyki</a>
+        <a href="/documents.html" class="active">Dokumenty</a>
+    </nav>
+    <div class="account">
+        <span id="current-user">Wczytywanie…</span>
+        <a id="users-link" href="/users.html" hidden>Użytkownicy</a>
+        <button id="logout" class="secondary">Wyloguj</button>
+    </div>
+</header>
+
+<main>
+    <div class="toolbar screen-only">
+        <h1>Dokumenty sprzedaży</h1>
+        <a href="/?view=sales">← Wróć do sprzedaży</a>
+    </div>
+
+    <p id="message" hidden role="status"></p>
+
+    <details id="issuer-card" class="card screen-only" hidden>
+        <summary>Dane wystawcy — ustawienia administratora</summary>
+        <form id="issuer-form">
+            <div class="grid">
+                <label>Nazwa firmy
+                    <input name="companyName" maxlength="200" required>
+                </label>
+                <label>NIP
+                    <input name="nip" maxlength="10" pattern="[0-9]{10}">
+                </label>
+                <label>Ulica i numer
+                    <input name="street" maxlength="200">
+                </label>
+                <label>Kod pocztowy
+                    <input name="postalCode" maxlength="10">
+                </label>
+                <label>Miasto
+                    <input name="city" maxlength="100">
+                </label>
+                <label>E-mail firmy
+                    <input name="email" type="email" maxlength="200">
+                </label>
+                <label>Telefon
+                    <input name="phone" maxlength="30">
+                </label>
+                <label>Konto bankowe
+                    <input name="bankAccount" maxlength="50" placeholder="Numer konta lub IBAN">
+                </label>
+            </div>
+            <p class="muted">Zmiana tych danych dotyczy nowych dokumentów. Wystawione dokumenty zachowują własną kopię danych.</p>
+            <button type="submit">Zapisz dane wystawcy</button>
+        </form>
+    </details>
+
+    <form id="sale-select-form" class="card screen-only">
+        <h2>Wybierz sprzedaż</h2>
+        <div class="grid">
+            <label>Ostatnie sprzedaże
+                <select id="recent-sales">
+                    <option value="">Wybierz z listy</option>
+                </select>
+            </label>
+            <label>Numer ID sprzedaży
+                <input id="sale-id" type="number" min="1" step="1" required>
+            </label>
+        </div>
+        <div class="actions">
+            <button type="submit">Wczytaj sprzedaż</button>
+        </div>
+    </form>
+
+    <section id="sale-card" class="card screen-only" hidden>
+        <h2 id="sale-title"></h2>
+        <p id="sale-description"></p>
+        <p id="sale-total" class="notice"></p>
+        <h3>Wystawione dokumenty</h3>
+        <div id="existing-documents"></div>
+    </section>
+
+    <form id="document-form" class="card screen-only" hidden>
+        <h2>Wystaw dokument</h2>
+        <div class="grid">
+            <label>Rodzaj dokumentu
+                <select id="document-type">
+                    <option value="SALE_CONFIRMATION">Potwierdzenie sprzedaży</option>
+                    <option value="INVOICE">Faktura</option>
+                </select>
+            </label>
+            <label>Status płatności
+                <select id="payment-status">
+                    <option value="PAID">Zapłacono</option>
+                    <option value="DEFERRED">Płatność odroczona</option>
+                    <option value="UNPAID">Niezapłacono</option>
+                </select>
+            </label>
+            <label>Sposób płatności
+                <select id="payment-method">
+                    <option value="CASH">Gotówka</option>
+                    <option value="CARD">Karta</option>
+                    <option value="TRANSFER">Przelew</option>
+                    <option value="OTHER">Inny</option>
+                </select>
+            </label>
+            <label id="due-label" hidden>Termin płatności
+                <input id="payment-due" type="date">
+            </label>
+            <label>Towar wydano
+                <select id="goods-issued">
+                    <option value="true">Tak</option>
+                    <option value="false">Nie</option>
+                </select>
+            </label>
+            <label>E-mail odbiorcy
+                <input id="recipient-email" type="email" maxlength="200">
+            </label>
+            <label class="full">Uwagi do dokumentu
+                <textarea id="document-remarks" maxlength="2000"></textarea>
+            </label>
+        </div>
+        <p class="muted">Dokument otrzyma numer po wystawieniu. Od tego momentu zwykła edycja sprzedaży będzie zablokowana.</p>
+        <div class="actions">
+            <button type="submit" id="issue-document">Wystaw dokument</button>
+        </div>
+    </form>
+
+    <section id="document-preview" class="card document" hidden>
+        <div class="toolbar screen-only">
+            <h2>Podgląd wystawionego dokumentu</h2>
+            <button id="print-document">Drukuj / zapisz PDF</button>
+        </div>
+        <div id="document-content"></div>
+    </section>
+</main>
+
+<script>
+    "use strict";
+
+    const $=id=>document.getElementById(id);
+    const state={user:null,sale:null,customer:null,documents:[],document:null};
+    const admin=()=>state.user?.roles.includes("ADMIN")===true;
+    const esc=value=>String(value??"")
+        .replace(/&/g,"&amp;").replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;").replace(/"/g,"&quot;")
+        .replace(/'/g,"&#39;");
+    const optional=value=>String(value??"").trim()||null;
+    const money=value=>Number(value??0).toLocaleString("pl-PL",{
+        style:"currency",currency:"PLN"
+    });
+    const dateTime=value=>value?new Date(value).toLocaleString("pl-PL",{
+        timeZone:"Europe/Warsaw"
+    }):"—";
+    const customerName=customer=>customer?
+        (customer.customerType==="COMPANY"?customer.companyName:
+            [customer.firstName,customer.lastName].filter(Boolean).join(" ")):
+        "Bez przypisanego klienta";
+    const documentTypes={
+        INVOICE:"Faktura",
+        SALE_CONFIRMATION:"Potwierdzenie sprzedaży"
+    };
+    const paymentStatuses={
+        PAID:"Zapłacono",
+        DEFERRED:"Płatność odroczona",
+        UNPAID:"Niezapłacono"
+    };
+    const paymentMethods={
+        CASH:"Gotówka",CARD:"Karta",TRANSFER:"Przelew",OTHER:"Inny"
+    };
+
+    let csrfPromise;
+
+    function message(text,error=false){
+        $("message").textContent=text;
+        $("message").className=error?"error":"";
+        $("message").hidden=false;
+        if(error)$("message").scrollIntoView({
+            behavior:"smooth",block:"center"
+        });
+    }
+
+    function safe(handler){
+        return async event=>{
+            try{await handler(event);}
+            catch(error){message(error.message,true);}
+        };
+    }
+
+    function checkSession(response){
+        if(response.status===401||
+            (response.redirected&&new URL(response.url).pathname==="/login")){
+            location.assign("/login");
+            throw new Error("Sesja wygasła. Zaloguj się ponownie.");
+        }
+    }
+
+    async function csrf(){
+        if(!csrfPromise){
+            csrfPromise=fetch("/api/csrf",{
+                credentials:"same-origin",cache:"no-store"
+            }).then(async response=>{
+                checkSession(response);
+                if(!response.ok)throw new Error("Nie udało się pobrać tokenu CSRF.");
+                const result=await response.json();
+                if(!result.headerName||!result.token){
+                    throw new Error("Nieprawidłowy token CSRF.");
+                }
+                return result;
+            }).catch(error=>{
+                csrfPromise=null;
+                throw error;
+            });
+        }
+        return csrfPromise;
+    }
+
+    async function api(path,options={}){
+        const method=(options.method||"GET").toUpperCase();
+        const headers=new Headers(options.headers);
+        headers.set("Accept","application/json");
+        if(options.body!=null)headers.set("Content-Type","application/json");
+        if(!["GET","HEAD","OPTIONS"].includes(method)){
+            const token=await csrf();
+            headers.set(token.headerName,token.token);
+        }
+        const response=await fetch(path,{
+            ...options,method,headers,
+            credentials:"same-origin",cache:"no-store"
+        });
+        checkSession(response);
+        const body=await response.json().catch(()=>null);
+        if(!response.ok){
+            if(response.status===403){
+                csrfPromise=null;
+                throw new Error("Brak uprawnień lub wygasły token CSRF. Odśwież stronę.");
+            }
+            throw new Error(body?.error||body?.message||"Błąd HTTP "+response.status);
+        }
+        return body;
+    }
+
+    const write=(path,method,data)=>api(path,{
+        method,body:JSON.stringify(data)
+    });
+
+    function polishToday(){
+        const parts=new Intl.DateTimeFormat("en-CA",{
+            timeZone:"Europe/Warsaw",year:"numeric",month:"2-digit",day:"2-digit"
+        }).formatToParts(new Date());
+        const part=type=>parts.find(p=>p.type===type).value;
+        return part("year")+"-"+part("month")+"-"+part("day");
+    }
+
+    $("logout").onclick=safe(async()=>{
+        await api("/logout",{method:"POST"});
+        location.assign("/login?logout");
+    });
+
+    async function loadIssuer(){
+        const settings=await api("/api/document-issuer");
+        const form=$("issuer-form");
+        for(const name of [
+            "companyName","nip","street","postalCode",
+            "city","email","phone","bankAccount"
+        ]){
+            form.elements[name].value=settings[name]??"";
+        }
+        $("issuer-card").hidden=false;
+        if(!settings.companyName)$("issuer-card").open=true;
+    }
+
+    $("issuer-form").onsubmit=safe(async event=>{
+        event.preventDefault();
+        const form=$("issuer-form");
+        const button=form.querySelector('[type="submit"]');
+        const settings={};
+        for(const name of [
+            "companyName","nip","street","postalCode",
+            "city","email","phone","bankAccount"
+        ]){
+            settings[name]=optional(form.elements[name].value);
+        }
+        button.disabled=true;
+        try{
+            await write("/api/document-issuer","PUT",settings);
+            message("Zapisano dane wystawcy.");
+            await loadIssuer();
+        }finally{button.disabled=false;}
+    });
+
+    $("recent-sales").onchange=()=>{
+        if($("recent-sales").value){
+            $("sale-id").value=$("recent-sales").value;
+        }
+    };
+
+    $("sale-select-form").onsubmit=safe(async event=>{
+        event.preventDefault();
+        const id=Number($("sale-id").value);
+        if(!Number.isSafeInteger(id)||id<1){
+            throw new Error("Podaj poprawny numer ID sprzedaży.");
+        }
+        const button=$("sale-select-form").querySelector('[type="submit"]');
+        button.disabled=true;
+        try{await loadSale(id);}
+        finally{button.disabled=false;}
+    });
+
+    async function loadSale(id){
+        $("document-form").hidden=true;
+        $("sale-card").hidden=true;
+        $("document-preview").hidden=true;
+        state.document=null;
+        state.sale=null;
+        state.customer=null;
+
+        const sale=await api("/api/sales/"+id);
+        const customer=sale.customerId?
+            await api("/api/customers/"+sale.customerId):null;
+        const documents=await api("/api/sales/"+id+"/documents");
+
+        state.sale=sale;
+        state.customer=customer;
+        state.documents=documents;
+
+        $("sale-id").value=id;
+        $("sale-title").textContent="Sprzedaż #"+sale.id;
+        $("sale-description").textContent=
+            customerName(customer)+" · "+dateTime(sale.soldAt)+
+            " · Pracownik: "+(sale.createdByUsername||"Nieprzypisany");
+        $("sale-total").textContent=
+            money(sale.totalNet)+" netto / "+money(sale.totalGross)+" brutto";
+
+        $("recipient-email").value=customer?.email??"";
+        $("document-remarks").value="";
+        $("payment-status").value="PAID";
+        $("payment-method").value="CASH";
+        $("goods-issued").value="true";
+        $("payment-due").value="";
+        updatePaymentFields();
+        renderExistingDocuments();
+        updateDocumentTypes();
+
+        $("sale-card").hidden=false;
+
+        const url=new URL(location.href);
+        url.searchParams.set("saleId",id);
+        history.replaceState(null,"",url);
+
+        if(documents.length)showDocument(documents[0]);
+    }
+
+    function updateDocumentTypes(){
+        const select=$("document-type");
+        const previous=select.value;
+        select.replaceChildren();
+
+        for(const [type,label] of Object.entries(documentTypes)){
+            if(state.documents.some(document=>document.documentType===type))continue;
+            const option=window.document.createElement("option");
+            option.value=type;
+            option.textContent=label;
+            select.append(option);
+        }
+
+        if([...select.options].some(option=>option.value===previous)){
+            select.value=previous;
+        }
+        $("document-form").hidden=select.options.length===0;
+    }
+
+    function updatePaymentFields(){
+        const deferred=$("payment-status").value==="DEFERRED";
+        $("due-label").hidden=!deferred;
+        $("payment-due").required=deferred;
+        $("payment-due").disabled=!deferred;
+        $("payment-due").min=polishToday();
+        if(!deferred)$("payment-due").value="";
+    }
+
+    $("payment-status").onchange=updatePaymentFields;
+
+    function renderExistingDocuments(){
+        const container=$("existing-documents");
+        container.replaceChildren();
+        if(!state.documents.length){
+            const text=window.document.createElement("p");
+            text.className="muted";
+            text.textContent="Nie wystawiono jeszcze dokumentów.";
+            container.append(text);
+            return;
+        }
+
+        const wrap=window.document.createElement("div");
+        wrap.className="table-wrap";
+        const table=window.document.createElement("table");
+        table.innerHTML=
+            "<thead><tr><th>Numer</th><th>Rodzaj</th><th>Data</th>"+
+            "<th>Płatność</th><th>Towar wydano</th><th>Akcje</th></tr></thead>";
+        const body=window.document.createElement("tbody");
+
+        for(const document of state.documents){
+            const row=window.document.createElement("tr");
+            const values=[
+                document.documentNumber,
+                documentTypes[document.documentType],
+                document.issuedOn,
+                paymentStatuses[document.paymentStatus],
+                document.goodsIssued?"Tak":"Nie"
+            ];
+            for(const value of values){
+                const cell=window.document.createElement("td");
+                cell.textContent=value;
+                row.append(cell);
+            }
+            const cell=window.document.createElement("td");
+            const button=window.document.createElement("button");
+            button.type="button";
+            button.className="secondary";
+            button.textContent="Podgląd";
+            button.onclick=()=>showDocument(document);
+            cell.append(button);
+            row.append(cell);
+            body.append(row);
+        }
+        table.append(body);
+        wrap.append(table);
+        container.append(wrap);
+    }
+
+    $("document-form").onsubmit=safe(async event=>{
+        event.preventDefault();
+        if(!state.sale)throw new Error("Najpierw wczytaj sprzedaż.");
+
+        const saleId=state.sale.id;
+        const request={
+            documentType:$("document-type").value,
+            paymentStatus:$("payment-status").value,
+            paymentMethod:$("payment-method").value,
+            paymentDueOn:$("payment-status").value==="DEFERRED"?
+                $("payment-due").value:null,
+            goodsIssued:$("goods-issued").value==="true",
+            recipientEmail:optional($("recipient-email").value),
+            remarks:optional($("document-remarks").value)
+        };
+
+        if(!confirm(
+            "Wystawić dokument dla sprzedaży #"+saleId+"?\n"+
+            "Sprzedaż zostanie zablokowana przed zwykłą edycją."
+        ))return;
+
+        const button=$("issue-document");
+        const selectButton=$("sale-select-form").querySelector('[type="submit"]');
+        button.disabled=true;
+        selectButton.disabled=true;
+
+        try{
+            const document=await write(
+                "/api/sales/"+saleId+"/documents","POST",request
+            );
+            await loadSale(saleId);
+            showDocument(document);
+            message("Wystawiono dokument "+document.documentNumber+".");
+        }finally{
+            button.disabled=false;
+            selectButton.disabled=false;
+        }
+    });
+
+    function party(name,nip,street,postalCode,city,email,phone){
+        return '<h3>'+esc(name||"—")+'</h3>'+
+            (nip?'<p>NIP: '+esc(nip)+'</p>':"")+
+            (street?'<p>'+esc(street)+'</p>':"")+
+            ((postalCode||city)?'<p>'+esc([postalCode,city].filter(Boolean).join(" "))+'</p>':"")+
+            (email?'<p>'+esc(email)+'</p>':"")+
+            (phone?'<p>'+esc(phone)+'</p>':"");
+    }
+
+    function showDocument(document){
+        state.document=document;
+
+        const issuer=document.issuer;
+        const customer=document.customer;
+        const items=document.sale.items;
+
+        const rows=items.map((item,index)=>
+            "<tr>"+
+            "<td>"+(index+1)+"</td>"+
+            "<td>"+esc(item.productName)+"<br><span class=\"muted\">"+esc(item.sku)+"</span></td>"+
+            "<td>"+item.quantity+"</td>"+
+            "<td>"+esc(money(item.unitSalePriceNet))+"</td>"+
+            "<td>"+esc(item.discountPercent)+"%</td>"+
+            "<td>"+esc(item.vatRate)+"%</td>"+
+            "<td>"+esc(money(item.lineTotalNet))+"</td>"+
+            "<td>"+esc(money(item.lineTotalGross))+"</td>"+
+            "</tr>"
+        ).join("");
+
+        const vatGroups=new Map();
+
+        for(const item of items){
+            const rate=Number(item.vatRate);
+            const group=vatGroups.get(rate)||{net:0,gross:0};
+            group.net+=Math.round(Number(item.lineTotalNet)*100);
+            group.gross+=Math.round(Number(item.lineTotalGross)*100);
+            vatGroups.set(rate,group);
+        }
+
+        const vatRows=[...vatGroups.entries()]
+            .sort((a,b)=>a[0]-b[0])
+            .map(([rate,total])=>
+                "<tr><td>"+rate+"%</td>"+
+                "<td>"+esc(money(total.net/100))+"</td>"+
+                "<td>"+esc(money((total.gross-total.net)/100))+"</td>"+
+                "<td>"+esc(money(total.gross/100))+"</td></tr>"
+            ).join("");
+
+        const customerBlock=customer?
+            party(
+                customerName(customer),customer.nip,customer.street,
+                customer.postalCode,customer.city,customer.email,customer.phone
+            ):
+            "<p>Sprzedaż bez przypisanego klienta</p>";
+
+        $("document-content").innerHTML=
+            '<div class="document-heading">'+
+            '<img src="/eltro-logo.png" alt="Eltro">'+
+            '<div><h2>'+esc(documentTypes[document.documentType])+'</h2>'+
+            '<strong>'+esc(document.documentNumber)+'</strong></div>'+
+            '</div>'+
+            '<div class="grid">'+
+            '<div class="party"><p class="muted">SPRZEDAWCA</p>'+
+            party(
+                issuer.companyName,issuer.nip,issuer.street,
+                issuer.postalCode,issuer.city,issuer.email,issuer.phone
+            )+
+            '</div>'+
+            '<div class="party"><p class="muted">NABYWCA</p>'+customerBlock+'</div>'+
+            '</div>'+
+            '<div class="document-meta">'+
+            '<span>Data wystawienia: <strong>'+esc(document.issuedOn)+'</strong></span>'+
+            '<span>Data sprzedaży: <strong>'+esc(document.saleOn)+'</strong></span>'+
+            '<span>Sprzedaż: <strong>#'+document.saleId+'</strong></span>'+
+            '</div>'+
+            '<div class="table-wrap"><table>'+
+            '<thead><tr><th>Lp.</th><th>Produkt</th><th>Szt.</th>'+
+            '<th>Cena netto</th><th>Rabat</th><th>VAT</th>'+
+            '<th>Wartość netto</th><th>Wartość brutto</th></tr></thead>'+
+            '<tbody>'+rows+'</tbody>'+
+            '</table></div>'+
+            '<h3 style="margin-top:22px">Podsumowanie VAT</h3>'+
+            '<div class="table-wrap"><table>'+
+            '<thead><tr><th>Stawka</th><th>Netto</th><th>VAT</th><th>Brutto</th></tr></thead>'+
+            '<tbody>'+vatRows+'</tbody>'+
+            '</table></div>'+
+            '<p class="document-total">Razem: '+esc(money(document.totalGross))+
+            '<small>Netto: '+esc(money(document.totalNet))+'</small>'+
+            '</p>'+
+            '<div class="document-footer">'+
+            'Płatność: '+esc(paymentStatuses[document.paymentStatus])+
+            '\nSposób płatności: '+esc(paymentMethods[document.paymentMethod])+
+            (document.paymentDueOn?'\nTermin płatności: '+esc(document.paymentDueOn):"")+
+            '\nTowar wydano: '+(document.goodsIssued?"Tak":"Nie")+
+            (issuer.bankAccount?'\nKonto bankowe: '+esc(issuer.bankAccount):"")+
+            (document.recipientEmail?'\nE-mail odbiorcy: '+esc(document.recipientEmail):"")+
+            (document.remarks?'\nUwagi: '+esc(document.remarks):"")+
+            '\nWystawił: '+esc(document.createdByUsername)+
+            '</div>';
+
+        $("document-preview").hidden=false;
+        $("document-preview").scrollIntoView({
+            behavior:"smooth",block:"start"
+        });
+    }
+
+    $("print-document").onclick=()=>{
+        if(!state.document)return;
+        const previousTitle=document.title;
+        document.title=state.document.documentNumber.replaceAll("/","-");
+        try{window.print();}
+        finally{document.title=previousTitle;}
+    };
+
+    async function initialize(){
+        state.user=await api("/api/me");
+        $("current-user").textContent=state.user.username+" · "+
+            (admin()?"Administrator":"Sprzedawca");
+        $("users-link").hidden=!admin();
+
+        const sales=await api("/api/sales");
+        $("recent-sales").innerHTML='<option value="">Wybierz z listy</option>'+
+            sales.map(sale=>
+                '<option value="'+sale.id+'">#'+sale.id+" · "+
+                esc(dateTime(sale.soldAt))+" · "+
+                esc(sale.createdByUsername||"Nieprzypisany")+
+                '</option>'
+            ).join("");
+
+        if(admin())await loadIssuer();
+
+        const saleId=Number(
+            new URL(location.href).searchParams.get("saleId")
+        );
+        if(Number.isSafeInteger(saleId)&&saleId>0){
+            await loadSale(saleId);
+        }
+    }
+
+    initialize().catch(error=>message(error.message,true));
+</script>
+</body>
+</html>
