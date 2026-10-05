@@ -22,6 +22,10 @@
             box-sizing: border-box;
         }
 
+        [hidden] {
+            display: none !important;
+        }
+
         body {
             margin: 0;
             min-height: 100vh;
@@ -119,10 +123,6 @@
             line-height: 1.5;
         }
 
-        [hidden] {
-            display: none !important;
-        }
-
         .field {
             margin-bottom: 20px;
         }
@@ -175,6 +175,30 @@
         button:focus-visible {
             outline: 3px solid rgba(237, 17, 24, 0.35);
             outline-offset: 3px;
+        }
+
+        .demo-section {
+            margin-top: 26px;
+            padding-top: 22px;
+            border-top: 1px solid var(--border);
+        }
+
+        .demo-button {
+            background: #fff;
+            color: var(--red);
+            border: 2px solid var(--red);
+        }
+
+        .demo-button:hover {
+            background: #fff1f2;
+        }
+
+        .demo-description {
+            margin: 12px 0 0;
+            color: var(--muted);
+            text-align: center;
+            font-size: 12px;
+            line-height: 1.6;
         }
 
         .card-footer {
@@ -247,6 +271,25 @@
                 __MESSAGE_HIDDEN__
         >__MESSAGE__</div>
 
+        <section class="demo-section" __DEMO_HIDDEN__>
+            <form action="/login/demo" method="post" id="demo-login-form">
+                <input
+                        type="hidden"
+                        name="__CSRF_PARAMETER__"
+                        value="__CSRF_TOKEN__"
+                >
+                <button type="submit" class="demo-button">
+                    Zaloguj jako użytkownik demo
+                </button>
+            </form>
+
+            <p class="demo-description">
+                Bez zakładania konta i wpisywania hasła.<br>
+                Możesz dodawać i edytować dane demonstracyjne.
+                Konto demo jest wspólne dla odwiedzających.
+            </p>
+        </section>
+
         <form action="/login" method="post">
             <input
                     type="hidden"
@@ -283,7 +326,7 @@
         </form>
 
         <p class="card-footer">
-            Dostęp dla uprawnionych użytkowników.<br>
+            Dostęp do zwykłych kont wymaga loginu i hasła.<br>
             W sprawie konta skontaktuj się z administratorem.
         </p>
     </section>

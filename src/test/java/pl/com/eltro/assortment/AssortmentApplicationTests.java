@@ -77,6 +77,7 @@ class AssortmentApplicationTests {
 		jdbc.update("DELETE FROM sales");
 		jdbc.update("DELETE FROM products");
 		jdbc.update("DELETE FROM customers");
+		jdbc.update("DELETE FROM user_permissions");
 		jdbc.update("DELETE FROM users");
 
 		String passwordHash = passwordEncoder.encode(

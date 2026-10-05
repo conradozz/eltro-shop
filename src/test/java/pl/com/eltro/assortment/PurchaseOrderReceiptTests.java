@@ -71,6 +71,7 @@ class PurchaseOrderReceiptTests {
                 "sales",
                 "products",
                 "customers",
+                "user_permissions",
                 "users"
         )) {
             jdbc.update("DELETE FROM " + table);
