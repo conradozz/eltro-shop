@@ -1,6 +1,11 @@
 package pl.com.eltro.assortment;
 
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
@@ -8,70 +13,135 @@ import java.math.BigDecimal;
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
+    private final JdbcTemplate jdbcTemplate;
 
-    public CustomerService(CustomerRepository customerRepository) {
+    public CustomerService(
+            CustomerRepository customerRepository,
+            JdbcTemplate jdbcTemplate
+    ) {
         this.customerRepository = customerRepository;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
+    @Transactional
     public Customer create(CreateCustomerRequest request) {
         BigDecimal discount = validateAndGetDiscount(request);
+
+        if (discount.signum() != 0 && !canChangeDiscount()) {
+            throw new AccessDeniedException(
+                    "Permission to change customer discounts is required"
+            );
+        }
 
         long id = customerRepository.create(request, discount);
         return customerRepository.findById(id).orElseThrow();
     }
 
+    @Transactional
     public Customer update(
             long customerId,
             CreateCustomerRequest request
     ) {
         BigDecimal discount = validateAndGetDiscount(request);
 
-        int updatedRows = customerRepository.update(
+        Customer previous = lockAndFindCustomer(customerId);
+
+        if (!canChangeDiscount()) {
+            if (request.discountPercent() != null
+                    && discount.compareTo(previous.discountPercent()) != 0) {
+                throw new AccessDeniedException(
+                        "Permission to change customer discounts is required"
+                );
+            }
+
+            discount = previous.discountPercent();
+        }
+
+        customerRepository.update(
                 customerId,
                 request,
                 discount
         );
 
-        if (updatedRows == 0) {
-            throw new IllegalArgumentException(
-                    "Customer does not exist"
-            );
-        }
-
         return customerRepository.findById(customerId).orElseThrow();
     }
 
+    @Transactional
     public Customer updateDiscount(
             long customerId,
             UpdateDiscountRequest request
     ) {
-        BigDecimal discount = request.discountPercent();
-
-        if (discount == null
-                || discount.signum() < 0
-                || discount.compareTo(new BigDecimal("100")) > 0
-                || discount.scale() > 2) {
-            throw new IllegalArgumentException(
-                    "Discount must be between 0 and 100 " +
-                            "with at most two decimal places"
+        if (!canChangeDiscount()) {
+            throw new AccessDeniedException(
+                    "Permission to change customer discounts is required"
             );
         }
 
-        if (customerRepository.updateDiscount(
-                customerId,
-                discount
-        ) == 0) {
+        if (request == null) {
+            throw new IllegalArgumentException(
+                    "Discount data is required"
+            );
+        }
+
+        BigDecimal discount = request.discountPercent();
+        validateDiscount(discount);
+
+        lockAndFindCustomer(customerId);
+
+        customerRepository.updateDiscount(customerId, discount);
+
+        return customerRepository.findById(customerId).orElseThrow();
+    }
+
+    private Customer lockAndFindCustomer(long customerId) {
+        boolean exists = !jdbcTemplate.query(
+                """
+                SELECT id
+                FROM customers
+                WHERE id = ?
+                FOR UPDATE
+                """,
+                (rs, rowNum) -> rs.getLong("id"),
+                customerId
+        ).isEmpty();
+
+        if (!exists) {
             throw new IllegalArgumentException(
                     "Customer does not exist"
             );
         }
 
-        return customerRepository.findById(customerId).orElseThrow();
+        return customerRepository.findById(customerId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Customer does not exist"
+                ));
+    }
+
+    private boolean canChangeDiscount() {
+        Authentication authentication = SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+
+        return authentication != null
+                && authentication.isAuthenticated()
+                && authentication.getAuthorities().stream()
+                .anyMatch(authority ->
+                        "ROLE_ADMIN".equals(authority.getAuthority())
+                                || "CUSTOMER_DISCOUNT_EDIT".equals(
+                                authority.getAuthority()
+                        )
+                );
     }
 
     private BigDecimal validateAndGetDiscount(
             CreateCustomerRequest request
     ) {
+        if (request == null) {
+            throw new IllegalArgumentException(
+                    "Customer data is required"
+            );
+        }
+
         if ("COMPANY".equals(request.customerType())) {
             if (request.companyName() == null
                     || request.companyName().isBlank()) {
@@ -93,8 +163,8 @@ public class CustomerService {
                     || request.nip() != null
                     || request.regon() != null) {
                 throw new IllegalArgumentException(
-                        "Private customer cannot have " +
-                                "company name, NIP or REGON"
+                        "Private customer cannot have "
+                                + "company name, NIP or REGON"
                 );
             }
         } else {
@@ -107,15 +177,19 @@ public class CustomerService {
                 ? BigDecimal.ZERO
                 : request.discountPercent();
 
-        if (discount.signum() < 0
+        validateDiscount(discount);
+        return discount;
+    }
+
+    private void validateDiscount(BigDecimal discount) {
+        if (discount == null
+                || discount.signum() < 0
                 || discount.compareTo(new BigDecimal("100")) > 0
                 || discount.scale() > 2) {
             throw new IllegalArgumentException(
-                    "Discount must be between 0 and 100 " +
-                            "with at most two decimal places"
+                    "Discount must be between 0 and 100 "
+                            + "with at most two decimal places"
             );
         }
-
-        return discount;
     }
 }

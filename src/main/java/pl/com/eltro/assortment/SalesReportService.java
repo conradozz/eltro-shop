@@ -2,6 +2,7 @@ package pl.com.eltro.assortment;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -101,15 +102,14 @@ public class SalesReportService {
                 ))
                 .toList();
 
-        List<SalesReport.Employee> employees =
-                byEmployee.entrySet()
-                        .stream()
-                        .map(entry -> new SalesReport.Employee(
-                                entry.getKey(),
-                                entry.getValue().get(0).username(),
-                                totals(entry.getValue())
-                        ))
-                        .toList();
+        List<SalesReport.Employee> employees = byEmployee.entrySet()
+                .stream()
+                .map(entry -> new SalesReport.Employee(
+                        entry.getKey(),
+                        entry.getValue().get(0).username(),
+                        totals(entry.getValue())
+                ))
+                .toList();
 
         return new SalesReport(
                 from,
@@ -151,9 +151,9 @@ public class SalesReportService {
     public List<SalesReport.User> users() {
         currentUserService.requireUserId();
 
-        if (!isAdmin()) {
+        if (!canViewAllReports()) {
             throw new AccessDeniedException(
-                    "Only administrators can list report users"
+                    "Permission to view all sales reports is required"
             );
         }
 
@@ -163,9 +163,9 @@ public class SalesReportService {
     private Long resolveUser(Long requestedUserId) {
         long currentId = currentUserService.requireUserId();
 
-        if (!isAdmin()) {
+        if (!canViewAllReports()) {
             if (requestedUserId != null
-                    && requestedUserId != currentId) {
+                    && requestedUserId.longValue() != currentId) {
                 throw new AccessDeniedException(
                         "You can only view your own sales"
                 );
@@ -185,13 +185,19 @@ public class SalesReportService {
         return requestedUserId;
     }
 
-    private boolean isAdmin() {
-        return SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getAuthorities()
-                .stream()
+    private boolean canViewAllReports() {
+        Authentication authentication = SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+
+        return authentication != null
+                && authentication.isAuthenticated()
+                && authentication.getAuthorities().stream()
                 .anyMatch(authority ->
-                        authority.getAuthority().equals("ROLE_ADMIN")
+                        "ROLE_ADMIN".equals(authority.getAuthority())
+                                || "REPORT_ALL".equals(
+                                authority.getAuthority()
+                        )
                 );
     }
 
@@ -202,17 +208,11 @@ public class SalesReportService {
 
         BigDecimal net = sales.stream()
                 .map(SalesReport.Sale::totalNet)
-                .reduce(
-                        new BigDecimal("0.00"),
-                        BigDecimal::add
-                );
+                .reduce(new BigDecimal("0.00"), BigDecimal::add);
 
         BigDecimal gross = sales.stream()
                 .map(SalesReport.Sale::totalGross)
-                .reduce(
-                        new BigDecimal("0.00"),
-                        BigDecimal::add
-                );
+                .reduce(new BigDecimal("0.00"), BigDecimal::add);
 
         return new SalesReport.Totals(
                 sales.size(),

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Eltro — dokumenty sprzedaży</title>
+    <script src="/eltro-demo.js" defer></script>
     <style>
         :root{--red:#d90000;--deep:#a90000;--ink:#24272b;--muted:#687078;--line:#e6e8eb;--bg:#f4f5f7}
         *{box-sizing:border-box}
@@ -75,7 +76,6 @@
             tr,.party,.document-total,.document-footer{break-inside:avoid}
         }
     </style>
-<script src="/eltro-demo.js" defer></script>
 </head>
 <body>
 <header>
@@ -175,6 +175,11 @@
         <div id="existing-documents"></div>
     </section>
 
+    <p id="document-permission-notice" class="notice screen-only" hidden>
+        Możesz przeglądać i drukować wystawione dokumenty.
+        Wystawianie nowych dokumentów wymaga uprawnienia nadanego przez administratora.
+    </p>
+
     <form id="document-form" class="card screen-only" hidden>
         <h2>Wystaw dokument</h2>
         <div class="grid">
@@ -237,6 +242,7 @@
     const $=id=>dom.getElementById(id);
     const state={user:null,sale:null,customer:null,documents:[],document:null};
     const admin=()=>state.user?.roles?.includes("ADMIN")===true;
+    const can=code=>admin()||state.user?.permissions?.includes(code)===true;
     const optional=value=>String(value??"").trim()||null;
     const esc=value=>String(value??"")
         .replace(/&/g,"&amp;").replace(/</g,"&lt;")
@@ -554,7 +560,7 @@
         if([...select.options].some(option=>option.value===previous)){
             select.value=previous;
         }
-        $("document-form").hidden=select.options.length===0;
+        $("document-form").hidden=!can("DOCUMENT_CREATE")||select.options.length===0;
     }
 
     function updatePaymentFields(){
@@ -622,6 +628,9 @@
 
     $("document-form").onsubmit=safe(async event=>{
         event.preventDefault();
+        if(!can("DOCUMENT_CREATE")){
+            throw new Error("Nie masz uprawnienia do wystawiania dokumentów.");
+        }
         if(!state.sale)throw new Error("Najpierw wczytaj sprzedaż.");
 
         const saleId=state.sale.id;
@@ -789,6 +798,7 @@
         $("current-user").textContent=state.user.username+" · "+
             (admin()?"Administrator":"Sprzedawca");
         $("users-link").hidden=!admin();
+        $("document-permission-notice").hidden=can("DOCUMENT_CREATE");
 
         const sales=await api("/api/sales");
         if(!Array.isArray(sales)){

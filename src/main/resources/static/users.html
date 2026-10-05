@@ -2,142 +2,157 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Eltro — użytkownicy</title>
+    <script src="/eltro-demo.js" defer></script>
     <style>
         :root {
-            --red: #d90000;
-            --deep: #a90000;
-            --ink: #24272b;
-            --muted: #687078;
-            --line: #e6e8eb;
-            --bg: #f4f5f7;
+            --red:#d90000;
+            --deep:#a90000;
+            --ink:#24272b;
+            --muted:#687078;
+            --line:#e6e8eb;
+            --bg:#f4f5f7;
         }
-        * { box-sizing: border-box; }
-        [hidden] { display: none !important; }
+        * { box-sizing:border-box; }
+        [hidden] { display:none!important; }
         body {
-            margin: 0;
-            background: var(--bg);
-            color: var(--ink);
-            font: 15px/1.5 Arial, sans-serif;
+            margin:0;
+            background:var(--bg);
+            color:var(--ink);
+            font:15px/1.5 Arial,sans-serif;
         }
         header {
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 24px;
-            padding: 16px max(24px, calc((100vw - 1280px)/2));
-            background: white;
-            border-bottom: 1px solid var(--line);
-            box-shadow: 0 4px 18px #19212b0b;
+            display:flex;
+            align-items:center;
+            flex-wrap:wrap;
+            gap:20px;
+            padding:16px max(24px,calc((100vw - 1280px)/2));
+            background:white;
+            border-bottom:1px solid var(--line);
         }
-        header img { width: 160px; height: auto; }
-        nav { display: flex; gap: 8px; flex-wrap: wrap; }
+        header img { width:160px; }
+        nav { display:flex; gap:8px; flex-wrap:wrap; }
         nav a {
-            padding: 11px 16px;
-            border-radius: 8px;
-            text-decoration: none;
-            color: #484e55;
-            font-weight: 700;
+            padding:10px 15px;
+            color:#484e55;
+            text-decoration:none;
+            border-radius:8px;
+            font-weight:700;
         }
-        nav a:hover { background: #fff1f1; }
-        nav a.active { background: var(--red); color: white; }
+        nav a.active { background:var(--red); color:white; }
         .account {
-            margin-left: auto;
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
+            margin-left:auto;
+            display:flex;
+            align-items:center;
+            gap:12px;
+            flex-wrap:wrap;
         }
-        .muted { color: var(--muted); font-size: 13px; }
-        main { max-width: 1280px; margin: auto; padding: 36px 24px 80px; }
-        h1 { margin: 0; font-size: 29px; }
-        h2 { margin: 0 0 20px; font-size: 20px; }
+        main { max-width:1280px; margin:auto; padding:32px 24px 80px; }
+        h1 { margin:0; font-size:29px; }
+        h2 { margin:0 0 18px; font-size:20px; }
+        .muted { color:var(--muted); font-size:13px; }
         .toolbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            margin-bottom: 22px;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:14px;
+            flex-wrap:wrap;
+            margin-bottom:20px;
         }
         .card {
-            margin-bottom: 22px;
-            padding: 25px;
-            background: white;
-            border: 1px solid var(--line);
-            border-radius: 14px;
-            box-shadow: 0 7px 28px #2028330a;
+            padding:24px;
+            margin-bottom:22px;
+            background:white;
+            border:1px solid var(--line);
+            border-radius:14px;
+            box-shadow:0 7px 28px #2028330a;
         }
         .grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 18px 22px;
+            display:grid;
+            grid-template-columns:repeat(2,minmax(0,1fr));
+            gap:18px;
         }
-        label { display: block; font-size: 13px; font-weight: 700; }
-        input, select {
-            display: block;
-            width: 100%;
-            margin-top: 7px;
-            padding: 11px 12px;
-            border: 1px solid #cfd4da;
-            border-radius: 8px;
-            font: inherit;
-            background: white;
+        label { display:block; font-size:13px; font-weight:700; }
+        input,select {
+            display:block;
+            width:100%;
+            margin-top:7px;
+            padding:11px 12px;
+            border:1px solid #cfd4da;
+            border-radius:8px;
+            font:inherit;
+            background:white;
         }
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--red);
-            box-shadow: 0 0 0 3px #d900001b;
+        input:focus,select:focus {
+            outline:none;
+            border-color:var(--red);
+            box-shadow:0 0 0 3px #d900001b;
         }
         button {
-            border-radius: 8px;
-            padding: 10px 15px;
-            font: inherit;
-            font-weight: 700;
-            cursor: pointer;
+            padding:10px 15px;
+            border-radius:8px;
+            font:inherit;
+            font-weight:700;
+            cursor:pointer;
         }
-        .primary { border: 1px solid var(--red); background: var(--red); color: white; }
-        .primary:hover { background: var(--deep); }
-        .secondary { border: 1px solid #e5b5b5; background: white; color: var(--deep); }
-        .secondary:hover { background: #fff1f1; }
-        button:disabled { opacity: .5; cursor: default; }
-        .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
-        .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 14px; text-align: left; border-bottom: 1px solid var(--line); }
-        th { background: #f8f9fa; font-size: 12px; color: var(--muted); }
-        tbody tr:last-child td { border-bottom: 0; }
-        td button { margin: 3px; white-space: nowrap; }
-        .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 12px; }
-        .enabled { background: #e9f6ed; color: #246b35; }
-        .disabled { background: #fff0ee; color: var(--deep); }
+        .primary { background:var(--red); color:white; border:1px solid var(--red); }
+        .secondary { background:white; color:var(--deep); border:1px solid #e5b5b5; }
+        button:disabled { opacity:.5; cursor:default; }
+        .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:20px; }
+        .table-wrap { overflow-x:auto; border:1px solid var(--line); border-radius:10px; }
+        table { width:100%; border-collapse:collapse; }
+        th,td { padding:14px; text-align:left; border-bottom:1px solid var(--line); }
+        th { background:#f8f9fa; color:var(--muted); font-size:12px; }
+        td button { margin:3px; white-space:nowrap; }
         #message {
-            padding: 14px 16px;
-            margin-bottom: 22px;
-            border: 1px solid #bde3c7;
-            border-left: 4px solid #27833c;
-            border-radius: 8px;
-            background: #e9f6ed;
+            padding:14px 16px;
+            margin-bottom:22px;
+            border:1px solid #bde3c7;
+            border-radius:8px;
+            background:#e9f6ed;
         }
-        #message.error { background: #fff0ee; border-color: #edc3bf; border-left-color: var(--red); }
+        #message.error { background:#fff0ee; border-color:#edc3bf; }
         dialog {
-            width: min(480px, calc(100vw - 32px));
-            padding: 26px;
-            border: 1px solid var(--line);
-            border-radius: 14px;
-            box-shadow: 0 20px 80px #0003;
+            width:min(660px,calc(100vw - 32px));
+            max-height:85vh;
+            overflow-y:auto;
+            padding:26px;
+            border:1px solid var(--line);
+            border-radius:14px;
+            box-shadow:0 20px 80px #0003;
         }
-        dialog::backdrop { background: #17202c66; }
-        @media (max-width: 750px) {
-            header { padding: 16px; }
-            .account { margin-left: 0; }
-            main { padding: 24px 14px; }
-            .grid { grid-template-columns: 1fr; }
-            .toolbar { flex-direction: column; align-items: stretch; }
-            .card { padding: 18px; }
+        dialog::backdrop { background:#17202c66; }
+        fieldset {
+            margin:15px 0;
+            padding:14px;
+            border:1px solid var(--line);
+            border-radius:10px;
+        }
+        legend { padding:0 7px; font-weight:700; }
+        .permission {
+            display:flex;
+            align-items:center;
+            gap:10px;
+            padding:7px 0;
+            font-weight:400;
+            font-size:14px;
+        }
+        .permission input {
+            width:18px;
+            height:18px;
+            margin:0;
+            accent-color:var(--red);
+        }
+        .dialog-error { color:var(--deep); }
+        @media(max-width:750px) {
+            header { padding:16px; }
+            .account { margin-left:0; }
+            main { padding:24px 14px; }
+            .grid { grid-template-columns:1fr; }
+            .card { padding:18px; }
         }
     </style>
-<script src="/eltro-demo.js" defer></script>
 </head>
 <body>
 <header>
@@ -147,7 +162,7 @@
         <a href="/users.html" class="active">Użytkownicy</a>
     </nav>
     <div class="account">
-        <span class="muted" id="current-user">Wczytywanie konta…</span>
+        <span class="muted" id="current-user"></span>
         <button class="secondary" id="logout" type="button">Wyloguj</button>
     </div>
 </header>
@@ -158,7 +173,9 @@
     <div id="admin-panel" hidden>
         <div class="toolbar">
             <h1>Użytkownicy</h1>
-            <button class="primary" id="show-create" type="button">+ Dodaj użytkownika</button>
+            <button class="primary" id="show-create" type="button">
+                + Dodaj użytkownika
+            </button>
         </div>
 
         <form id="create-form" class="card" hidden>
@@ -184,8 +201,8 @@
                 </label>
             </div>
             <p class="muted">
-                Login może zawierać litery bez polskich znaków, cyfry, kropkę,
-                podkreślenie i myślnik.
+                Sprzedawca otrzyma podstawowe uprawnienia.
+                Po utworzeniu konta możesz je zmienić.
             </p>
             <div class="actions">
                 <button class="primary" type="submit">Utwórz konto</button>
@@ -212,8 +229,9 @@
                 </table>
             </div>
             <p class="muted">
-                Blokada konta i zmiana hasła kończą jego otwarte sesje
-                przy następnym żądaniu.
+                Zmiana uprawnień, blokada konta i zmiana hasła kończą
+                otwarte sesje użytkownika przy następnym żądaniu.
+                Administrator ma zawsze pełny dostęp.
             </p>
         </div>
     </div>
@@ -221,7 +239,7 @@
 
 <dialog id="password-dialog">
     <form id="password-form">
-        <h2 id="password-title">Zmień hasło</h2>
+        <h2 id="password-title"></h2>
         <label>Nowe hasło — minimum 12 znaków
             <input name="password" type="password" minlength="12"
                    required autocomplete="new-password">
@@ -230,7 +248,7 @@
             <input name="passwordRepeat" type="password" minlength="12"
                    required autocomplete="new-password">
         </label>
-        <p id="password-error" class="muted" role="alert" hidden></p>
+        <p id="password-error" class="dialog-error" role="alert" hidden></p>
         <div class="actions">
             <button class="primary" type="submit">Zapisz hasło</button>
             <button class="secondary" id="cancel-password" type="button">Anuluj</button>
@@ -238,13 +256,36 @@
     </form>
 </dialog>
 
+<dialog id="permissions-dialog">
+    <form id="permissions-form">
+        <h2 id="permissions-title"></h2>
+        <p class="muted">
+            Zaznacz operacje dostępne dla pracownika.
+            Odczyt danych i raport własnej sprzedaży pozostają dostępne.
+        </p>
+        <div class="actions">
+            <button class="secondary" id="select-all" type="button">Zaznacz wszystkie</button>
+            <button class="secondary" id="select-none" type="button">Odznacz wszystkie</button>
+        </div>
+        <div id="permission-groups"></div>
+        <p id="permissions-error" class="dialog-error" role="alert" hidden></p>
+        <div class="actions">
+            <button class="primary" type="submit">Zapisz uprawnienia</button>
+            <button class="secondary" id="cancel-permissions" type="button">Anuluj</button>
+        </div>
+    </form>
+</dialog>
+
 <script>
     "use strict";
 
-    const $ = id => document.getElementById(id);
+    const dom = window.document;
+    const $ = id => dom.getElementById(id);
 
     let currentUser = null;
     let passwordUser = null;
+    let permissionUser = null;
+    let catalog = [];
     let csrfPromise = null;
     let busy = false;
 
@@ -254,44 +295,35 @@
         $("message").hidden = false;
     }
 
-    function checkSession(response) {
-        if (
-            response.status === 401 ||
-            (response.redirected && new URL(response.url).pathname === "/login")
-        ) {
-            window.location.assign("/login");
+    function session(response) {
+        if (response.status === 401 ||
+            (response.redirected &&
+                new URL(response.url).pathname === "/login")) {
+            location.assign("/login");
             throw new Error("Sesja wygasła. Zaloguj się ponownie.");
         }
     }
 
-    async function getCsrf() {
+    async function csrf() {
         if (!csrfPromise) {
             csrfPromise = (async () => {
                 const response = await fetch("/api/csrf", {
-                    credentials: "same-origin",
-                    cache: "no-store",
-                    headers: {Accept: "application/json"}
+                    credentials:"same-origin",
+                    cache:"no-store",
+                    headers:{Accept:"application/json"}
                 });
-
-                checkSession(response);
-
-                if (!response.ok) {
-                    throw new Error("Nie udało się pobrać tokenu CSRF.");
-                }
-
-                const csrf = await response.json();
-
-                if (!csrf.headerName || !csrf.token) {
+                session(response);
+                if (!response.ok) throw new Error("Nie udało się pobrać tokenu CSRF.");
+                const data = await response.json();
+                if (!data.headerName || !data.token) {
                     throw new Error("Nieprawidłowy token CSRF.");
                 }
-
-                return csrf;
+                return data;
             })().catch(error => {
                 csrfPromise = null;
                 throw error;
             });
         }
-
         return csrfPromise;
     }
 
@@ -300,164 +332,226 @@
         const headers = new Headers(options.headers);
         headers.set("Accept", "application/json");
 
-        if (options.body != null) {
-            headers.set("Content-Type", "application/json");
-        }
+        if (options.body != null) headers.set("Content-Type", "application/json");
 
-        if (!["GET", "HEAD", "OPTIONS"].includes(method)) {
-            const csrf = await getCsrf();
-            headers.set(csrf.headerName, csrf.token);
+        if (!["GET","HEAD","OPTIONS"].includes(method)) {
+            const token = await csrf();
+            headers.set(token.headerName, token.token);
         }
 
         const response = await fetch(path, {
             ...options,
             method,
             headers,
-            credentials: "same-origin",
-            cache: "no-store"
+            credentials:"same-origin",
+            cache:"no-store"
         });
 
-        checkSession(response);
+        session(response);
 
         const text = await response.text();
-        let body = null;
-
+        let data = null;
         if (text) {
-            try {
-                body = JSON.parse(text);
-            } catch {
-                throw new Error("Serwer zwrócił nieoczekiwaną odpowiedź.");
-            }
+            try { data = JSON.parse(text); }
+            catch { throw new Error("Serwer zwrócił nieoczekiwaną odpowiedź."); }
         }
 
         if (!response.ok) {
-            if (response.status === 403) {
-                csrfPromise = null;
-                throw new Error(
-                    "Brak uprawnień lub token CSRF wygasł. Odśwież stronę."
-                );
-            }
-
+            if (response.status === 403) csrfPromise = null;
             if (response.status === 409) {
                 throw new Error("Konto o takim loginie już istnieje.");
             }
-
-            throw new Error(
-                body?.message || body?.error || `Błąd HTTP ${response.status}`
-            );
+            throw new Error(data?.message || data?.error || "Błąd HTTP " + response.status);
         }
 
-        return body;
-    }
-
-    function validatePassword(password, repeat) {
-        if (password !== repeat) {
-            throw new Error("Wpisane hasła są różne.");
-        }
-
-        if (password.length < 12 || !password.trim()) {
-            throw new Error("Hasło musi zawierać minimum 12 znaków.");
-        }
-
-        if (new TextEncoder().encode(password).length > 72) {
-            throw new Error(
-                "Hasło jest za długie. Maksymalna długość to 72 bajty UTF-8."
-            );
-        }
+        return data;
     }
 
     function setBusy(value) {
         busy = value;
-
-        document.querySelectorAll("button").forEach(button => {
+        dom.querySelectorAll("button").forEach(button => {
             button.disabled = value || button.dataset.locked === "true";
+        });
+        dom.querySelectorAll("input,select").forEach(input => {
+            input.disabled = value;
         });
     }
 
-    function addCell(row, value) {
-        const cell = document.createElement("td");
-        cell.textContent = value;
-        row.append(cell);
-        return cell;
+    function passwordValid(password, repeat) {
+        if (password !== repeat) throw new Error("Wpisane hasła są różne.");
+        if (!password.trim() || password.length < 12) {
+            throw new Error("Hasło musi zawierać minimum 12 znaków.");
+        }
+        if (new TextEncoder().encode(password).length > 72) {
+            throw new Error("Hasło może zajmować maksymalnie 72 bajty UTF-8.");
+        }
     }
 
-    function addButton(cell, label, action, locked = false) {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "secondary";
-        button.textContent = label;
-        button.dataset.locked = String(locked);
-        button.disabled = busy || locked;
-        button.onclick = action;
-        cell.append(button);
+    function cell(row, text) {
+        const result = dom.createElement("td");
+        result.textContent = text;
+        row.append(result);
+        return result;
+    }
+
+    function button(target, label, handler, locked = false) {
+        const result = dom.createElement("button");
+        result.type = "button";
+        result.className = "secondary";
+        result.textContent = label;
+        result.dataset.locked = String(locked);
+        result.disabled = busy || locked;
+        result.onclick = handler;
+        target.append(result);
     }
 
     async function loadUsers() {
         const users = await api("/api/users");
-        const body = $("user-rows");
-        body.replaceChildren();
+        $("user-rows").replaceChildren();
 
         for (const user of users) {
-            const ownAccount = user.username === currentUser.username;
-            const row = document.createElement("tr");
+            const own = user.username === currentUser.username;
+            const row = dom.createElement("tr");
 
-            addCell(row, user.username + (ownAccount ? " (Twoje konto)" : ""));
-            addCell(row, user.role === "ADMIN" ? "Administrator" : "Sprzedawca");
+            cell(row, user.username + (own ? " (Twoje konto)" : ""));
+            cell(row, user.role === "ADMIN" ? "Administrator" : "Sprzedawca");
+            cell(row, user.enabled ? "Aktywne" : "Zablokowane");
 
-            const statusCell = document.createElement("td");
-            const badge = document.createElement("span");
-            badge.className = "badge " + (user.enabled ? "enabled" : "disabled");
-            badge.textContent = user.enabled ? "Aktywne" : "Zablokowane";
-            statusCell.append(badge);
-            row.append(statusCell);
-
-            const actions = document.createElement("td");
-
-            addButton(actions, "Zmień hasło", () => openPasswordDialog(user));
-
-            addButton(
+            const actions = cell(row, "");
+            if (user.role === "SELLER") {
+                button(actions, "Uprawnienia", () => openPermissions(user));
+            } else {
+                button(actions, "Pełne uprawnienia", () => {}, true);
+            }
+            button(actions, "Zmień hasło", () => openPassword(user));
+            button(
                 actions,
                 user.enabled ? "Zablokuj" : "Odblokuj",
                 () => changeEnabled(user),
-                ownAccount && user.enabled
+                own && user.enabled
             );
-
-            row.append(actions);
-            body.append(row);
+            $("user-rows").append(row);
         }
     }
 
     async function changeEnabled(user) {
         if (busy) return;
-
         const enabled = !user.enabled;
-        const action = enabled ? "odblokować" : "zablokować";
-
-        if (!confirm(`Czy chcesz ${action} konto „${user.username}”?`)) {
-            return;
-        }
+        if (!confirm(
+            `Czy chcesz ${enabled ? "odblokować" : "zablokować"} konto „${user.username}”?`
+        )) return;
 
         setBusy(true);
-
         try {
             await api(`/api/users/${user.id}/enabled`, {
-                method: "PATCH",
-                body: JSON.stringify({enabled})
+                method:"PATCH",
+                body:JSON.stringify({enabled})
             });
-
             await loadUsers();
-
-            message(
-                enabled
-                    ? `Odblokowano konto ${user.username}.`
-                    : `Zablokowano konto ${user.username}.`
-            );
+            message(`${enabled ? "Odblokowano" : "Zablokowano"} konto ${user.username}.`);
         } catch (error) {
             message(error.message, true);
         } finally {
             setBusy(false);
         }
     }
+
+    async function openPermissions(user) {
+        if (busy) return;
+        setBusy(true);
+
+        try {
+            const data = await api(`/api/users/${user.id}/permissions`);
+            const selected = new Set(data.permissions);
+
+            permissionUser = user;
+            $("permissions-title").textContent = "Uprawnienia — " + user.username;
+            $("permissions-error").hidden = true;
+            $("permission-groups").replaceChildren();
+
+            const groups = new Map();
+            for (const definition of catalog) {
+                if (!groups.has(definition.group)) {
+                    const fieldset = dom.createElement("fieldset");
+                    const legend = dom.createElement("legend");
+                    legend.textContent = definition.group;
+                    fieldset.append(legend);
+                    groups.set(definition.group, fieldset);
+                    $("permission-groups").append(fieldset);
+                }
+
+                const label = dom.createElement("label");
+                label.className = "permission";
+
+                const input = dom.createElement("input");
+                input.type = "checkbox";
+                input.name = "permission";
+                input.value = definition.code;
+                input.checked = selected.has(definition.code);
+
+                const text = dom.createElement("span");
+                text.textContent = definition.label;
+
+                label.append(input, text);
+                groups.get(definition.group).append(label);
+            }
+
+            $("permissions-dialog").showModal();
+        } catch (error) {
+            message(error.message, true);
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    function selectPermissions(checked) {
+        if (busy) return;
+        $("permissions-form").querySelectorAll(
+            'input[name="permission"]'
+        ).forEach(input => input.checked = checked);
+    }
+
+    $("select-all").onclick = () => selectPermissions(true);
+    $("select-none").onclick = () => selectPermissions(false);
+    $("cancel-permissions").onclick = () => $("permissions-dialog").close();
+
+    $("permissions-dialog").addEventListener("cancel", event => {
+        if (busy) event.preventDefault();
+    });
+
+    $("permissions-dialog").addEventListener("close", () => {
+        permissionUser = null;
+    });
+
+    $("permissions-form").onsubmit = async event => {
+        event.preventDefault();
+        if (busy || !permissionUser) return;
+
+        const user = permissionUser;
+        const permissions = [...$("permissions-form").querySelectorAll(
+            'input[name="permission"]:checked'
+        )].map(input => input.value);
+
+        setBusy(true);
+        $("permissions-error").hidden = true;
+
+        try {
+            await api(`/api/users/${user.id}/permissions`, {
+                method:"PUT",
+                body:JSON.stringify({permissions})
+            });
+            $("permissions-dialog").close();
+            message(
+                `Zapisano uprawnienia konta ${user.username}. ` +
+                "Pracownik musi zalogować się ponownie."
+            );
+        } catch (error) {
+            $("permissions-error").textContent = error.message;
+            $("permissions-error").hidden = false;
+        } finally {
+            setBusy(false);
+        }
+    };
 
     $("show-create").onclick = () => {
         $("create-form").reset();
@@ -470,56 +564,53 @@
         $("create-form").hidden = true;
     };
 
-    $("create-form").addEventListener("submit", async event => {
+    $("create-form").onsubmit = async event => {
         event.preventDefault();
         if (busy) return;
 
         const form = event.currentTarget;
-        const f = form.elements;
+        const fields = form.elements;
 
         try {
-            validatePassword(f.password.value, f.passwordRepeat.value);
+            passwordValid(fields.password.value, fields.passwordRepeat.value);
         } catch (error) {
             message(error.message, true);
             return;
         }
 
-        setBusy(true);
+        const request = {
+            username:fields.username.value.trim(),
+            password:fields.password.value,
+            role:fields.role.value
+        };
 
+        setBusy(true);
         try {
             const user = await api("/api/users", {
-                method: "POST",
-                body: JSON.stringify({
-                    username: f.username.value.trim(),
-                    password: f.password.value,
-                    role: f.role.value
-                })
+                method:"POST",
+                body:JSON.stringify(request)
             });
-
             form.reset();
             form.hidden = true;
             await loadUsers();
-            message(`Utworzono konto ${user.username}.`);
+            message(`Utworzono konto ${user.username}. Możesz teraz ustawić jego uprawnienia.`);
         } catch (error) {
             message(error.message, true);
         } finally {
             setBusy(false);
         }
-    });
+    };
 
-    function openPasswordDialog(user) {
+    function openPassword(user) {
         if (busy) return;
-
         passwordUser = user;
         $("password-form").reset();
         $("password-error").hidden = true;
-        $("password-title").textContent = `Zmień hasło — ${user.username}`;
+        $("password-title").textContent = "Zmień hasło — " + user.username;
         $("password-dialog").showModal();
     }
 
-    $("cancel-password").onclick = () => {
-        $("password-dialog").close();
-    };
+    $("cancel-password").onclick = () => $("password-dialog").close();
 
     $("password-dialog").addEventListener("cancel", event => {
         if (busy) event.preventDefault();
@@ -530,18 +621,16 @@
         passwordUser = null;
     });
 
-    $("password-form").addEventListener("submit", async event => {
+    $("password-form").onsubmit = async event => {
         event.preventDefault();
         if (busy || !passwordUser) return;
 
-        const form = event.currentTarget;
         const user = passwordUser;
+        const fields = event.currentTarget.elements;
+        const password = fields.password.value;
 
         try {
-            validatePassword(
-                form.elements.password.value,
-                form.elements.passwordRepeat.value
-            );
+            passwordValid(password, fields.passwordRepeat.value);
         } catch (error) {
             $("password-error").textContent = error.message;
             $("password-error").hidden = false;
@@ -549,38 +638,32 @@
         }
 
         setBusy(true);
-
         try {
             await api(`/api/users/${user.id}/password`, {
-                method: "PATCH",
-                body: JSON.stringify({
-                    password: form.elements.password.value
-                })
+                method:"PATCH",
+                body:JSON.stringify({password})
             });
-
             $("password-dialog").close();
 
             if (user.username === currentUser.username) {
-                window.location.assign("/login");
+                location.assign("/login");
                 return;
             }
-
-            message(`Zmieniono hasło konta ${user.username}.`);
+            message("Zmieniono hasło konta " + user.username + ".");
         } catch (error) {
             $("password-error").textContent = error.message;
             $("password-error").hidden = false;
         } finally {
             setBusy(false);
         }
-    });
+    };
 
     $("refresh").onclick = async () => {
         if (busy) return;
         setBusy(true);
-
         try {
             await loadUsers();
-            message("Lista kont została odświeżona.");
+            message("Odświeżono listę kont.");
         } catch (error) {
             message(error.message, true);
         } finally {
@@ -591,10 +674,9 @@
     $("logout").onclick = async () => {
         if (busy) return;
         setBusy(true);
-
         try {
-            await api("/logout", {method: "POST"});
-            window.location.assign("/login");
+            await api("/logout", {method:"POST"});
+            location.assign("/login");
         } catch (error) {
             message(error.message, true);
             setBusy(false);
@@ -603,15 +685,13 @@
 
     async function initialize() {
         currentUser = await api("/api/me");
-
         if (!currentUser.roles.includes("ADMIN")) {
-            window.location.replace("/");
+            location.replace("/");
             return;
         }
 
-        $("current-user").textContent =
-            currentUser.username + " · Administrator";
-
+        $("current-user").textContent = currentUser.username + " · Administrator";
+        catalog = await api("/api/users/permissions/catalog");
         await loadUsers();
         $("admin-panel").hidden = false;
     }

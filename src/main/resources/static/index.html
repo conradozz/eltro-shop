@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Eltro — panel sklepu</title>
+    <script src="/eltro-demo.js" defer></script>
     <style>
         :root{--red:#d90000;--deep:#a90000;--ink:#24272b;--muted:#687078;--line:#e6e8eb;--bg:#f4f5f7}
         *{box-sizing:border-box}
@@ -29,11 +30,12 @@
         label{display:block;font-size:13px;font-weight:bold}
         input,select,textarea{display:block;width:100%;margin-top:7px;padding:11px 12px;border:1px solid #cfd4da;border-radius:8px;font:inherit;color:var(--ink);background:white}
         input:focus,select:focus,textarea:focus{outline:2px solid #d9000033;border-color:var(--red)}
+        input[readonly]{background:#f1f3f5;color:var(--muted)}
         textarea{min-height:80px}
         button{padding:10px 14px;border:1px solid var(--red);border-radius:8px;background:var(--red);color:white;font:600 14px Arial,sans-serif;cursor:pointer}
         button:hover{filter:brightness(.94)}
         button.secondary{background:white;color:var(--deep);border-color:#e5b5b5}
-        button:disabled{opacity:.55;cursor:wait}
+        button:disabled{opacity:.55;cursor:default}
         .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
         .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:10px}
         table{width:100%;border-collapse:collapse}
@@ -87,7 +89,6 @@
             #print-sheet h1{font-size:23px}
         }
     </style>
-<script src="/eltro-demo.js" defer></script>
 </head>
 <body>
 <header>
@@ -128,7 +129,7 @@
     <section id="customers-view" hidden>
         <div class="toolbar">
             <h1>Klienci</h1>
-            <button id="new-customer">+ Dodaj klienta</button>
+            <button id="new-customer" hidden>+ Dodaj klienta</button>
         </div>
         <div id="customer-editor" hidden></div>
         <div class="card">
@@ -144,7 +145,7 @@
             <h1>Dostawy</h1>
             <button class="secondary" id="refresh-deliveries">Odśwież</button>
         </div>
-        <div id="delivery-editor"></div>
+        <div id="delivery-editor" hidden></div>
         <div id="delivery-correction" hidden></div>
         <div class="card">
             <h2>Historia dostaw</h2>
@@ -155,7 +156,7 @@
     <section id="sales-view" hidden>
         <div class="toolbar">
             <h1>Sprzedaż</h1>
-            <button id="new-sale">+ Nowa sprzedaż</button>
+            <button id="new-sale" hidden>+ Nowa sprzedaż</button>
         </div>
         <form id="sale-form" class="card" hidden>
             <h2 id="sale-title">Nowa sprzedaż</h2>
@@ -182,7 +183,7 @@
         <div class="toolbar">
             <h1>Zamówienia</h1>
             <div class="actions">
-                <button id="new-order">+ Dodaj do zamówienia</button>
+                <button id="new-order" hidden>+ Dodaj do zamówienia</button>
                 <button id="refresh-orders" class="secondary">Odśwież</button>
             </div>
         </div>
@@ -288,12 +289,14 @@
 <script>
     "use strict";
 
+    const document=window.document;
     const $=id=>document.getElementById(id);
     const state={
         user:null,products:[],customers:[],sales:[],deliveries:[],orders:[],
         markup:0,saleId:null,report:null,sequence:0,usersLoaded:false
     };
-    const admin=()=>state.user?.roles.includes("ADMIN")===true;
+    const admin=()=>state.user?.roles?.includes("ADMIN")===true;
+    const can=code=>admin()||state.user?.permissions?.includes(code)===true;
     const esc=value=>String(value??"")
         .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
         .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
@@ -353,7 +356,7 @@
         if(!r.ok){
             if(r.status===403){
                 csrfPromise=null;
-                throw new Error("Brak uprawnień lub token CSRF wygasł. Odśwież stronę.");
+                throw new Error(body?.error||body?.message||"Brak uprawnień lub formularz wygasł. Odśwież stronę.");
             }
             throw new Error(body?.error||body?.message||"Błąd HTTP "+r.status);
         }
@@ -370,8 +373,8 @@
         };
     }
 
-    function requireAdmin(){
-        if(!admin())throw new Error("Ta operacja wymaga administratora.");
+    function requirePermission(code){
+        if(!can(code))throw new Error("Nie masz uprawnień do tej operacji.");
     }
 
     function action(label,run){return {label,run};}
@@ -495,6 +498,7 @@
         form.onsubmit=safe(async e=>{
             e.preventDefault();
             const b=form.querySelector('[type="submit"]');
+            if(b.disabled)return;
             b.disabled=true;
             try{
                 const data={};
@@ -528,7 +532,7 @@
     ];
 
     function editProduct(p=null){
-        requireAdmin();
+        requirePermission(p?"PRODUCT_EDIT":"PRODUCT_CREATE");
         const fields=p?productFields:[
             ...productFields,
             field("purchasePriceNet","Cena zakupu netto","number",'min="0" step="0.01" required'),
@@ -536,13 +540,13 @@
         ];
         editor("product-editor",p?"Edytuj produkt #"+p.id:"Nowy produkt",fields,
             p||{vatRate:23,minimumQuantity:0},data=>{
-                requireAdmin();
+                requirePermission(p?"PRODUCT_EDIT":"PRODUCT_CREATE");
                 return write(p?"/api/products/"+p.id+"/details":"/api/products",p?"PATCH":"POST",data);
             });
     }
 
     function editPrices(p){
-        requireAdmin();
+        requirePermission("PRODUCT_PRICE_EDIT");
         editor("product-editor","Ceny: "+p.name,[
             field("purchasePriceNet","Cena zakupu netto","number",'min="0" step="0.01" required'),
             field("salePriceNet","Cena sprzedaży netto","number",'min="0" step="0.01" required')
@@ -558,11 +562,10 @@
                 stock.textContent=p.quantity;
                 if(p.quantity<=p.minimumQuantity)stock.className="low";
 
-                const actions=admin()?[
-                    action("Edytuj",()=>editProduct(p)),
-                    action("Zmień ceny",()=>editPrices(p))
-                ]:[];
-                if(p.quantity<=p.minimumQuantity){
+                const actions=[];
+                if(can("PRODUCT_EDIT"))actions.push(action("Edytuj",()=>editProduct(p)));
+                if(can("PRODUCT_PRICE_EDIT"))actions.push(action("Zmień ceny",()=>editPrices(p)));
+                if(can("ORDER_MANAGE")&&p.quantity<=p.minimumQuantity){
                     actions.push(action("Zamów",()=>openOrder(null,p)));
                 }
                 return [productName(p),p.manufacturer||"—",stock,p.minimumQuantity,money(p.salePriceNet),actions];
@@ -589,10 +592,19 @@
     ];
 
     function editCustomer(c=null){
-        if(c)requireAdmin();
+        requirePermission(c?"CUSTOMER_EDIT":"CUSTOMER_CREATE");
         const form=editor("customer-editor",c?"Edytuj klienta #"+c.id:"Nowy klient",
             customerFields,c||{customerType:"PERSON",discountPercent:0},
-            data=>write(c?"/api/customers/"+c.id:"/api/customers",c?"PUT":"POST",data));
+            data=>{
+                requirePermission(c?"CUSTOMER_EDIT":"CUSTOMER_CREATE");
+                if(!can("CUSTOMER_DISCOUNT_EDIT"))data.discountPercent=c?.discountPercent??0;
+                return write(c?"/api/customers/"+c.id:"/api/customers",c?"PUT":"POST",data);
+            });
+
+        if(!can("CUSTOMER_DISCOUNT_EDIT")){
+            form.elements.discountPercent.readOnly=true;
+            form.elements.discountPercent.title="Zmiana rabatu wymaga osobnego uprawnienia.";
+        }
 
         function update(){
             const company=form.elements.customerType.value==="COMPANY";
@@ -609,7 +621,7 @@
     }
 
     function editDiscount(c){
-        requireAdmin();
+        requirePermission("CUSTOMER_DISCOUNT_EDIT");
         editor("customer-editor","Rabat: "+customerName(c),[
             field("discountPercent","Rabat (%)","number",'min="0" max="100" step="0.01" required')
         ],c,data=>write("/api/customers/"+c.id+"/discount","PATCH",data));
@@ -619,20 +631,18 @@
         const q=$("customer-search").value.toLocaleLowerCase("pl");
         const rows=state.customers.filter(c=>[customerName(c),c.firstName,c.lastName,c.nip,c.city]
             .join(" ").toLocaleLowerCase("pl").includes(q)).map(c=>{
-            const actions=admin()?[
-                action("Edytuj",()=>editCustomer(c)),
-                action("Zmień rabat",()=>editDiscount(c))
-            ]:[];
+            const actions=[];
+            if(can("CUSTOMER_EDIT"))actions.push(action("Edytuj",()=>editCustomer(c)));
+            if(can("CUSTOMER_DISCOUNT_EDIT"))actions.push(action("Zmień rabat",()=>editDiscount(c)));
             return [customerName(c),[c.firstName,c.lastName].filter(Boolean).join(" "),
                 c.city,c.nip,c.discountPercent+"%",actions];
         });
         table($("customer-table"),["Klient","Kontakt","Miasto","NIP","Rabat","Akcje"],rows);
     }
 
-    $("new-customer").onclick=()=>editCustomer();
+    $("new-customer").onclick=safe(()=>editCustomer());
     $("customer-search").oninput=renderCustomers;
 
-    // Wybór produktu w dostawie i zamówieniu.
     function picker(form,onSelected){
         const label=document.createElement("label");
         label.className="full";
@@ -681,8 +691,14 @@
     ];
 
     function newDelivery(){
+        if(!can("DELIVERY_CREATE")){
+            $("delivery-editor").hidden=true;
+            return;
+        }
+
         const form=editor("delivery-editor","Przyjęcie towaru",deliveryFields,
             {quantity:1,markupPercent:state.markup},async(data,f)=>{
+                requirePermission("DELIVERY_CREATE");
                 const id=Number(f.elements.productId.value);
                 if(!id)throw new Error("Wybierz produkt z wyników wyszukiwania.");
                 await write("/api/products/"+id+"/deliveries","POST",data);
@@ -715,13 +731,13 @@
     }
 
     function editDelivery(d){
-        requireAdmin();
+        requirePermission("DELIVERY_EDIT");
         const fields=deliveryFields.map(f=>["purchasePriceNet","markupPercent"].includes(f.name)?
             {...f,extra:f.extra.replace("required","")}:f);
 
         const form=editor("delivery-correction","Korekta dostawy #"+d.id+" — "+d.productName,
             fields,d,async data=>{
-                requireAdmin();
+                requirePermission("DELIVERY_EDIT");
                 if((data.purchasePriceNet===null)!==(data.markupPercent===null)){
                     throw new Error("Podaj cenę i narzut razem albo pozostaw oba puste.");
                 }
@@ -744,16 +760,15 @@
                 d.markupPercent==null?"—":d.markupPercent+"%",
                 d.salePriceNet==null?"—":money(d.salePriceNet),
                 dateTime(d.createdAt),d.createdByUsername,
-                admin()?[
-                    action("Edytuj",()=>editDelivery(d)),
+                [
+                    ...(can("DELIVERY_EDIT")?[action("Edytuj",()=>editDelivery(d))]:[]),
                     action("Historia zmian",()=>location.assign("/delivery-history.html?id="+d.id))
-                ]:[]
+                ]
             ]));
     }
 
     $("refresh-deliveries").onclick=safe(refresh);
 
-    // Sprzedaż — wyszukiwarka pokazująca stan magazynowy.
     function lineProduct(line){
         const id=Number(line.dataset.productId);
         return id?state.products.find(p=>p.id===id):null;
@@ -933,7 +948,7 @@
 
     async function openSale(id=null){
         if($("save-sale").disabled)return;
-        if(id)requireAdmin();
+        requirePermission(id?"SALE_EDIT":"SALE_CREATE");
         await refresh();
         const sale=id?await api("/api/sales/"+id):null;
 
@@ -965,7 +980,7 @@
         event.preventDefault();
         if($("save-sale").disabled)return;
         const saleId=state.saleId;
-        if(saleId)requireAdmin();
+        requirePermission(saleId?"SALE_EDIT":"SALE_CREATE");
 
         const items=[...$("sale-lines").children].map(line=>({
             productId:lineProduct(line)?.id,
@@ -1077,7 +1092,7 @@
                 action("Szczegóły",()=>showSale(sale.id)),
                 action("Faktura / dokumenty",()=>openDocuments(sale.id))
             ];
-            if(admin())actions.push(action("Edytuj",()=>openSale(sale.id)));
+            if(can("SALE_EDIT"))actions.push(action("Edytuj",()=>openSale(sale.id)));
             return [sale.id,dateTime(sale.soldAt),
                 customerName(state.customers.find(c=>c.id===sale.customerId)),
                 sale.createdByUsername,sale.remarks,actions];
@@ -1085,7 +1100,6 @@
         table($("sale-table"),["ID","Data","Klient","Pracownik","Uwagi","Akcje"],rows);
     }
 
-    // Zamówienia.
     async function loadOrders(){
         const [products,orders]=await Promise.all([
             api("/api/products"),api("/api/purchase-orders")
@@ -1138,7 +1152,9 @@
             recommended.map(product=>[
                 manufacturer(product.manufacturer),productName(product),
                 product.quantity,product.minimumQuantity,pending(product.id),
-                [action(pending(product.id)>0?"Zamów dodatkowo":"Zamów",()=>openOrder(null,product))]
+                can("ORDER_MANAGE")?[
+                    action(pending(product.id)>0?"Zamów dodatkowo":"Zamów",()=>openOrder(null,product))
+                ]:[]
             ]));
 
         const orders=filteredOrders();
@@ -1154,13 +1170,13 @@
                 badge.textContent=statuses[order.status]||order.status;
 
                 const actions=[action("Historia",()=>orderHistory(order))];
-                if(order.status==="TO_ORDER"){
+                if(can("ORDER_MANAGE")&&order.status==="TO_ORDER"){
                     actions.unshift(
                         action("Edytuj",()=>openOrder(order)),
                         action("Zamówiono",()=>orderStatus(order,"ordered"))
                     );
                 }
-                if(["TO_ORDER","ORDERED"].includes(order.status)&&order.receivedQuantity===0){
+                if(can("ORDER_MANAGE")&&["TO_ORDER","ORDERED"].includes(order.status)&&order.receivedQuantity===0){
                     actions.push(action("Anuluj",()=>orderStatus(order,"cancel")));
                 }
                 return [
@@ -1172,6 +1188,7 @@
     }
 
     async function openOrder(order=null,product=null){
+        requirePermission("ORDER_MANAGE");
         show("orders",false);
         await loadOrders();
 
@@ -1180,6 +1197,7 @@
                 field("quantity","Liczba sztuk","number",'min="1" max="2147483647" step="1" required'),
                 field("remarks","Uwagi","textarea",'maxlength="2000"')
             ],order||{quantity:1},async(data,f)=>{
+                requirePermission("ORDER_MANAGE");
                 const id=Number(f.elements.productId.value);
                 if(!id)throw new Error("Wybierz produkt z wyników wyszukiwania.");
                 await write(order?"/api/purchase-orders/"+order.id:"/api/purchase-orders",
@@ -1208,6 +1226,7 @@
     }
 
     async function orderStatus(order,operation){
+        requirePermission("ORDER_MANAGE");
         if(!confirm(operation==="ordered"?
             "Czy zamówienie zostało przekazane producentowi?":"Anulować to zamówienie?"))return;
 
@@ -1227,7 +1246,7 @@
         const names={
             CREATED:"Utworzono",UPDATED:"Zmieniono dane",ORDERED:"Zamówiono",
             CANCELLED:"Anulowano",DELIVERY_RECEIVED:"Przyjęto dostawę",
-            DELIVERY_CORRECTED:"Skorygowano dostawę"
+            DELIVERY_CORRECTED:"Skorygowano dostawę",RECEIVED:"Przyjęto dostawę"
         };
         table(box.querySelector("[data-table]"),
             ["Data","Operacja","Ilość zamówiona","Status","Pracownik","Uwagi"],
@@ -1246,7 +1265,6 @@
         $(id).oninput=renderOrders;
     }
 
-    // Statystyki i raporty.
     function polishToday(){
         const parts=new Intl.DateTimeFormat("en-CA",{
             timeZone:"Europe/Warsaw",year:"numeric",month:"2-digit",day:"2-digit"
@@ -1265,12 +1283,12 @@
     }
 
     function scopeQuery(){
-        return admin()&&$("report-user").value?
+        return can("REPORT_ALL")&&$("report-user").value?
             "userId="+encodeURIComponent($("report-user").value):"";
     }
 
     function scopeLabel(){
-        return admin()?(
+        return can("REPORT_ALL")?(
             $("report-user").value?$("report-user").selectedOptions[0].textContent:"Cały sklep"
         ):"Moja sprzedaż — "+state.user.username;
     }
@@ -1284,8 +1302,8 @@
 
     async function loadStats(){
         if(!state.usersLoaded){
-            $("report-user-label").hidden=!admin();
-            if(admin()){
+            $("report-user-label").hidden=!can("REPORT_ALL");
+            if(can("REPORT_ALL")){
                 const users=await api("/api/reports/sales/users");
                 $("report-user").innerHTML='<option value="">Cały sklep</option>'+
                     users.map(user=>'<option value="'+user.id+'">'+esc(user.username)+'</option>').join("");
@@ -1327,7 +1345,7 @@
 
         const sequence=state.sequence,scope=scopeLabel();
         const query=new URLSearchParams({from,to,grouping:$("report-group").value});
-        if(admin()&&$("report-user").value)query.set("userId",$("report-user").value);
+        if(can("REPORT_ALL")&&$("report-user").value)query.set("userId",$("report-user").value);
         const data=await api("/api/reports/sales?"+query);
         if(sequence!==state.sequence)return;
 
@@ -1340,7 +1358,7 @@
         table($("report-period-table"),["Okres","Transakcje","Sztuki","Netto","Brutto"],
             data.periods.map(period=>totalRow(period.period,period.totals)));
 
-        $("report-employees-card").hidden=!admin();
+        $("report-employees-card").hidden=!can("REPORT_ALL");
         table($("report-employee-table"),["Pracownik","Transakcje","Sztuki","Netto","Brutto"],
             data.employees.map(employee=>totalRow(employee.username||"Nieprzypisana (starsze dane)",employee.totals)));
 
@@ -1376,7 +1394,6 @@
         });
     });
 
-    // Wydruki.
     function printDocument(title,description,sections){
         const sheet=$("print-sheet");
         sheet.innerHTML='<img src="/eltro-logo.png" alt="Eltro"><h1>'+esc(title)+
@@ -1423,7 +1440,7 @@
             rows:data.periods.map(period=>totalRow(period.period,period.totals))
         }];
 
-        if(admin())sections.push({
+        if(can("REPORT_ALL"))sections.push({
             title:"Pracownicy",
             headers:["Pracownik","Transakcje","Sztuki","Netto","Brutto"],
             rows:data.employees.map(employee=>totalRow(employee.username||"Nieprzypisana",employee.totals))
@@ -1447,7 +1464,11 @@
         $("current-user").textContent=state.user.username+" · "+
             (admin()?"Administrator":"Sprzedawca");
         $("users-link").hidden=!admin();
-        $("new-product").hidden=!admin();
+        $("new-product").hidden=!can("PRODUCT_CREATE");
+        $("new-customer").hidden=!can("CUSTOMER_CREATE");
+        $("new-sale").hidden=!can("SALE_CREATE");
+        $("new-order").hidden=!can("ORDER_MANAGE");
+
         await refresh();
         newDelivery();
 

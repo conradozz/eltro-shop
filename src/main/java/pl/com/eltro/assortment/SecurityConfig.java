@@ -49,6 +49,19 @@ public class SecurityConfig {
                         ).permitAll()
 
                         .requestMatchers(
+                                "/api/users",
+                                "/api/users/**",
+                                "/users.html",
+                                "/api/document-issuer",
+                                "/api/document-issuer/**"
+                        ).hasRole("ADMIN")
+
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/reports/sales/users"
+                        ).hasAnyAuthority("ROLE_ADMIN", "REPORT_ALL")
+
+                        .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/me",
                                 "/api/csrf",
@@ -71,33 +84,82 @@ public class SecurityConfig {
 
                         .requestMatchers(
                                 HttpMethod.POST,
-                                "/api/customers",
-                                "/api/sales",
-                                "/api/purchase-orders",
-                                "/api/sales/*/documents"
-                        ).hasAnyRole("ADMIN", "SELLER")
+                                "/api/products"
+                        ).hasAnyAuthority("ROLE_ADMIN", "PRODUCT_CREATE")
+
+                        .requestMatchers(
+                                HttpMethod.PATCH,
+                                "/api/products/*/details"
+                        ).hasAnyAuthority("ROLE_ADMIN", "PRODUCT_EDIT")
+
+                        .requestMatchers(
+                                HttpMethod.PATCH,
+                                "/api/products/*/prices"
+                        ).hasAnyAuthority(
+                                "ROLE_ADMIN",
+                                "PRODUCT_PRICE_EDIT"
+                        )
+
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/customers"
+                        ).hasAnyAuthority("ROLE_ADMIN", "CUSTOMER_CREATE")
+
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/api/customers/*"
+                        ).hasAnyAuthority("ROLE_ADMIN", "CUSTOMER_EDIT")
+
+                        .requestMatchers(
+                                HttpMethod.PATCH,
+                                "/api/customers/*/discount"
+                        ).hasAnyAuthority(
+                                "ROLE_ADMIN",
+                                "CUSTOMER_DISCOUNT_EDIT"
+                        )
 
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/api/products/*/deliveries"
-                        ).hasAnyRole("ADMIN", "SELLER")
+                        ).hasAnyAuthority("ROLE_ADMIN", "DELIVERY_CREATE")
 
                         .requestMatchers(
                                 HttpMethod.PUT,
-                                "/api/customers/*",
+                                "/api/deliveries/*"
+                        ).hasAnyAuthority("ROLE_ADMIN", "DELIVERY_EDIT")
+
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/sales"
+                        ).hasAnyAuthority("ROLE_ADMIN", "SALE_CREATE")
+
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/api/sales/*"
+                        ).hasAnyAuthority("ROLE_ADMIN", "SALE_EDIT")
+
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/purchase-orders"
+                        ).hasAnyAuthority("ROLE_ADMIN", "ORDER_MANAGE")
+
+                        .requestMatchers(
+                                HttpMethod.PUT,
                                 "/api/purchase-orders/*"
-                        ).hasAnyRole("ADMIN", "SELLER")
+                        ).hasAnyAuthority("ROLE_ADMIN", "ORDER_MANAGE")
 
                         .requestMatchers(
                                 HttpMethod.PATCH,
-                                "/api/customers/*/discount",
                                 "/api/purchase-orders/*/ordered",
                                 "/api/purchase-orders/*/cancel"
-                        ).hasAnyRole("ADMIN", "SELLER")
+                        ).hasAnyAuthority("ROLE_ADMIN", "ORDER_MANAGE")
 
-                        .requestMatchers("/api/**")
-                        .hasRole("ADMIN")
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/sales/*/documents"
+                        ).hasAnyAuthority("ROLE_ADMIN", "DOCUMENT_CREATE")
 
+                        .requestMatchers("/api/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
 
@@ -109,13 +171,9 @@ public class SecurityConfig {
                                     exception instanceof InvalidCsrfTokenException
                                             || exception instanceof MissingCsrfTokenException;
 
-                            boolean loginSubmission =
-                                    "/login".equals(path)
-                                            && "POST".equalsIgnoreCase(
-                                            request.getMethod()
-                                    );
-
-                            if (csrfError && loginSubmission) {
+                            if (csrfError
+                                    && "/login".equals(path)
+                                    && "POST".equalsIgnoreCase(request.getMethod())) {
                                 response.sendRedirect(
                                         request.getContextPath()
                                                 + "/login?expired"
@@ -123,10 +181,9 @@ public class SecurityConfig {
                                 return;
                             }
 
+                            response.setStatus(HttpStatus.FORBIDDEN.value());
+
                             if (path.startsWith("/api/")) {
-                                response.setStatus(
-                                        HttpStatus.FORBIDDEN.value()
-                                );
                                 response.setContentType(
                                         "application/json;charset=UTF-8"
                                 );
@@ -143,12 +200,10 @@ public class SecurityConfig {
                                 return;
                             }
 
-                            response.setStatus(
-                                    HttpStatus.FORBIDDEN.value()
-                            );
                             response.setContentType(
                                     "text/html;charset=UTF-8"
                             );
+
                             response.getWriter().write(
                                     """
                                     <!doctype html>
@@ -184,12 +239,11 @@ public class SecurityConfig {
                                     </head>
                                     <body>
                                         <header>
-                                            <img src="eltro-logo.png" alt="Eltro">
+                                            <img src="/eltro-logo.png" alt="Eltro">
                                         </header>
                                         <main>
                                             <h1>Brak dostępu</h1>
-                                            <p>Nie możesz wykonać tej operacji.
-                                               Wróć do panelu lub zaloguj się ponownie.</p>
+                                            <p>Nie masz uprawnień do tej operacji.</p>
                                             <p><a href="/">Wróć do panelu</a></p>
                                             <p><a href="/login">Przejdź do logowania</a></p>
                                         </main>
@@ -212,8 +266,7 @@ public class SecurityConfig {
                         .maximumSessions(-1)
                         .sessionRegistry(sessionRegistry)
                         .expiredSessionStrategy(event -> {
-                            String path = event.getRequest()
-                                    .getServletPath();
+                            String path = event.getRequest().getServletPath();
 
                             if (path.startsWith("/api/")) {
                                 event.getResponse().setStatus(

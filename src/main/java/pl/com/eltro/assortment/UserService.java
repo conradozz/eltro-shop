@@ -12,6 +12,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -20,13 +21,16 @@ public class UserService {
 
     private final JdbcTemplate jdbcTemplate;
     private final PasswordEncoder passwordEncoder;
+    private final UserPermissionRepository permissionRepository;
 
     public UserService(
             JdbcTemplate jdbcTemplate,
-            PasswordEncoder passwordEncoder
+            PasswordEncoder passwordEncoder,
+            UserPermissionRepository permissionRepository
     ) {
         this.jdbcTemplate = jdbcTemplate;
         this.passwordEncoder = passwordEncoder;
+        this.permissionRepository = permissionRepository;
     }
 
     @Transactional
@@ -97,6 +101,21 @@ public class UserService {
         }
 
         long id = Objects.requireNonNull(keyHolder.getKey()).longValue();
+
+        if ("SELLER".equals(role)) {
+            permissionRepository.replace(
+                    id,
+                    EnumSet.of(
+                            UserPermission.CUSTOMER_CREATE,
+                            UserPermission.CUSTOMER_EDIT,
+                            UserPermission.CUSTOMER_DISCOUNT_EDIT,
+                            UserPermission.DELIVERY_CREATE,
+                            UserPermission.SALE_CREATE,
+                            UserPermission.ORDER_MANAGE,
+                            UserPermission.DOCUMENT_CREATE
+                    )
+            );
+        }
 
         return new UserSummary(id, username, role, true);
     }
