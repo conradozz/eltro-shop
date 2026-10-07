@@ -21,19 +21,25 @@ public class DemoPresentationSecurityConfig {
                 .securityMatcher(
                         "/api/demo-mode",
                         "/eltro-demo.js",
-                        "/eltro-demo.css"
+                        "/eltro-demo.css",
+                        "/eltro-translations.js",
+                        "/eltro-i18n.js"
                 )
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/demo-mode",
                                 "/eltro-demo.js",
-                                "/eltro-demo.css"
+                                "/eltro-demo.css",
+                                "/eltro-translations.js",
+                                "/eltro-i18n.js"
                         ).permitAll()
                         .requestMatchers(
                                 HttpMethod.HEAD,
                                 "/eltro-demo.js",
-                                "/eltro-demo.css"
+                                "/eltro-demo.css",
+                                "/eltro-translations.js",
+                                "/eltro-i18n.js"
                         ).permitAll()
                         .anyRequest().denyAll()
                 );

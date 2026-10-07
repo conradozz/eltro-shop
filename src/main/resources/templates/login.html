@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light">
-    <title>Logowanie | Eltro</title>
+    <title data-i18n>Logowanie | Eltro</title>
 
+    <script src="/eltro-translations.js" defer></script>
+    <script src="/eltro-i18n.js" defer></script>
     <script src="/eltro-demo.js" defer></script>
 
     <style>
@@ -49,7 +51,9 @@
             padding: 18px 28px;
             display: flex;
             align-items: center;
-            min-height: 86px;
+            min-height: 70px;
+            justify-content: space-between;
+            gap: 12px;
         }
 
         .header-logo {
@@ -63,7 +67,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 48px 20px;
+            padding: 20px;
             background:
                     radial-gradient(
                             circle at 15% 20%,
@@ -81,7 +85,7 @@
         .login-card {
             width: 100%;
             max-width: 440px;
-            padding: 38px;
+            padding: 24px 30px;
             background: #fff;
             border: 1px solid var(--border);
             border-top: 4px solid var(--red);
@@ -98,14 +102,14 @@
 
         .card-logo {
             display: block;
-            width: 185px;
+            width: 150px;
             max-width: 100%;
             height: auto;
-            margin: 17px auto 20px;
+            margin: 10px auto 12px;
         }
 
         .description {
-            margin: 0 0 30px;
+            margin: 0 0 16px;
             color: var(--muted);
             text-align: center;
             font-size: 14px;
@@ -124,7 +128,7 @@
         }
 
         .field {
-            margin-bottom: 20px;
+            margin-bottom: 12px;
         }
 
         label {
@@ -178,9 +182,9 @@
         }
 
         .demo-section {
-            margin-top: 26px;
-            padding-top: 22px;
-            border-top: 1px solid var(--border);
+            margin: 0 0 18px;
+            padding: 0 0 16px;
+            border-bottom: 1px solid var(--border);
         }
 
         .demo-button {
@@ -247,12 +251,13 @@
                 src="/eltro-logo.png"
                 alt="Eltro"
         >
+        <div data-language-switch></div>
     </div>
 </header>
 
 <main>
     <section class="login-card" aria-labelledby="login-title">
-        <h1 class="welcome" id="login-title">Zaloguj się do</h1>
+        <h1 data-i18n class="welcome" id="login-title">Zaloguj się do</h1>
 
         <img
                 class="card-logo"
@@ -261,11 +266,12 @@
         >
 
         <p class="description">
-            Panel obsługi sklepu<br>
-            Produkty, klienci, dostawy i sprzedaż
+            <span data-i18n>Panel obsługi sklepu</span><br>
+            <span data-i18n>Produkty, klienci, dostawy i sprzedaż</span>
         </p>
 
         <div
+                data-i18n
                 class="message"
                 role="alert"
                 __MESSAGE_HIDDEN__
@@ -278,15 +284,14 @@
                         name="__CSRF_PARAMETER__"
                         value="__CSRF_TOKEN__"
                 >
-                <button type="submit" class="demo-button">
+                <button type="submit" data-i18n class="demo-button">
                     Zaloguj jako użytkownik demo
                 </button>
             </form>
 
             <p class="demo-description">
-                Bez zakładania konta i wpisywania hasła.<br>
-                Możesz dodawać i edytować dane demonstracyjne.
-                Konto demo jest wspólne dla odwiedzających.
+                <span data-i18n>Bez zakładania konta i wpisywania hasła.</span><br>
+                <span data-i18n>Możesz dodawać i edytować dane demonstracyjne. Konto demo jest wspólne dla odwiedzających.</span>
             </p>
         </section>
 
@@ -298,41 +303,41 @@
             >
 
             <div class="field">
-                <label for="username">Login</label>
+                <label data-i18n for="username">Login</label>
                 <input
                         id="username"
                         name="username"
                         type="text"
                         autocomplete="username"
-                        placeholder="Wpisz login"
+                        data-i18n-placeholder placeholder="Wpisz login"
                         required
                         autofocus
                 >
             </div>
 
             <div class="field">
-                <label for="password">Hasło</label>
+                <label data-i18n for="password">Hasło</label>
                 <input
                         id="password"
                         name="password"
                         type="password"
                         autocomplete="current-password"
-                        placeholder="Wpisz hasło"
+                        data-i18n-placeholder placeholder="Wpisz hasło"
                         required
                 >
             </div>
 
-            <button type="submit">Zaloguj się</button>
+            <button data-i18n type="submit">Zaloguj się</button>
         </form>
 
         <p class="card-footer">
-            Dostęp do zwykłych kont wymaga loginu i hasła.<br>
-            W sprawie konta skontaktuj się z administratorem.
+            <span data-i18n>Dostęp do zwykłych kont wymaga loginu i hasła.</span><br>
+            <span data-i18n>W sprawie konta skontaktuj się z administratorem.</span>
         </p>
     </section>
 </main>
 
-<footer class="page-footer">
+<footer data-i18n class="page-footer">
     Eltro · System obsługi sklepu
 </footer>
 

@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Eltro — panel sklepu</title>
+    <title data-i18n="">Eltro — panel sklepu</title>
     <script src="/eltro-demo.js" defer></script>
-    <style>
+    <script src="/eltro-translations.js"></script><script src="/eltro-i18n.js"></script><style>
         :root{--red:#d90000;--deep:#a90000;--ink:#24272b;--muted:#687078;--line:#e6e8eb;--bg:#f4f5f7}
         *{box-sizing:border-box}
         [hidden]{display:none!important}
@@ -94,19 +94,19 @@
 <header>
     <img src="/eltro-logo.png" alt="Eltro">
     <nav>
-        <button data-view="products" class="active">Produkty</button>
-        <button data-view="customers">Klienci</button>
-        <button data-view="deliveries">Dostawy</button>
-        <button data-view="sales">Sprzedaż</button>
-        <button data-view="orders">Zamówienia</button>
-        <button data-view="stats">Statystyki</button>
-        <a href="/documents.html">Dokumenty</a>
+        <button data-view="products" class="active" data-i18n="">Produkty</button>
+        <button data-view="customers" data-i18n="">Klienci</button>
+        <button data-view="deliveries" data-i18n="">Dostawy</button>
+        <button data-view="sales" data-i18n="">Sprzedaż</button>
+        <button data-view="orders" data-i18n="">Zamówienia</button>
+        <button data-view="stats" data-i18n="">Statystyki</button>
+        <a href="/documents.html" data-i18n="">Dokumenty</a>
     </nav>
     <div class="account">
         <span id="current-user">Wczytywanie konta…</span>
-        <a id="users-link" href="/users.html" hidden>Użytkownicy</a>
-        <button id="logout" class="secondary">Wyloguj</button>
-    </div>
+        <a id="users-link" href="/users.html" hidden data-i18n="">Użytkownicy</a>
+        <button id="logout" class="secondary" data-i18n="">Wyloguj</button>
+    <div data-language-switch=""></div></div>
 </header>
 
 <main>
@@ -114,13 +114,13 @@
 
     <section id="products-view">
         <div class="toolbar">
-            <h1>Produkty</h1>
-            <button id="new-product" hidden>+ Dodaj produkt</button>
+            <h1 data-i18n="">Produkty</h1>
+            <button id="new-product" hidden data-i18n="">+ Dodaj produkt</button>
         </div>
         <div id="product-editor" hidden></div>
         <div class="card">
-            <label>Wyszukaj produkt
-                <input id="product-search" placeholder="Nazwa, SKU, producent, model, kategoria">
+            <label><span data-i18n="">Wyszukaj produkt
+                </span><input id="product-search" placeholder="Nazwa, SKU, producent, model, kategoria" data-i18n-placeholder="">
             </label>
             <div id="product-table" style="margin-top:18px"></div>
         </div>
@@ -128,13 +128,13 @@
 
     <section id="customers-view" hidden>
         <div class="toolbar">
-            <h1>Klienci</h1>
-            <button id="new-customer" hidden>+ Dodaj klienta</button>
+            <h1 data-i18n="">Klienci</h1>
+            <button id="new-customer" hidden data-i18n="">+ Dodaj klienta</button>
         </div>
         <div id="customer-editor" hidden></div>
         <div class="card">
-            <label>Wyszukaj klienta
-                <input id="customer-search" placeholder="Nazwa, nazwisko, NIP, miasto">
+            <label><span data-i18n="">Wyszukaj klienta
+                </span><input id="customer-search" placeholder="Nazwa, nazwisko, NIP, miasto" data-i18n-placeholder="">
             </label>
             <div id="customer-table" style="margin-top:18px"></div>
         </div>
@@ -142,81 +142,81 @@
 
     <section id="deliveries-view" hidden>
         <div class="toolbar">
-            <h1>Dostawy</h1>
-            <button class="secondary" id="refresh-deliveries">Odśwież</button>
+            <h1 data-i18n="">Dostawy</h1>
+            <button class="secondary" id="refresh-deliveries" data-i18n="">Odśwież</button>
         </div>
         <div id="delivery-editor" hidden></div>
         <div id="delivery-correction" hidden></div>
         <div class="card">
-            <h2>Historia dostaw</h2>
+            <h2 data-i18n="">Historia dostaw</h2>
             <div id="delivery-table"></div>
         </div>
     </section>
 
     <section id="sales-view" hidden>
         <div class="toolbar">
-            <h1>Sprzedaż</h1>
-            <button id="new-sale" hidden>+ Nowa sprzedaż</button>
+            <h1 data-i18n="">Sprzedaż</h1>
+            <button id="new-sale" hidden data-i18n="">+ Nowa sprzedaż</button>
         </div>
         <form id="sale-form" class="card" hidden>
             <h2 id="sale-title">Nowa sprzedaż</h2>
             <div class="grid">
-                <label>Klient<select id="sale-customer"></select></label>
-                <label>Uwagi<textarea id="sale-remarks"></textarea></label>
+                <label><span data-i18n="">Klient</span><select id="sale-customer"></select></label>
+                <label><span data-i18n="">Uwagi</span><textarea id="sale-remarks"></textarea></label>
             </div>
             <div id="sale-lines"></div>
-            <button type="button" id="add-line" class="secondary">+ Dodaj pozycję</button>
+            <button type="button" id="add-line" class="secondary" data-i18n="">+ Dodaj pozycję</button>
             <p id="sale-preview" class="notice"></p>
             <div class="actions">
                 <button type="submit" id="save-sale">Zapisz sprzedaż</button>
-                <button type="button" class="secondary" id="cancel-sale">Anuluj</button>
+                <button type="button" class="secondary" id="cancel-sale" data-i18n="">Anuluj</button>
             </div>
         </form>
         <div id="sale-details" class="card" hidden></div>
         <div class="card">
-            <h2>Ostatnie sprzedaże</h2>
+            <h2 data-i18n="">Ostatnie sprzedaże</h2>
             <div id="sale-table"></div>
         </div>
     </section>
 
     <section id="orders-view" hidden>
         <div class="toolbar">
-            <h1>Zamówienia</h1>
+            <h1 data-i18n="">Zamówienia</h1>
             <div class="actions">
-                <button id="new-order" hidden>+ Dodaj do zamówienia</button>
-                <button id="refresh-orders" class="secondary">Odśwież</button>
+                <button id="new-order" hidden data-i18n="">+ Dodaj do zamówienia</button>
+                <button id="refresh-orders" class="secondary" data-i18n="">Odśwież</button>
             </div>
         </div>
         <div id="order-editor" hidden></div>
         <div class="card">
             <div class="grid">
-                <label>Producent<select id="order-manufacturer"></select></label>
-                <label>Status
-                    <select id="order-status">
-                        <option value="ACTIVE">Aktywne zamówienia</option>
-                        <option value="ALL">Wszystkie</option>
-                        <option value="TO_ORDER">Do zamówienia</option>
-                        <option value="ORDERED">Zamówiono</option>
-                        <option value="PARTIALLY_RECEIVED">Częściowo przyjęto</option>
-                        <option value="RECEIVED">Przyjęto na stan</option>
-                        <option value="CANCELLED">Anulowano</option>
+                <label><span data-i18n="">Producent</span><select id="order-manufacturer"></select></label>
+                <label><span data-i18n="">Status
+                    </span><select id="order-status">
+                        <option value="ACTIVE" data-i18n="">Aktywne zamówienia</option>
+                        <option value="ALL" data-i18n="">Wszystkie</option>
+                        <option value="TO_ORDER" data-i18n="">Do zamówienia</option>
+                        <option value="ORDERED" data-i18n="">Zamówiono</option>
+                        <option value="PARTIALLY_RECEIVED" data-i18n="">Częściowo przyjęto</option>
+                        <option value="RECEIVED" data-i18n="">Przyjęto na stan</option>
+                        <option value="CANCELLED" data-i18n="">Anulowano</option>
                     </select>
                 </label>
             </div>
         </div>
         <div class="card" style="border-top:4px solid var(--red)">
-            <h2>Proponowane do zamówienia</h2>
-            <p class="muted">Produkty ze stanem równym lub niższym od minimalnego.</p>
-            <label>Wyszukaj w proponowanych<input id="recommendation-search"></label>
+            <h2 data-i18n="">Proponowane do zamówienia</h2>
+            <p class="muted" data-i18n="">Produkty ze stanem równym lub niższym od minimalnego.</p>
+            <label><span data-i18n="">Wyszukaj w proponowanych</span><input id="recommendation-search"></label>
             <p id="recommendation-summary" class="muted"></p>
             <div id="recommendation-table"></div>
         </div>
         <div class="card">
             <div class="toolbar">
-                <h2>Lista zamówień</h2>
-                <button id="print-orders" class="secondary">Drukuj listę</button>
+                <h2 data-i18n="">Lista zamówień</h2>
+                <button id="print-orders" class="secondary" data-i18n="">Drukuj listę</button>
             </div>
-            <label>Wyszukaj zamówienie<input id="order-search"></label>
+            <label><span data-i18n="">Wyszukaj zamówienie</span><input id="order-search"></label>
             <p id="order-summary" class="muted"></p>
             <div id="order-table"></div>
         </div>
@@ -225,46 +225,46 @@
 
     <section id="stats-view" hidden>
         <div class="toolbar">
-            <h1>Statystyki sprzedaży</h1>
-            <button id="refresh-stats" class="secondary">Odśwież</button>
+            <h1 data-i18n="">Statystyki sprzedaży</h1>
+            <button id="refresh-stats" class="secondary" data-i18n="">Odśwież</button>
         </div>
         <p id="stats-scope" class="muted"></p>
         <div class="stats-cards">
             <div class="card metric">
-                <h2>DZISIAJ</h2>
+                <h2 data-i18n="">DZISIAJ</h2>
                 <strong id="stats-today-gross">—</strong>
                 <div id="stats-today-details" class="muted"></div>
             </div>
             <div class="card metric">
-                <h2>W TYM MIESIĄCU</h2>
+                <h2 data-i18n="">W TYM MIESIĄCU</h2>
                 <strong id="stats-month-gross">—</strong>
                 <div id="stats-month-details" class="muted"></div>
             </div>
         </div>
         <form id="report-form" class="card">
-            <h2>Raport sprzedaży</h2>
+            <h2 data-i18n="">Raport sprzedaży</h2>
             <div class="filters">
-                <label>Od<input id="report-from" type="date" required></label>
-                <label>Do<input id="report-to" type="date" required></label>
-                <label>Grupowanie
-                    <select id="report-group">
-                        <option value="DAY">Dni</option>
-                        <option value="MONTH">Miesiące</option>
-                        <option value="YEAR">Lata</option>
+                <label><span data-i18n="">Od</span><input id="report-from" type="date" required></label>
+                <label><span data-i18n="">Do</span><input id="report-to" type="date" required></label>
+                <label><span data-i18n="">Grupowanie
+                    </span><select id="report-group">
+                        <option value="DAY" data-i18n="">Dni</option>
+                        <option value="MONTH" data-i18n="">Miesiące</option>
+                        <option value="YEAR" data-i18n="">Lata</option>
                     </select>
                 </label>
-                <label id="report-user-label" hidden>Pracownik
-                    <select id="report-user"><option value="">Cały sklep</option></select>
+                <label id="report-user-label" hidden><span data-i18n="">Pracownik
+                    </span><select id="report-user"><option value="" data-i18n="">Cały sklep</option></select>
                 </label>
             </div>
             <div class="actions">
-                <button type="submit">Pokaż raport</button>
-                <button type="button" class="secondary" data-period="today">Dzisiaj</button>
-                <button type="button" class="secondary" data-period="month">Ten miesiąc</button>
-                <button type="button" class="secondary" data-period="year">Ten rok</button>
-                <button type="button" class="secondary" id="print-report" disabled>Drukuj / zapisz PDF</button>
+                <button type="submit" data-i18n="">Pokaż raport</button>
+                <button type="button" class="secondary" data-period="today" data-i18n="">Dzisiaj</button>
+                <button type="button" class="secondary" data-period="month" data-i18n="">Ten miesiąc</button>
+                <button type="button" class="secondary" data-period="year" data-i18n="">Ten rok</button>
+                <button type="button" class="secondary" id="print-report" disabled data-i18n="">Drukuj / zapisz PDF</button>
             </div>
-            <p class="muted">Kwoty brutto po rabatach. Aktualny stan po korektach, według daty sprzedaży i pierwotnego autora.</p>
+            <p class="muted" data-i18n="">Kwoty brutto po rabatach. Aktualny stan po korektach, według daty sprzedaży i pierwotnego autora.</p>
         </form>
         <div id="report-results" hidden>
             <div class="card">
@@ -273,11 +273,11 @@
                 <div id="report-period-table"></div>
             </div>
             <div id="report-employees-card" class="card" hidden>
-                <h2>Wyniki pracowników</h2>
+                <h2 data-i18n="">Wyniki pracowników</h2>
                 <div id="report-employee-table"></div>
             </div>
             <div class="card">
-                <h2>Sprzedaże z wybranego okresu</h2>
+                <h2 data-i18n="">Sprzedaże z wybranego okresu</h2>
                 <div id="report-sale-table"></div>
             </div>
         </div>
@@ -285,6 +285,7 @@
 </main>
 
 <div id="print-sheet"></div>
+
 
 <script>
     "use strict";
@@ -299,16 +300,16 @@
     const esc=value=>String(value??"")
         .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
         .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
-    const money=value=>Number(value??0).toLocaleString("pl-PL",{style:"currency",currency:"PLN"});
+    const money=value=>Number(value??0).toLocaleString(EltroI18n.getLanguage()==="en"?"en-GB":"pl-PL",{style:"currency",currency:"PLN"});
     const optional=value=>String(value??"").trim()||null;
     const num=value=>String(value??"").trim()===""?null:Number(String(value).replace(",","."));
-    const dateTime=value=>value?new Date(value).toLocaleString("pl-PL",{timeZone:"Europe/Warsaw"}):"—";
-    const customerName=c=>c?(c.customerType==="COMPANY"?c.companyName:[c.firstName,c.lastName].filter(Boolean).join(" ")):"Bez przypisanego klienta";
+    const dateTime=value=>value?new Date(value).toLocaleString(EltroI18n.getLanguage()==="en"?"en-GB":"pl-PL",{timeZone:"Europe/Warsaw"}):"—";
+    const customerName=c=>c?(c.customerType==="COMPANY"?c.companyName:[c.firstName,c.lastName].filter(Boolean).join(" ")):EltroI18n.t("Bez przypisanego klienta");
     const productName=p=>p.sku+" — "+p.name;
-    const manufacturer=value=>value?.trim()||"Bez producenta";
+    const manufacturer=value=>value?.trim()||EltroI18n.t("Bez producenta");
     const statuses={
-        TO_ORDER:"Do zamówienia",ORDERED:"Zamówiono",
-        PARTIALLY_RECEIVED:"Częściowo przyjęto",RECEIVED:"Przyjęto na stan",CANCELLED:"Anulowano"
+        TO_ORDER:EltroI18n.t("Do zamówienia"),ORDERED:EltroI18n.t("Zamówiono"),
+        PARTIALLY_RECEIVED:EltroI18n.t("Częściowo przyjęto"),RECEIVED:EltroI18n.t("Przyjęto na stan"),CANCELLED:EltroI18n.t("Anulowano")
     };
     const active=o=>["TO_ORDER","ORDERED","PARTIALLY_RECEIVED"].includes(o.status);
     const pending=id=>state.orders.filter(o=>o.productId===id&&active(o))
@@ -325,7 +326,7 @@
     function session(r){
         if(r.status===401||(r.redirected&&new URL(r.url).pathname==="/login")){
             location.assign("/login");
-            throw new Error("Sesja wygasła. Zaloguj się ponownie.");
+            throw new Error(EltroI18n.t("Sesja wygasła. Zaloguj się ponownie."));
         }
     }
 
@@ -333,9 +334,9 @@
         if(!csrfPromise)csrfPromise=fetch("/api/csrf",{credentials:"same-origin",cache:"no-store"})
             .then(async r=>{
                 session(r);
-                if(!r.ok)throw new Error("Nie udało się pobrać tokenu CSRF.");
+                if(!r.ok)throw new Error(EltroI18n.t("Nie udało się pobrać tokenu CSRF."));
                 const token=await r.json();
-                if(!token.headerName||!token.token)throw new Error("Nieprawidłowy token CSRF.");
+                if(!token.headerName||!token.token)throw new Error(EltroI18n.t("Nieprawidłowy token CSRF."));
                 return token;
             }).catch(e=>{csrfPromise=null;throw e;});
         return csrfPromise;
@@ -355,9 +356,9 @@
         if(!r.ok){
             if(r.status===403){
                 csrfPromise=null;
-                throw new Error(body?.error||body?.message||"Brak uprawnień lub formularz wygasł. Odśwież stronę.");
+                throw new Error(body?.error||body?.message||EltroI18n.t("Brak uprawnień lub formularz wygasł. Odśwież stronę."));
             }
-            throw new Error(body?.error||body?.message||"Błąd HTTP "+r.status);
+            throw new Error(body?.error||body?.message||EltroI18n.t("Błąd HTTP ")+r.status);
         }
         return body;
     }
@@ -373,7 +374,7 @@
     }
 
     function requirePermission(code){
-        if(!can(code))throw new Error("Nie masz uprawnień do tej operacji.");
+        if(!can(code))throw new Error(EltroI18n.t("Nie masz uprawnień do tej operacji."));
     }
 
     function action(label,run){return {label,run};}
@@ -425,7 +426,7 @@
         if(!rows.length){
             const row=document.createElement("tr"),td=document.createElement("td");
             td.colSpan=headers.length;
-            td.textContent="Brak danych dla wybranych warunków.";
+            td.textContent=EltroI18n.t("Brak danych dla wybranych warunków.");
             row.append(td);
             body.append(row);
         }
@@ -482,14 +483,14 @@
             if(f.type==="textarea"){
                 control='<textarea name="'+f.name+'" '+f.extra+'>'+value+'</textarea>';
             }else if(f.type==="customerType"){
-                control='<select name="customerType"><option value="PERSON">Osoba prywatna</option><option value="COMPANY">Firma</option></select>';
+                control=EltroI18n.fragment("<select name=\"customerType\"><option value=\"PERSON\">Osoba prywatna</option><option value=\"COMPANY\">Firma</option></select>");
             }else{
                 control='<input name="'+f.name+'" type="'+f.type+'" value="'+value+'" '+f.extra+'>';
             }
             return '<label class="'+(f.type==="textarea"?"full":"")+'" data-field="'+f.name+'">'+esc(f.label)+control+'</label>';
         }).join("");
 
-        box.innerHTML='<form class="card"><h2>'+esc(title)+'</h2><div class="grid">'+controls+'</div><div class="actions"><button type="submit">Zapisz</button><button type="button" class="secondary" data-cancel>Anuluj</button></div></form>';
+        box.innerHTML='<form class="card"><h2>'+esc(title)+'</h2><div class="grid">'+controls+EltroI18n.fragment("</div><div class=\"actions\"><button type=\"submit\">Zapisz</button><button type=\"button\" class=\"secondary\" data-cancel>Anuluj</button></div></form>");
         const form=box.querySelector("form");
         if(form.elements.customerType)form.elements.customerType.value=values.customerType||"PERSON";
         form.querySelector("[data-cancel]").onclick=()=>{box.hidden=true;};
@@ -507,9 +508,10 @@
                 }
                 await onSave(data,form);
                 box.hidden=true;
+                languageDraftDirty=false;
                 await refresh();
                 if(target==="delivery-editor")newDelivery();
-                message("Zapisano zmiany.");
+                message(EltroI18n.t("Zapisano zmiany."));
             }finally{b.disabled=false;}
         });
 
@@ -519,25 +521,25 @@
 
     const productFields=[
         field("sku","SKU","text","required"),
-        field("name","Nazwa","text","required"),
-        field("manufacturerPartNumber","Kod producenta"),
+        field("name",EltroI18n.t("Nazwa"),"text","required"),
+        field("manufacturerPartNumber",EltroI18n.t("Kod producenta")),
         field("ean","EAN"),
-        field("manufacturer","Producent"),
-        field("model","Model"),
-        field("category","Kategoria"),
+        field("manufacturer",EltroI18n.t("Producent")),
+        field("model",EltroI18n.t("Model")),
+        field("category",EltroI18n.t("Kategoria")),
         field("vatRate","VAT (%)","number",'min="0" max="100" step="0.01" required'),
-        field("minimumQuantity","Stan minimalny","number",'min="0" step="1" required'),
-        field("remarks","Uwagi","textarea")
+        field("minimumQuantity",EltroI18n.t("Stan minimalny"),"number",'min="0" step="1" required'),
+        field("remarks",EltroI18n.t("Uwagi"),"textarea")
     ];
 
     function editProduct(p=null){
         requirePermission(p?"PRODUCT_EDIT":"PRODUCT_CREATE");
         const fields=p?productFields:[
             ...productFields,
-            field("purchasePriceNet","Cena zakupu netto","number",'min="0" step="0.01" required'),
-            field("salePriceNet","Cena sprzedaży netto — puste = domyślny narzut","number",'min="0" step="0.01"')
+            field("purchasePriceNet",EltroI18n.t("Cena zakupu netto"),"number",'min="0" step="0.01" required'),
+            field("salePriceNet",EltroI18n.t("Cena sprzedaży netto — puste = domyślny narzut"),"number",'min="0" step="0.01"')
         ];
-        editor("product-editor",p?"Edytuj produkt #"+p.id:"Nowy produkt",fields,
+        editor("product-editor",p?EltroI18n.t("Edytuj produkt #")+p.id:EltroI18n.t("Nowy produkt"),fields,
             p||{vatRate:23,minimumQuantity:0},data=>{
                 requirePermission(p?"PRODUCT_EDIT":"PRODUCT_CREATE");
                 return write(p?"/api/products/"+p.id+"/details":"/api/products",p?"PATCH":"POST",data);
@@ -546,15 +548,15 @@
 
     function editPrices(p){
         requirePermission("PRODUCT_PRICE_EDIT");
-        editor("product-editor","Ceny: "+p.name,[
-            field("purchasePriceNet","Cena zakupu netto","number",'min="0" step="0.01" required'),
-            field("salePriceNet","Cena sprzedaży netto","number",'min="0" step="0.01" required')
+        editor("product-editor",EltroI18n.t("Ceny: ")+p.name,[
+            field("purchasePriceNet",EltroI18n.t("Cena zakupu netto"),"number",'min="0" step="0.01" required'),
+            field("salePriceNet",EltroI18n.t("Cena sprzedaży netto"),"number",'min="0" step="0.01" required')
         ],p,data=>write("/api/products/"+p.id+"/prices","PATCH",data));
     }
 
     function renderProducts(){
         const q=$("product-search").value.toLocaleLowerCase("pl");
-        table($("product-table"),["Produkt / SKU","Producent","Stan","Minimum","Cena netto","Akcje"],
+        table($("product-table"),[EltroI18n.t("Produkt / SKU"),EltroI18n.t("Producent"),EltroI18n.t("Stan"),EltroI18n.t("Minimum"),EltroI18n.t("Cena netto"),EltroI18n.t("Akcje")],
             state.products.filter(p=>[p.name,p.sku,p.manufacturer,p.model,p.category]
                 .join(" ").toLocaleLowerCase("pl").includes(q)).map(p=>{
                 const stock=document.createElement("span");
@@ -562,10 +564,10 @@
                 if(p.quantity<=p.minimumQuantity)stock.className="low";
 
                 const actions=[];
-                if(can("PRODUCT_EDIT"))actions.push(action("Edytuj",()=>editProduct(p)));
-                if(can("PRODUCT_PRICE_EDIT"))actions.push(action("Zmień ceny",()=>editPrices(p)));
+                if(can("PRODUCT_EDIT"))actions.push(action(EltroI18n.t("Edytuj"),()=>editProduct(p)));
+                if(can("PRODUCT_PRICE_EDIT"))actions.push(action(EltroI18n.t("Zmień ceny"),()=>editPrices(p)));
                 if(can("ORDER_MANAGE")&&p.quantity<=p.minimumQuantity){
-                    actions.push(action("Zamów",()=>openOrder(null,p)));
+                    actions.push(action(EltroI18n.t("Zamów"),()=>openOrder(null,p)));
                 }
                 return [productName(p),p.manufacturer||"—",stock,p.minimumQuantity,money(p.salePriceNet),actions];
             }));
@@ -575,24 +577,24 @@
     $("product-search").oninput=renderProducts;
 
     const customerFields=[
-        field("customerType","Typ klienta","customerType"),
-        field("firstName","Imię / osoba kontaktowa"),
-        field("lastName","Nazwisko / osoba kontaktowa"),
-        field("companyName","Nazwa firmy"),
+        field("customerType",EltroI18n.t("Typ klienta"),"customerType"),
+        field("firstName",EltroI18n.t("Imię / osoba kontaktowa")),
+        field("lastName",EltroI18n.t("Nazwisko / osoba kontaktowa")),
+        field("companyName",EltroI18n.t("Nazwa firmy")),
         field("nip","NIP"),
         field("regon","REGON"),
-        field("street","Ulica i numer"),
-        field("postalCode","Kod pocztowy"),
-        field("city","Miasto"),
-        field("phone","Telefon"),
+        field("street",EltroI18n.t("Ulica i numer")),
+        field("postalCode",EltroI18n.t("Kod pocztowy")),
+        field("city",EltroI18n.t("Miasto")),
+        field("phone",EltroI18n.t("Telefon")),
         field("email","E-mail","email"),
-        field("discountPercent","Rabat (%)","number",'min="0" max="100" step="0.01" required'),
-        field("remarks","Uwagi","textarea")
+        field("discountPercent",EltroI18n.t("Rabat (%)"),"number",'min="0" max="100" step="0.01" required'),
+        field("remarks",EltroI18n.t("Uwagi"),"textarea")
     ];
 
     function editCustomer(c=null){
         requirePermission(c?"CUSTOMER_EDIT":"CUSTOMER_CREATE");
-        const form=editor("customer-editor",c?"Edytuj klienta #"+c.id:"Nowy klient",
+        const form=editor("customer-editor",c?EltroI18n.t("Edytuj klienta #")+c.id:EltroI18n.t("Nowy klient"),
             customerFields,c||{customerType:"PERSON",discountPercent:0},
             data=>{
                 requirePermission(c?"CUSTOMER_EDIT":"CUSTOMER_CREATE");
@@ -602,7 +604,7 @@
 
         if(!can("CUSTOMER_DISCOUNT_EDIT")){
             form.elements.discountPercent.readOnly=true;
-            form.elements.discountPercent.title="Zmiana rabatu wymaga osobnego uprawnienia.";
+            form.elements.discountPercent.title=EltroI18n.t("Zmiana rabatu wymaga osobnego uprawnienia.");
         }
 
         function update(){
@@ -621,8 +623,8 @@
 
     function editDiscount(c){
         requirePermission("CUSTOMER_DISCOUNT_EDIT");
-        editor("customer-editor","Rabat: "+customerName(c),[
-            field("discountPercent","Rabat (%)","number",'min="0" max="100" step="0.01" required')
+        editor("customer-editor",EltroI18n.t("Rabat: ")+customerName(c),[
+            field("discountPercent",EltroI18n.t("Rabat (%)"),"number",'min="0" max="100" step="0.01" required')
         ],c,data=>write("/api/customers/"+c.id+"/discount","PATCH",data));
     }
 
@@ -631,12 +633,12 @@
         const rows=state.customers.filter(c=>[customerName(c),c.firstName,c.lastName,c.nip,c.city]
             .join(" ").toLocaleLowerCase("pl").includes(q)).map(c=>{
             const actions=[];
-            if(can("CUSTOMER_EDIT"))actions.push(action("Edytuj",()=>editCustomer(c)));
-            if(can("CUSTOMER_DISCOUNT_EDIT"))actions.push(action("Zmień rabat",()=>editDiscount(c)));
+            if(can("CUSTOMER_EDIT"))actions.push(action(EltroI18n.t("Edytuj"),()=>editCustomer(c)));
+            if(can("CUSTOMER_DISCOUNT_EDIT"))actions.push(action(EltroI18n.t("Zmień rabat"),()=>editDiscount(c)));
             return [customerName(c),[c.firstName,c.lastName].filter(Boolean).join(" "),
                 c.city,c.nip,c.discountPercent+"%",actions];
         });
-        table($("customer-table"),["Klient","Kontakt","Miasto","NIP","Rabat","Akcje"],rows);
+        table($("customer-table"),[EltroI18n.t("Klient"),EltroI18n.t("Kontakt"),EltroI18n.t("Miasto"),"NIP",EltroI18n.t("Rabat"),EltroI18n.t("Akcje")],rows);
     }
 
     $("new-customer").onclick=safe(()=>editCustomer());
@@ -645,7 +647,7 @@
     function picker(form,onSelected){
         const label=document.createElement("label");
         label.className="full";
-        label.innerHTML='Wyszukaj produkt<input type="search" placeholder="Nazwa, SKU, producent lub model" autocomplete="off"><input type="hidden" name="productId"><div class="results" hidden></div>';
+        label.innerHTML=EltroI18n.fragment("Wyszukaj produkt<input type=\"search\" placeholder=\"Nazwa, SKU, producent lub model\" autocomplete=\"off\"><input type=\"hidden\" name=\"productId\"><div class=\"results\" hidden></div>");
         form.querySelector(".grid").prepend(label);
 
         const input=label.querySelector('[type="search"]');
@@ -673,20 +675,20 @@
             for(const p of matches){
                 const b=document.createElement("button");
                 b.type="button";
-                b.textContent=productName(p)+" · stan "+p.quantity+" szt.";
+                b.textContent=productName(p)+EltroI18n.t(" · stan ")+p.quantity+EltroI18n.t(" szt.");
                 b.onclick=()=>select(p);
                 results.append(b);
             }
-            if(!matches.length)results.textContent="Nie znaleziono produktu.";
+            if(!matches.length)results.textContent=EltroI18n.t("Nie znaleziono produktu.");
         };
         return {select,input,id};
     }
 
     const deliveryFields=[
-        field("quantity","Liczba sztuk","number",'min="1" step="1" required'),
-        field("purchasePriceNet","Cena zakupu netto / szt.","number",'min="0" step="0.01" required'),
-        field("markupPercent","Narzut (%)","number",'min="0" max="1000" step="0.01" required'),
-        field("remarks","Uwagi","textarea")
+        field("quantity",EltroI18n.t("Liczba sztuk"),"number",'min="1" step="1" required'),
+        field("purchasePriceNet",EltroI18n.t("Cena zakupu netto / szt."),"number",'min="0" step="0.01" required'),
+        field("markupPercent",EltroI18n.t("Narzut (%)"),"number",'min="0" max="1000" step="0.01" required'),
+        field("remarks",EltroI18n.t("Uwagi"),"textarea")
     ];
 
     function newDelivery(){
@@ -695,11 +697,11 @@
             return;
         }
 
-        const form=editor("delivery-editor","Przyjęcie towaru",deliveryFields,
+        const form=editor("delivery-editor",EltroI18n.t("Przyjęcie towaru"),deliveryFields,
             {quantity:1,markupPercent:state.markup},async(data,f)=>{
                 requirePermission("DELIVERY_CREATE");
                 const id=Number(f.elements.productId.value);
-                if(!id)throw new Error("Wybierz produkt z wyników wyszukiwania.");
+                if(!id)throw new Error(EltroI18n.t("Wybierz produkt z wyników wyszukiwania."));
                 await write("/api/products/"+id+"/deliveries","POST",data);
             });
 
@@ -710,10 +712,10 @@
 
         function update(){
             preview.textContent=product?
-                "Obecny stan: "+product.quantity+" szt. · Cena sprzedaży po dostawie: "+
+                EltroI18n.t("Obecny stan: ")+product.quantity+EltroI18n.t(" szt. · Cena sprzedaży po dostawie: ")+
                 money(Number(form.elements.purchasePriceNet.value)*(1+Number(form.elements.markupPercent.value)/100))+
-                " netto · Stan po dostawie: "+(product.quantity+Number(form.elements.quantity.value||0))+" szt.":
-                "Wybierz produkt, aby zobaczyć obecny stan.";
+                EltroI18n.t(" netto · Stan po dostawie: ")+(product.quantity+Number(form.elements.quantity.value||0))+EltroI18n.t(" szt."):
+                EltroI18n.t("Wybierz produkt, aby zobaczyć obecny stan.");
         }
 
         picker(form,p=>{
@@ -734,11 +736,11 @@
         const fields=deliveryFields.map(f=>["purchasePriceNet","markupPercent"].includes(f.name)?
             {...f,extra:f.extra.replace("required","")}:f);
 
-        const form=editor("delivery-correction","Korekta dostawy #"+d.id+" — "+d.productName,
+        const form=editor("delivery-correction",EltroI18n.t("Korekta dostawy #")+d.id+" — "+d.productName,
             fields,d,async data=>{
                 requirePermission("DELIVERY_EDIT");
                 if((data.purchasePriceNet===null)!==(data.markupPercent===null)){
-                    throw new Error("Podaj cenę i narzut razem albo pozostaw oba puste.");
+                    throw new Error(EltroI18n.t("Podaj cenę i narzut razem albo pozostaw oba puste."));
                 }
                 await write("/api/deliveries/"+d.id,"PUT",data);
             });
@@ -746,13 +748,13 @@
         const p=state.products.find(p=>p.id===d.productId);
         const notice=document.createElement("p");
         notice.className="notice";
-        notice.textContent="Obecny stan produktu: "+(p?.quantity??"—")+" szt.";
+        notice.textContent=EltroI18n.t("Obecny stan produktu: ")+(p?.quantity??"—")+EltroI18n.t(" szt.");
         form.querySelector("h2").after(notice);
     }
 
     function renderDeliveries(){
         table($("delivery-table"),
-            ["ID","Produkt","Sztuki","Zakup netto","Narzut","Sprzedaż netto","Data","Pracownik","Akcje"],
+            ["ID",EltroI18n.t("Produkt"),EltroI18n.t("Sztuki"),EltroI18n.t("Zakup netto"),EltroI18n.t("Narzut"),EltroI18n.t("Sprzedaż netto"),EltroI18n.t("Data"),EltroI18n.t("Pracownik"),EltroI18n.t("Akcje")],
             state.deliveries.map(d=>[
                 d.id,d.productName+" ("+d.sku+")",d.quantity,
                 d.purchasePriceNet==null?"—":money(d.purchasePriceNet),
@@ -760,8 +762,8 @@
                 d.salePriceNet==null?"—":money(d.salePriceNet),
                 dateTime(d.createdAt),d.createdByUsername,
                 [
-                    ...(can("DELIVERY_EDIT")?[action("Edytuj",()=>editDelivery(d))]:[]),
-                    action("Historia zmian",()=>location.assign("/delivery-history.html?id="+d.id))
+                    ...(can("DELIVERY_EDIT")?[action(EltroI18n.t("Edytuj"),()=>editDelivery(d))]:[]),
+                    action(EltroI18n.t("Historia zmian"),()=>location.assign("/delivery-history.html?id="+d.id))
                 ]
             ]));
     }
@@ -780,17 +782,17 @@
         stock.className="line-stock";
 
         if(!product){
-            stock.textContent="Wybierz produkt";
+            stock.textContent=EltroI18n.t("Wybierz produkt");
             return;
         }
         const requested=Number(line.querySelector(".line-quantity").value||0);
         if(product.quantity===0){
-            stock.textContent="Brak na stanie";
+            stock.textContent=EltroI18n.t("Brak na stanie");
             stock.classList.add("low");
         }else{
-            stock.textContent="Dostępne: "+product.quantity+" szt.";
+            stock.textContent=EltroI18n.t("Dostępne: ")+product.quantity+EltroI18n.t(" szt.");
             if(requested>product.quantity){
-                stock.textContent+=" · ilość przekracza stan";
+                stock.textContent+=EltroI18n.t(" · ilość przekracza stan");
                 stock.classList.add("low");
             }
         }
@@ -801,12 +803,12 @@
         line.className="sale-line";
         line.innerHTML=
             '<div class="sale-product-picker">'+
-            '<label>Produkt<input class="line-product" type="search" autocomplete="off" required placeholder="Nazwa, SKU, producent lub model"></label>'+
+            EltroI18n.fragment("<label>Produkt<input class=\"line-product\" type=\"search\" autocomplete=\"off\" required placeholder=\"Nazwa, SKU, producent lub model\"></label>")+
             '<div class="results line-results" hidden></div></div>'+
-            '<label>Sztuki<input class="line-quantity" type="number" min="1" step="1" value="1" required><span class="line-stock">Wybierz produkt</span></label>'+
-            '<label>Cena netto<input class="line-price" type="number" min="0" step="0.01" placeholder="Z cennika"></label>'+
-            '<label>Rabat %<input class="line-discount" type="number" min="0" max="100" step="0.01" placeholder="Klienta"></label>'+
-            '<button type="button" class="secondary line-remove">Usuń</button>';
+            EltroI18n.fragment("<label>Sztuki<input class=\"line-quantity\" type=\"number\" min=\"1\" step=\"1\" value=\"1\" required><span class=\"line-stock\">Wybierz produkt</span></label>")+
+            EltroI18n.fragment("<label>Cena netto<input class=\"line-price\" type=\"number\" min=\"0\" step=\"0.01\" placeholder=\"Z cennika\"></label>")+
+            EltroI18n.fragment("<label>Rabat %<input class=\"line-discount\" type=\"number\" min=\"0\" max=\"100\" step=\"0.01\" placeholder=\"Klienta\"></label>")+
+            EltroI18n.fragment("<button type=\"button\" class=\"secondary line-remove\">Usuń</button>");
 
         const input=line.querySelector(".line-product");
         const results=line.querySelector(".line-results");
@@ -840,8 +842,8 @@
                 title.textContent=productName(product);
                 const details=document.createElement("span");
                 details.textContent=
-                    (product.quantity===0?"Brak na stanie":"Stan: "+product.quantity+" szt.")+
-                    " · "+money(product.salePriceNet)+" netto"+
+                    (product.quantity===0?EltroI18n.t("Brak na stanie"):EltroI18n.t("Stan: ")+product.quantity+EltroI18n.t(" szt."))+
+                    " · "+money(product.salePriceNet)+EltroI18n.t(" netto")+
                     (product.manufacturer?" · "+product.manufacturer:"");
                 if(product.quantity===0)details.className="unavailable";
                 button.append(title,details);
@@ -853,7 +855,7 @@
                 const text=document.createElement("p");
                 text.className="muted";
                 text.style.padding="10px";
-                text.textContent="Nie znaleziono produktu.";
+                text.textContent=EltroI18n.t("Nie znaleziono produktu.");
                 results.append(text);
             }
             results.hidden=false;
@@ -861,7 +863,7 @@
 
         input.oninput=()=>{
             delete line.dataset.productId;
-            line.querySelector(".line-price").placeholder="Z cennika";
+            line.querySelector(".line-price").placeholder=EltroI18n.t("Z cennika");
             updateLineStock(line);
             searchProducts();
         };
@@ -942,7 +944,7 @@
             net+=amount;
             gross+=Math.round(amount*(1+Number(product.vatRate)/100)*100)/100;
         }
-        $("sale-preview").textContent="Podgląd koszyka: "+money(net)+" netto / "+money(gross)+" brutto";
+        $("sale-preview").textContent=EltroI18n.t("Podgląd koszyka: ")+money(net)+EltroI18n.t(" netto / ")+money(gross)+EltroI18n.t(" brutto");
     }
 
     async function openSale(id=null){
@@ -952,9 +954,9 @@
         const sale=id?await api("/api/sales/"+id):null;
 
         state.saleId=id;
-        $("sale-title").textContent=id?"Korekta sprzedaży #"+id:"Nowa sprzedaż";
-        $("save-sale").textContent=id?"Zapisz korektę":"Zapisz sprzedaż";
-        $("sale-customer").innerHTML='<option value="">Bez przypisanego klienta</option>'+
+        $("sale-title").textContent=id?EltroI18n.t("Korekta sprzedaży #")+id:EltroI18n.t("Nowa sprzedaż");
+        $("save-sale").textContent=id?EltroI18n.t("Zapisz korektę"):EltroI18n.t("Zapisz sprzedaż");
+        $("sale-customer").innerHTML=EltroI18n.fragment("<option value=\"\">Bez przypisanego klienta</option>")+
             state.customers.map(c=>'<option value="'+c.id+'">'+esc(customerName(c))+'</option>').join("");
         $("sale-customer").value=sale?.customerId??"";
         $("sale-remarks").value=sale?.remarks??"";
@@ -991,7 +993,7 @@
         if(!items.length||items.some(item=>
             !item.productId||!Number.isInteger(item.quantity)||item.quantity<1
         )){
-            throw new Error("Wybierz produkt z wyników wyszukiwania i dodatnią liczbę sztuk w każdej pozycji.");
+            throw new Error(EltroI18n.t("Wybierz produkt z wyników wyszukiwania i dodatnią liczbę sztuk w każdej pozycji."));
         }
 
         let request={
@@ -1013,7 +1015,7 @@
             if(!saleId){
                 const availability=await write("/api/sales?preview=true","POST",request);
                 if(!availability.canSellAnything){
-                    message("Żaden produkt z koszyka nie jest dostępny. Sprzedaż nie została zapisana.",true);
+                    message(EltroI18n.t("Żaden produkt z koszyka nie jest dostępny. Sprzedaż nie została zapisana."),true);
                     return;
                 }
 
@@ -1022,20 +1024,20 @@
                         .filter(line=>line.missingQuantity>0)
                         .map(line=>
                             line.productName+" ("+line.sku+")"+
-                            "\nŻądano: "+line.requestedQuantity+" szt."+
-                            "\nDostępne dla tej pozycji: "+line.availableQuantity+" szt."+
-                            "\nBrakuje: "+line.missingQuantity+" szt."
+                            EltroI18n.t("\nŻądano: ")+line.requestedQuantity+EltroI18n.t(" szt.")+
+                            EltroI18n.t("\nDostępne dla tej pozycji: ")+line.availableQuantity+EltroI18n.t(" szt.")+
+                            EltroI18n.t("\nBrakuje: ")+line.missingQuantity+EltroI18n.t(" szt.")
                         ).join("\n\n");
 
                     const accepted=confirm(
-                        "Braki w koszyku:\n\n"+shortages+
-                        "\n\nSprzedać wyłącznie dostępne sztuki?"+
-                        "\nOK = sprzedaj dostępne sztuki."+
-                        "\nAnuluj = wróć do koszyka bez zapisywania sprzedaży."
+                        EltroI18n.t("Braki w koszyku:\n\n")+shortages+
+                        EltroI18n.t("\n\nSprzedać wyłącznie dostępne sztuki?")+
+                        EltroI18n.t("\nOK = sprzedaj dostępne sztuki.")+
+                        EltroI18n.t("\nAnuluj = wróć do koszyka bez zapisywania sprzedaży.")
                     );
 
                     if(!accepted){
-                        message("Nie zapisano sprzedaży. Możesz zmienić koszyk.");
+                        message(EltroI18n.t("Nie zapisano sprzedaży. Możesz zmienić koszyk."));
                         return;
                     }
                 }
@@ -1050,8 +1052,9 @@
 
             $("sale-form").hidden=true;
             state.saleId=null;
+            languageDraftDirty=false;
             await refresh();
-            message("Zapisano sprzedaż #"+result.id+".");
+            message(EltroI18n.t("Zapisano sprzedaż #")+result.id+".");
             await showSale(result.id);
         }finally{
             controls.forEach((control,index)=>{
@@ -1066,37 +1069,37 @@
         show("sales");
         const box=$("sale-details");
         box.hidden=false;
-        box.innerHTML='<div class="toolbar"><h2>Sprzedaż #'+sale.id+'</h2><div class="actions"><button type="button" data-documents>Faktura / dokumenty</button><button type="button" class="secondary" data-close>Zamknij</button></div></div><pre></pre>';
+        box.innerHTML=EltroI18n.fragment("<div class=\"toolbar\"><h2>Sprzedaż #")+sale.id+EltroI18n.fragment("</h2><div class=\"actions\"><button type=\"button\" data-documents>Faktura / dokumenty</button><button type=\"button\" class=\"secondary\" data-close>Zamknij</button></div></div><pre></pre>");
         box.querySelector("[data-close]").onclick=()=>{box.hidden=true;};
         box.querySelector("[data-documents]").onclick=()=>openDocuments(sale.id);
 
         box.querySelector("pre").textContent=
-            "Data: "+dateTime(sale.soldAt)+
-            "\nPracownik: "+(sale.createdByUsername||"Nieprzypisana")+
-            "\nKlient: "+customerName(state.customers.find(c=>c.id===sale.customerId))+"\n\n"+
+            EltroI18n.t("Data: ")+dateTime(sale.soldAt)+
+            EltroI18n.t("\nPracownik: ")+(sale.createdByUsername||EltroI18n.t("Nieprzypisana"))+
+            EltroI18n.t("\nKlient: ")+customerName(state.customers.find(c=>c.id===sale.customerId))+"\n\n"+
             sale.items.map(item=>
                 item.quantity+" × "+item.productName+" ("+item.sku+")"+
-                "\nCena: "+money(item.unitSalePriceNet)+", rabat: "+item.discountPercent+"%"+
-                "\nNetto: "+money(item.lineTotalNet)+", brutto: "+money(item.lineTotalGross)
+                EltroI18n.t("\nCena: ")+money(item.unitSalePriceNet)+EltroI18n.t(", rabat: ")+item.discountPercent+"%"+
+                EltroI18n.t("\nNetto: ")+money(item.lineTotalNet)+EltroI18n.t(", brutto: ")+money(item.lineTotalGross)
             ).join("\n\n")+
-            "\n\nRAZEM NETTO: "+money(sale.totalNet)+
-            "\nRAZEM BRUTTO: "+money(sale.totalGross)+
-            "\nUwagi: "+(sale.remarks||"—");
+            EltroI18n.t("\n\nRAZEM NETTO: ")+money(sale.totalNet)+
+            EltroI18n.t("\nRAZEM BRUTTO: ")+money(sale.totalGross)+
+            EltroI18n.t("\nUwagi: ")+(sale.remarks||"—");
         box.scrollIntoView({behavior:"smooth",block:"start"});
     }
 
     function renderSales(){
         const rows=state.sales.map(sale=>{
             const actions=[
-                action("Szczegóły",()=>showSale(sale.id)),
-                action("Faktura / dokumenty",()=>openDocuments(sale.id))
+                action(EltroI18n.t("Szczegóły"),()=>showSale(sale.id)),
+                action(EltroI18n.t("Faktura / dokumenty"),()=>openDocuments(sale.id))
             ];
-            if(can("SALE_EDIT"))actions.push(action("Edytuj",()=>openSale(sale.id)));
+            if(can("SALE_EDIT"))actions.push(action(EltroI18n.t("Edytuj"),()=>openSale(sale.id)));
             return [sale.id,dateTime(sale.soldAt),
                 customerName(state.customers.find(c=>c.id===sale.customerId)),
                 sale.createdByUsername,sale.remarks,actions];
         });
-        table($("sale-table"),["ID","Data","Klient","Pracownik","Uwagi","Akcje"],rows);
+        table($("sale-table"),["ID",EltroI18n.t("Data"),EltroI18n.t("Klient"),EltroI18n.t("Pracownik"),EltroI18n.t("Uwagi"),EltroI18n.t("Akcje")],rows);
     }
 
     async function loadOrders(){
@@ -1112,7 +1115,7 @@
             ...orders.map(o=>manufacturer(o.manufacturer))
         ])].sort((a,b)=>a.localeCompare(b,"pl"));
 
-        select.innerHTML='<option value="">Wszyscy producenci</option>'+
+        select.innerHTML=EltroI18n.fragment("<option value=\"\">Wszyscy producenci</option>")+
             values.map(value=>'<option value="'+esc(value)+'">'+esc(value)+'</option>').join("");
         if(values.includes(previous))select.value=previous;
         renderOrders();
@@ -1145,38 +1148,38 @@
                 .join(" ").toLocaleLowerCase("pl").includes(query)
         ).sort(orderSort);
 
-        $("recommendation-summary").textContent="Produktów wymagających uzupełnienia: "+recommended.length;
+        $("recommendation-summary").textContent=EltroI18n.t("Produktów wymagających uzupełnienia: ")+recommended.length;
         table($("recommendation-table"),
-            ["Producent","Produkt / SKU","Stan","Minimum","W zamówieniach","Akcje"],
+            [EltroI18n.t("Producent"),EltroI18n.t("Produkt / SKU"),EltroI18n.t("Stan"),EltroI18n.t("Minimum"),EltroI18n.t("W zamówieniach"),EltroI18n.t("Akcje")],
             recommended.map(product=>[
                 manufacturer(product.manufacturer),productName(product),
                 product.quantity,product.minimumQuantity,pending(product.id),
                 can("ORDER_MANAGE")?[
-                    action(pending(product.id)>0?"Zamów dodatkowo":"Zamów",()=>openOrder(null,product))
+                    action(pending(product.id)>0?EltroI18n.t("Zamów dodatkowo"):EltroI18n.t("Zamów"),()=>openOrder(null,product))
                 ]:[]
             ]));
 
         const orders=filteredOrders();
-        $("order-summary").textContent="Pozycji: "+orders.length+" · Do przyjęcia: "+
-            orders.filter(active).reduce((sum,order)=>sum+order.quantity-order.receivedQuantity,0)+" szt.";
+        $("order-summary").textContent=EltroI18n.t("Pozycji: ")+orders.length+EltroI18n.t(" · Do przyjęcia: ")+
+            orders.filter(active).reduce((sum,order)=>sum+order.quantity-order.receivedQuantity,0)+EltroI18n.t(" szt.");
         $("print-orders").disabled=!orders.length;
 
         table($("order-table"),
-            ["Producent","Produkt / SKU","Zamówiono / przyjęto","Stan","Status","Autor / data","Uwagi","Akcje"],
+            [EltroI18n.t("Producent"),EltroI18n.t("Produkt / SKU"),EltroI18n.t("Zamówiono / przyjęto"),EltroI18n.t("Stan"),EltroI18n.t("Status"),EltroI18n.t("Autor / data"),EltroI18n.t("Uwagi"),EltroI18n.t("Akcje")],
             orders.map(order=>{
                 const badge=document.createElement("span");
                 badge.className="badge "+order.status;
                 badge.textContent=statuses[order.status]||order.status;
 
-                const actions=[action("Historia",()=>orderHistory(order))];
+                const actions=[action(EltroI18n.t("Historia"),()=>orderHistory(order))];
                 if(can("ORDER_MANAGE")&&order.status==="TO_ORDER"){
                     actions.unshift(
-                        action("Edytuj",()=>openOrder(order)),
-                        action("Zamówiono",()=>orderStatus(order,"ordered"))
+                        action(EltroI18n.t("Edytuj"),()=>openOrder(order)),
+                        action(EltroI18n.t("Zamówiono"),()=>orderStatus(order,"ordered"))
                     );
                 }
                 if(can("ORDER_MANAGE")&&["TO_ORDER","ORDERED"].includes(order.status)&&order.receivedQuantity===0){
-                    actions.push(action("Anuluj",()=>orderStatus(order,"cancel")));
+                    actions.push(action(EltroI18n.t("Anuluj"),()=>orderStatus(order,"cancel")));
                 }
                 return [
                     manufacturer(order.manufacturer),order.productName+" / "+order.sku+" · #"+order.id,
@@ -1192,13 +1195,13 @@
         await loadOrders();
 
         const form=editor("order-editor",
-            order?"Edytuj zamówienie #"+order.id:"Dodaj produkt do zamówienia",[
-                field("quantity","Liczba sztuk","number",'min="1" max="2147483647" step="1" required'),
-                field("remarks","Uwagi","textarea",'maxlength="2000"')
+            order?EltroI18n.t("Edytuj zamówienie #")+order.id:EltroI18n.t("Dodaj produkt do zamówienia"),[
+                field("quantity",EltroI18n.t("Liczba sztuk"),"number",'min="1" max="2147483647" step="1" required'),
+                field("remarks",EltroI18n.t("Uwagi"),"textarea",'maxlength="2000"')
             ],order||{quantity:1},async(data,f)=>{
                 requirePermission("ORDER_MANAGE");
                 const id=Number(f.elements.productId.value);
-                if(!id)throw new Error("Wybierz produkt z wyników wyszukiwania.");
+                if(!id)throw new Error(EltroI18n.t("Wybierz produkt z wyników wyszukiwania."));
                 await write(order?"/api/purchase-orders/"+order.id:"/api/purchase-orders",
                     order?"PUT":"POST",{...data,productId:id});
                 await loadOrders();
@@ -1209,8 +1212,8 @@
         form.querySelector(".grid").after(info);
         const pick=picker(form,p=>{
             info.textContent=p?
-                "Stan: "+p.quantity+" szt. · Minimum: "+p.minimumQuantity+
-                " · W aktywnych zamówieniach: "+pending(p.id)+" szt.":"Wybierz produkt.";
+                EltroI18n.t("Stan: ")+p.quantity+EltroI18n.t(" szt. · Minimum: ")+p.minimumQuantity+
+                EltroI18n.t(" · W aktywnych zamówieniach: ")+pending(p.id)+EltroI18n.t(" szt."):EltroI18n.t("Wybierz produkt.");
         });
 
         if(order){
@@ -1227,28 +1230,28 @@
     async function orderStatus(order,operation){
         requirePermission("ORDER_MANAGE");
         if(!confirm(operation==="ordered"?
-            "Czy zamówienie zostało przekazane producentowi?":"Anulować to zamówienie?"))return;
+            EltroI18n.t("Czy zamówienie zostało przekazane producentowi?"):EltroI18n.t("Anulować to zamówienie?")))return;
 
         await write("/api/purchase-orders/"+order.id+"/"+operation,"PATCH");
         $("order-editor").hidden=true;
         await loadOrders();
-        message("Status zamówienia zapisany.");
+        message(EltroI18n.t("Status zamówienia zapisany."));
     }
 
     async function orderHistory(order){
         const events=await api("/api/purchase-orders/"+order.id+"/history");
         const box=$("order-history");
         box.hidden=false;
-        box.innerHTML='<div class="toolbar"><h2>Historia #'+order.id+' — '+esc(order.productName)+'</h2><button class="secondary">Zamknij</button></div><div data-table></div>';
+        box.innerHTML=EltroI18n.fragment("<div class=\"toolbar\"><h2>Historia #")+order.id+' — '+esc(order.productName)+EltroI18n.fragment("</h2><button class=\"secondary\">Zamknij</button></div><div data-table></div>");
         box.querySelector("button").onclick=()=>{box.hidden=true;};
 
         const names={
-            CREATED:"Utworzono",UPDATED:"Zmieniono dane",ORDERED:"Zamówiono",
-            CANCELLED:"Anulowano",DELIVERY_RECEIVED:"Przyjęto dostawę",
-            DELIVERY_CORRECTED:"Skorygowano dostawę",RECEIVED:"Przyjęto dostawę"
+            CREATED:EltroI18n.t("Utworzono"),UPDATED:EltroI18n.t("Zmieniono dane"),ORDERED:EltroI18n.t("Zamówiono"),
+            CANCELLED:EltroI18n.t("Anulowano"),DELIVERY_RECEIVED:EltroI18n.t("Przyjęto dostawę"),
+            DELIVERY_CORRECTED:EltroI18n.t("Skorygowano dostawę"),RECEIVED:EltroI18n.t("Przyjęto dostawę")
         };
         table(box.querySelector("[data-table]"),
-            ["Data","Operacja","Ilość zamówiona","Status","Pracownik","Uwagi"],
+            [EltroI18n.t("Data"),EltroI18n.t("Operacja"),EltroI18n.t("Ilość zamówiona"),EltroI18n.t("Status"),EltroI18n.t("Pracownik"),EltroI18n.t("Uwagi")],
             events.map(event=>[
                 dateTime(event.createdAt),names[event.eventType]||event.eventType,
                 (event.previousQuantity??"—")+" → "+event.newQuantity,
@@ -1288,8 +1291,8 @@
 
     function scopeLabel(){
         return can("REPORT_ALL")?(
-            $("report-user").value?$("report-user").selectedOptions[0].textContent:"Cały sklep"
-        ):"Moja sprzedaż — "+state.user.username;
+            $("report-user").value?$("report-user").selectedOptions[0].textContent:EltroI18n.t("Cały sklep")
+        ):EltroI18n.t("Moja sprzedaż — ")+state.user.username;
     }
 
     function invalidateReport(){
@@ -1304,7 +1307,7 @@
             $("report-user-label").hidden=!can("REPORT_ALL");
             if(can("REPORT_ALL")){
                 const users=await api("/api/reports/sales/users");
-                $("report-user").innerHTML='<option value="">Cały sklep</option>'+
+                $("report-user").innerHTML=EltroI18n.fragment("<option value=\"\">Cały sklep</option>")+
                     users.map(user=>'<option value="'+user.id+'">'+esc(user.username)+'</option>').join("");
             }
             state.usersLoaded=true;
@@ -1319,18 +1322,18 @@
         const data=await api("/api/reports/sales/dashboard"+(query?"?"+query:""));
         if(query!==scopeQuery())return;
 
-        $("stats-scope").textContent=scopeLabel()+" · Data w sklepie: "+data.date;
+        $("stats-scope").textContent=scopeLabel()+EltroI18n.t(" · Data w sklepie: ")+data.date;
         for(const key of ["today","month"]){
             const total=data[key];
             $("stats-"+key+"-gross").textContent=money(total.totalGross);
-            $("stats-"+key+"-details").textContent=total.quantity+" szt. · "+
-                total.saleCount+" transakcji · "+money(total.totalNet)+" netto";
+            $("stats-"+key+"-details").textContent=total.quantity+EltroI18n.t(" szt. · ")+
+                total.saleCount+EltroI18n.t(" transakcji · ")+money(total.totalNet)+EltroI18n.t(" netto");
         }
     }
 
     function totalText(total){
-        return total.saleCount+" transakcji · "+total.quantity+" szt. · "+
-            money(total.totalNet)+" netto · "+money(total.totalGross)+" brutto";
+        return total.saleCount+EltroI18n.t(" transakcji · ")+total.quantity+EltroI18n.t(" szt. · ")+
+            money(total.totalNet)+" netto · "+money(total.totalGross)+EltroI18n.t(" brutto");
     }
 
     function totalRow(label,total){
@@ -1339,7 +1342,7 @@
 
     async function runReport(){
         const from=$("report-from").value,to=$("report-to").value;
-        if(!from||!to||from>to)throw new Error("Podaj prawidłowy zakres dat.");
+        if(!from||!to||from>to)throw new Error(EltroI18n.t("Podaj prawidłowy zakres dat."));
         invalidateReport();
 
         const sequence=state.sequence,scope=scopeLabel();
@@ -1354,21 +1357,21 @@
         $("report-title").textContent=scope+" · "+data.from+" — "+data.to;
         $("report-total").textContent=totalText(data.totals);
 
-        table($("report-period-table"),["Okres","Transakcje","Sztuki","Netto","Brutto"],
+        table($("report-period-table"),[EltroI18n.t("Okres"),EltroI18n.t("Transakcje"),EltroI18n.t("Sztuki"),EltroI18n.t("Netto"),EltroI18n.t("Brutto")],
             data.periods.map(period=>totalRow(period.period,period.totals)));
 
         $("report-employees-card").hidden=!can("REPORT_ALL");
-        table($("report-employee-table"),["Pracownik","Transakcje","Sztuki","Netto","Brutto"],
-            data.employees.map(employee=>totalRow(employee.username||"Nieprzypisana (starsze dane)",employee.totals)));
+        table($("report-employee-table"),[EltroI18n.t("Pracownik"),EltroI18n.t("Transakcje"),EltroI18n.t("Sztuki"),EltroI18n.t("Netto"),EltroI18n.t("Brutto")],
+            data.employees.map(employee=>totalRow(employee.username||EltroI18n.t("Nieprzypisana (starsze dane)"),employee.totals)));
 
         table($("report-sale-table"),
-            ["ID","Data","Pracownik","Sztuki","Netto","Brutto","Uwagi","Akcje"],
+            ["ID",EltroI18n.t("Data"),EltroI18n.t("Pracownik"),EltroI18n.t("Sztuki"),EltroI18n.t("Netto"),EltroI18n.t("Brutto"),EltroI18n.t("Uwagi"),EltroI18n.t("Akcje")],
             data.sales.map(sale=>[
-                sale.id,dateTime(sale.soldAt),sale.username||"Nieprzypisana",sale.quantity,
+                sale.id,dateTime(sale.soldAt),sale.username||EltroI18n.t("Nieprzypisana"),sale.quantity,
                 money(sale.totalNet),money(sale.totalGross),sale.remarks,
                 [
-                    action("Szczegóły",()=>showSale(sale.id)),
-                    action("Faktura / dokumenty",()=>openDocuments(sale.id))
+                    action(EltroI18n.t("Szczegóły"),()=>showSale(sale.id)),
+                    action(EltroI18n.t("Faktura / dokumenty"),()=>openDocuments(sale.id))
                 ]
             ]));
     }
@@ -1396,7 +1399,7 @@
     function printDocument(title,description,sections){
         const sheet=$("print-sheet");
         sheet.innerHTML='<img src="/eltro-logo.png" alt="Eltro"><h1>'+esc(title)+
-            '</h1><p>'+esc(description)+'</p><p>Wydruk: '+
+            '</h1><p>'+esc(description)+EltroI18n.fragment("</p><p>Wydruk: ")+
             esc(dateTime(new Date().toISOString()))+'</p>';
 
         for(const section of sections){
@@ -1415,13 +1418,13 @@
         const orders=filteredOrders();
         if(!orders.length)return;
 
-        printDocument("Zamówienia towaru",
-            "Producent: "+($("order-manufacturer").value||"Wszyscy")+
-            " · Status: "+$("order-status").selectedOptions[0].textContent+
-            " · Wyszukiwanie: "+($("order-search").value||"—"),[
+        printDocument(EltroI18n.t("Zamówienia towaru"),
+            EltroI18n.t("Producent: ")+($("order-manufacturer").value||EltroI18n.t("Wszyscy"))+
+            EltroI18n.t(" · Status: ")+$("order-status").selectedOptions[0].textContent+
+            EltroI18n.t(" · Wyszukiwanie: ")+($("order-search").value||"—"),[
                 {
-                    title:"Lista zamówień",
-                    headers:["ID","Producent","Produkt / SKU","Zamówiono","Przyjęto","Status","Uwagi"],
+                    title:EltroI18n.t("Lista zamówień"),
+                    headers:["ID",EltroI18n.t("Producent"),EltroI18n.t("Produkt / SKU"),EltroI18n.t("Zamówiono"),EltroI18n.t("Przyjęto"),EltroI18n.t("Status"),EltroI18n.t("Uwagi")],
                     rows:orders.map(order=>[
                         order.id,manufacturer(order.manufacturer),order.productName+" / "+order.sku,
                         order.quantity,order.receivedQuantity,statuses[order.status],order.remarks
@@ -1434,34 +1437,34 @@
         if(!state.report)return;
         const {data,scope}=state.report;
         const sections=[{
-            title:"Podsumowanie okresów",
-            headers:["Okres","Transakcje","Sztuki","Netto","Brutto"],
+            title:EltroI18n.t("Podsumowanie okresów"),
+            headers:[EltroI18n.t("Okres"),EltroI18n.t("Transakcje"),EltroI18n.t("Sztuki"),EltroI18n.t("Netto"),EltroI18n.t("Brutto")],
             rows:data.periods.map(period=>totalRow(period.period,period.totals))
         }];
 
         if(can("REPORT_ALL"))sections.push({
-            title:"Pracownicy",
-            headers:["Pracownik","Transakcje","Sztuki","Netto","Brutto"],
-            rows:data.employees.map(employee=>totalRow(employee.username||"Nieprzypisana",employee.totals))
+            title:EltroI18n.t("Pracownicy"),
+            headers:[EltroI18n.t("Pracownik"),EltroI18n.t("Transakcje"),EltroI18n.t("Sztuki"),EltroI18n.t("Netto"),EltroI18n.t("Brutto")],
+            rows:data.employees.map(employee=>totalRow(employee.username||EltroI18n.t("Nieprzypisana"),employee.totals))
         });
 
         sections.push({
-            title:"Historia sprzedaży",
-            headers:["ID","Data","Pracownik","Sztuki","Netto","Brutto","Uwagi"],
+            title:EltroI18n.t("Historia sprzedaży"),
+            headers:["ID",EltroI18n.t("Data"),EltroI18n.t("Pracownik"),EltroI18n.t("Sztuki"),EltroI18n.t("Netto"),EltroI18n.t("Brutto"),EltroI18n.t("Uwagi")],
             rows:data.sales.map(sale=>[
-                sale.id,dateTime(sale.soldAt),sale.username||"Nieprzypisana",sale.quantity,
+                sale.id,dateTime(sale.soldAt),sale.username||EltroI18n.t("Nieprzypisana"),sale.quantity,
                 money(sale.totalNet),money(sale.totalGross),sale.remarks
             ])
         });
 
-        printDocument("Raport sprzedaży",
+        printDocument(EltroI18n.t("Raport sprzedaży"),
             scope+" · "+data.from+" — "+data.to+" · "+totalText(data.totals),sections);
     };
 
     async function initialize(){
         state.user=await api("/api/me");
         $("current-user").textContent=state.user.username+" · "+
-            (admin()?"Administrator":"Sprzedawca");
+            (admin()?EltroI18n.t("Administrator"):EltroI18n.t("Sprzedawca"));
         $("users-link").hidden=!admin();
         $("new-product").hidden=!can("PRODUCT_CREATE");
         $("new-customer").hidden=!can("CUSTOMER_CREATE");
@@ -1476,6 +1479,21 @@
             show(view);
         }
     }
+
+
+    let languageDraftDirty=false;
+    document.addEventListener("input",event=>{
+        if(event.target.closest("#sale-form, #product-editor, #customer-editor, #delivery-editor, #delivery-correction, #order-editor"))languageDraftDirty=true;
+    });
+    window.eltroBeforeLanguageChange=()=>!languageDraftDirty||confirm(EltroI18n.getLanguage()==="en"
+        ?"Changing language reloads the panel and discards unsaved form changes. Continue?"
+        :"Zmiana języka odświeży panel i usunie niezapisane zmiany formularza. Kontynuować?");
+    document.addEventListener("eltro:languagechange",()=>{
+        const view=document.querySelector("nav button.active")?.dataset.view;
+        const url=new URL(location.href);
+        if(view)url.searchParams.set("view",view);
+        location.replace(url.href);
+    });
 
     initialize().catch(error=>message(error.message,true));
 </script>
